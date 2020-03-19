@@ -1,15 +1,25 @@
 package media;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 
-public final class MusicFile
+public final class MusicFile implements Serializable
 {
+    private static final long serialVersionUID = -1176320510135364380L;
     private String trackName;
     private String artistName;
     private String albumInfo;
     private String genre;
     private byte[] musicFileExtract;
+
+    public MusicFile(String trackName, String artistName, String albumInfo, String genre, byte[] musicFileExtract) {
+        this.trackName = trackName;
+        this.artistName = artistName;
+        this.albumInfo = albumInfo;
+        this.genre = genre;
+        this.musicFileExtract = musicFileExtract;
+    }
 
     public void setTrackName(String trackName)
     {
@@ -59,6 +69,18 @@ public final class MusicFile
     public byte[] getMusicFileExtract()
     {
         return musicFileExtract;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "MusicFile{" +
+                "trackName='" + trackName + '\'' +
+                ", artistName='" + artistName + '\'' +
+                ", albumInfo='" + albumInfo + '\'' +
+                ", genre='" + genre + '\'' +
+                ", number of bits: "+musicFileExtract.length +
+                '}';
     }
 
     @Override
