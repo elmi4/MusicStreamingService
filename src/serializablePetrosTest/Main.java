@@ -1,5 +1,8 @@
 package serializablePetrosTest;
 
+import com.mpatric.mp3agic.InvalidDataException;
+import com.mpatric.mp3agic.Mp3File;
+import com.mpatric.mp3agic.UnsupportedTagException;
 import media.MusicFile;
 
 import java.io.*;
@@ -22,18 +25,28 @@ public class Main
 {
     private final String FILE_DIRECTORY = "files/";
 
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) throws InvalidDataException, IOException, UnsupportedTagException {
         new Main().run();
     }
 
-    public void run()
-    {
-        MusicFile mf = new MusicFile("The Poet And The Pendulum", "NightWish",
-                "Dark Passion Play","Symphonic Metal", new byte[]{0,0,1,1,0,0,1});
+    public void run() throws InvalidDataException, IOException, UnsupportedTagException {
+        Mp3File mp3file = new Mp3File("files/Tracks/3-Doors-Down-Be-Like-That.mp3");
+        MusicFile mf = new MusicFile(mp3file);
 
         serializeObject(mf);
         System.out.println(deserializeObject());
+    }
+
+    public void readSongs() throws InvalidDataException, IOException, UnsupportedTagException {
+        File songsFolder = new File ("files/Tracks");
+        File[] songs = songsFolder.listFiles();
+        for (File song : songs) {
+            if (song != null) {
+                Mp3File mp3file = new Mp3File(song);
+                MusicFile musicFile = new MusicFile(mp3file);
+                //to complete when needed
+            }
+        }
     }
 
     public void serializeObject(final MusicFile mf)
@@ -60,6 +73,5 @@ public class Main
             return null;
         }
     }
-
 }
 

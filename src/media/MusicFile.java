@@ -1,5 +1,6 @@
 package media;
 
+import com.mpatric.mp3agic.Mp3File;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
@@ -11,14 +12,28 @@ public final class MusicFile implements Serializable
     private String artistName;
     private String albumInfo;
     private String genre;
-    private byte[] musicFileExtract;
+    private byte[] musicFileExtract;       //do not use musicFileExtract for now, as it is always null.
+    private String tag;
 
-    public MusicFile(String trackName, String artistName, String albumInfo, String genre, byte[] musicFileExtract) {
-        this.trackName = trackName;
-        this.artistName = artistName;
-        this.albumInfo = albumInfo;
-        this.genre = genre;
-        this.musicFileExtract = musicFileExtract;
+
+    public MusicFile(Mp3File song) {
+        if (song.hasId3v1Tag()) {
+            trackName = song.getId3v1Tag().getTitle();
+            artistName = song.getId3v1Tag().getArtist();
+            albumInfo = song.getId3v1Tag().getAlbum();
+            genre = song.getId3v1Tag().getGenreDescription();
+            song.removeId3v1Tag();
+            tag = "Id3v1";
+        }
+        else if (song.hasId3v2Tag()) {
+            trackName = song.getId3v2Tag().getTitle();
+            artistName = song.getId3v2Tag().getArtist();
+            albumInfo = song.getId3v2Tag().getAlbum();
+            genre = song.getId3v2Tag().getGenreDescription();
+            song.removeId3v2Tag();
+            tag = "id3v2";
+        }
+        else {System.out.println ("Unknown tag");}
     }
 
     public void setTrackName(String trackName)
@@ -79,7 +94,7 @@ public final class MusicFile implements Serializable
                 ", artistName='" + artistName + '\'' +
                 ", albumInfo='" + albumInfo + '\'' +
                 ", genre='" + genre + '\'' +
-                ", number of bits: "+musicFileExtract.length +
+                // ", number of bits: "+musicFileExtract.length +
                 '}';
     }
 
