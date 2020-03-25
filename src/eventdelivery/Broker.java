@@ -2,6 +2,9 @@ package eventdelivery;
 
 import media.ArtistName;
 
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,8 +16,32 @@ public final class Broker extends Node
 
     public List<Consumer> registeredUsers;
     public List<Publisher> registeredPublishers;
+    private String ip;
+    private int portNumber;
+    public BigInteger hashKey;
 
-    public void calculateKeys(){}
+    public Broker (String ip, int portNumber){
+        this.ip= ip;
+        this.portNumber = portNumber;
+    }
+
+
+    public void calculateKeys(){
+        try {
+            String input = ip + String.valueOf(portNumber);
+
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            byte[] messageDigest = md.digest(input.getBytes());
+
+            BigInteger hashkey = new BigInteger(1, messageDigest);
+
+        }
+
+        // For specifying wrong message digest algorithms
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public Socket acceptConnection(int serverPort){
         ServerSocket server = null;
@@ -50,7 +77,7 @@ public final class Broker extends Node
     }
 
     public void initiateServer(){   //Runs in an infinite loop
-        Socket newConnection = acceptConnection(4321);
+        Socket newConnection = acceptConnection(portNumber);
         System.out.println("Consumer connected");
         System.out.println("Creating handler");
         ConsumerHandler handler = new ConsumerHandler(newConnection);   //Making a handler
@@ -58,7 +85,8 @@ public final class Broker extends Node
     }
 
     public static void main(String args[]){
-        Broker test = new Broker();
+        Broker test = new Broker("", 4321);
         test.initiateServer();
+        System.out.println("\n"+test.hashKey);
     }
 }
