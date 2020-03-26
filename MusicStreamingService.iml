@@ -19,6 +19,15 @@
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
+          <root url="jar://E:/Petros/Programming/jar_files/mp3agic-0.9.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
           <root url="jar://$USER_HOME$/Desktop/library/mp3agic-0.9.0.jar!/" />
         </CLASSES>
         <JAVADOC />

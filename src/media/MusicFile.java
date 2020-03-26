@@ -12,11 +12,16 @@ public final class MusicFile implements Serializable
     private String artistName;
     private String albumInfo;
     private String genre;
+    private int chunkNumber;
+    private int totalChunks;
     private byte[] musicFileExtract;       //do not use musicFileExtract for now, as it is always null.
     private String tag;
 
 
-    public MusicFile(Mp3File song) {
+    public MusicFile(){}
+
+    public MusicFile(Mp3File song)
+    {
         if (song.hasId3v1Tag()) {
             trackName = song.getId3v1Tag().getTitle();
             artistName = song.getId3v1Tag().getArtist();
@@ -34,6 +39,18 @@ public final class MusicFile implements Serializable
             tag = "id3v2";
         }
         else {System.out.println ("Unknown tag");}
+    }
+
+    public MusicFile(String trackName, String artistName, String albumInfo, String genre,
+                     int chunkNumber, int totalChunks, byte[] musicFileExtract)
+    {
+        this.trackName = trackName;
+        this.artistName = artistName;
+        this.albumInfo = albumInfo;
+        this.genre = genre;
+        this.musicFileExtract = musicFileExtract;
+        this.chunkNumber = chunkNumber;
+        this.totalChunks = totalChunks;
     }
 
     public void setTrackName(String trackName)
@@ -81,6 +98,14 @@ public final class MusicFile implements Serializable
         return genre;
     }
 
+    public int getChunkNumber() { return chunkNumber; }
+
+    public void setChunkNumber(int chunkNumber) { this.chunkNumber = chunkNumber; }
+
+    public int getTotalChunks() { return totalChunks; }
+
+    public void setTotalChunks(int totalChunks) { this.totalChunks = totalChunks; }
+
     public byte[] getMusicFileExtract()
     {
         return musicFileExtract;
@@ -118,4 +143,6 @@ public final class MusicFile implements Serializable
         result = 31 * result + Arrays.hashCode(musicFileExtract);
         return result;
     }
+
+
 }

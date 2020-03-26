@@ -24,6 +24,7 @@ import java.io.*;
 public class Main
 {
     private final String FILE_DIRECTORY = "files/";
+    byte[] bar = null;
 
     public static void main(String[] args) throws InvalidDataException, IOException, UnsupportedTagException {
         new Main().run();
@@ -33,8 +34,8 @@ public class Main
         Mp3File mp3file = new Mp3File("files/Tracks/3-Doors-Down-Be-Like-That.mp3");
         MusicFile mf = new MusicFile(mp3file);
 
-        serializeObject(mf);
-        System.out.println(deserializeObject());
+        serializeObjectWithByteArray(mf);
+        System.out.println(deserializeObjectWithByteArray());
     }
 
     public void readSongs() throws InvalidDataException, IOException, UnsupportedTagException {
@@ -49,18 +50,28 @@ public class Main
         }
     }
 
-    public void serializeObject(final MusicFile mf)
+    public void serializeObjectWithByteArray(final MusicFile mf)
     {
-        try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(FILE_DIRECTORY+"musicfile.ser"))) {
+        try(ByteArrayOutputStream baOut = new ByteArrayOutputStream();
+                ObjectOutputStream out = new ObjectOutputStream(baOut)) {
             out.writeObject(mf);
-            out.close();
-            System.out.print("Serialized data is saved in musicfile.ser\n");
+            bar = baOut.toByteArray();
+            //printByteArray(bar);
         } catch (IOException i) {
             i.printStackTrace();
         }
     }
 
-    public MusicFile deserializeObject()
+    public void serializeObjectWithFile(final MusicFile mf)
+    {
+        try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(FILE_DIRECTORY+"test.ser"))){
+            out.writeObject(mf);
+        } catch (IOException i) {
+            i.printStackTrace();
+        }
+    }
+
+    public MusicFile deserializeObjectWithFile()
     {
         try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(FILE_DIRECTORY+"musicfile.ser"))) {
             return (MusicFile) in.readObject();
@@ -71,6 +82,28 @@ public class Main
             System.out.println("MusicFile class not found");
             c.printStackTrace();
             return null;
+        }
+    }
+
+    public MusicFile deserializeObjectWithByteArray()
+    {
+        try(ByteArrayInputStream baIn = new ByteArrayInputStream(bar);
+                ObjectInputStream in = new ObjectInputStream(baIn)) {
+            return (MusicFile) in.readObject();
+        } catch (IOException i) {
+            i.printStackTrace();
+            return null;
+        } catch (ClassNotFoundException c) {
+            System.out.println("MusicFile class not found");
+            c.printStackTrace();
+            return null;
+        }
+    }
+
+    void printByteArray(byte[] array)
+    {
+        for(byte b : array){
+            System.out.println(b);
         }
     }
 }

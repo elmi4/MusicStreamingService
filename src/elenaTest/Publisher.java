@@ -6,6 +6,7 @@ import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.UnsupportedTagException;
 import media.ArtistName;
+import media.MusicFile;
 import media.Value;
 
 public final class Publisher {
@@ -83,6 +84,21 @@ public final class Publisher {
     }
 
     //public void notifyFailure(Broker broker) {}
+
+
+    private byte[] serializeChunk(final MusicFile chunk)
+    {
+        try(ByteArrayOutputStream baOut = new ByteArrayOutputStream();
+            ObjectOutputStream out = new ObjectOutputStream(baOut)) {
+            out.writeObject(chunk);
+            return baOut.toByteArray();
+        } catch (IOException i) {
+            i.printStackTrace();
+        }
+
+        return null;
+    }
+
 
     public static void main(String args[]) {
 
