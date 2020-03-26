@@ -2,7 +2,12 @@ package elenaTest;
 
 import media.ArtistName;
 
+import java.io.BufferedInputStream;
+import java.io.ObjectInputStream;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -13,12 +18,12 @@ public class Broker1 {
     private String ip;
     private int portNumber;
     private BigInteger brokerHashKey;
-    private HashMap<String,ArrayList<ArtistName>> map = new HashMap<String,ArrayList<ArtistName>>();        //maps publisher to artists served by broker,
-    //(publisher is a string, change that later)
-    private HashMap<String,BigInteger> allBrokersList = new HashMap<String, BigInteger>();                  //maps broker to hashkey,
+    private HashMap<Integer, ArrayList<ArtistName>> map = new HashMap<Integer, ArrayList<ArtistName>>();        //maps publisher to artists served by broker,
+                                                                                                                // (publisher is a defined from port#, change that later)
+    private HashMap<String, BigInteger> allBrokersList = new HashMap<String, BigInteger>();                  //maps broker to hashkey,
 
-    public Broker1 (String ip, int portNumber){
-        this.ip= ip;
+    public Broker1(String ip, int portNumber) {
+        this.ip = ip;
         this.portNumber = portNumber;
     }
 
@@ -34,64 +39,85 @@ public class Broker1 {
             System.out.println(brokerHashKey);
 
 
-        }
-        catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }
-    public void receiveArtistList(){
+
+    public void receiveArtistList(int port) {
         //this method receives artist list from a publisher and adds it to the map
+        Socket socket = null;
+        ServerSocket server = null;
+        ObjectInputStream in = null;
 
-        //test values:
-        String artistname1 = "AAA";
-        String artistname2 = "BBB";
-        String artistname3 = "CCC";
-        String artistname4 = "DDD";
-        String artistname5 = "EEE";
-        String artistname6 = "FFF";
-        map.put("publisher1", new ArrayList<ArtistName>());
-        map.put("publisher2", new ArrayList<ArtistName>());
+        try {
+            server = new ServerSocket(port);
+            System.out.println("Server started");
 
-        map.get("publisher1").add(new ArtistName(artistname1));             //artists 1,2,3 come from publisher 1
-        map.get("publisher1").add(new ArtistName(artistname2));
-        map.get("publisher1").add(new ArtistName(artistname3));
-        map.get("publisher2").add(new ArtistName(artistname4));             //artists 4,5,6 come from publisher 2
-        map.get("publisher2").add(new ArtistName(artistname5));
-        map.get("publisher2").add(new ArtistName(artistname6));
+            System.out.println("Waiting for a client ...");
 
-        for (String pub: map.keySet()){
-            System.out.println(pub);
+            socket = server.accept();
+            System.out.println("Client accepted");
+
+            in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+
+            try {
+                String[] artistList = (String[])in.readObject();
+                for(String artist: artistList){
+                    hashTopic(artist, port);
+                }
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+
+            System.out.println("Closing connection");
+
+            // close connection
+            socket.close();
+            in.close();
+        } catch (IOException i) {
+            System.out.println(i);
+        }
+
+        for (int pub : map.keySet()) {                      //test
+            System.out.println("Publisher " + pub);
             ArrayList<ArtistName> list = map.get(pub);
-            for(ArtistName name: list) {
+            for (ArtistName name : list) {
                 System.out.println(name.getArtistName());
             }
             System.out.println(" ");
         }
     }
-    public void receiveOtherBrokersHashKey(){               //SOCKETS
-        //....
 
-        allBrokersList.put("broker1",new BigInteger("6236953858533838745673820483269577160206417064359"));
-        //allBrokersList[2] = new BigInteger("4729562475902758467673820483269577160206417064359");
-        //allBrokersList[3] = new BigInteger("2457246555552763663654827467286487160206417064359");
+    public void receiveOtherBrokersHashKey() {               //SOCKETS ή και οχι
 
-        //Arrays.sort(allBrokersList);
     }
-    public void hashTopic(){
-        for (String pub: map.keySet()){
-            System.out.println(pub);
-            ArrayList<ArtistName> list = map.get(pub);
-            for(ArtistName name: list) {
-                //keep only artists within range
+
+    public void hashTopic(String artist, int publisherId) {     //for now publisher id is port#
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            byte[] messageDigest = md.digest(artist.getBytes());
+
+            BigInteger artistHash = new BigInteger(1, messageDigest);
+            System.out.println(artistHash + "       " + artist);                                                 //test
+            if(artistHash.compareTo(brokerHashKey)<0 || artistHash.equals(brokerHashKey)){
+                if (map.get(publisherId) == null) {
+                    map.put(publisherId, new ArrayList<ArtistName>());
+                }
+                map.get(publisherId).add(new ArtistName(artist));
             }
-            System.out.println(" ");
+
+
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
 
     }
-    public static void main(String args[]){
-        Broker1 test = new Broker1("123.123.123.123", 4321);
+
+    public static void main(String args[]) {
+        Broker1 test = new Broker1("123.123.123.123", 4323);
         test.calculateKey();
-        test.receiveArtistList();
+        test.receiveArtistList(4323);
         test.receiveOtherBrokersHashKey();
     }
 }

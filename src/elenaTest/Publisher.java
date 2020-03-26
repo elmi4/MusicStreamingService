@@ -2,6 +2,8 @@ package elenaTest;
 
 import java.util.*;
 import java.io.*;
+import java.net.*;
+
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.UnsupportedTagException;
@@ -10,10 +12,10 @@ import media.MusicFile;
 import media.Value;
 
 public final class Publisher {
-    private HashMap<ArtistName,ArrayList<String>> map = new HashMap<>();            //Maps Artists to their songs
+    private HashMap<ArtistName, ArrayList<String>> map = new HashMap<>();            //Maps Artists to their songs
     private String dataFolder;
 
-    public Publisher(String dataFolder){
+    public Publisher(String dataFolder) {
         this.dataFolder = dataFolder;
     }
 
@@ -22,8 +24,8 @@ public final class Publisher {
         File folder = new File(dataFolder);
         File[] mp3s = folder.listFiles();
 
-        ArtistName artist = null;
-        String title = "";
+        ArtistName artist;
+        String title;
 
         try {
             for (File mp3 : mp3s) {
@@ -37,13 +39,12 @@ public final class Publisher {
                 } else if (song.hasId3v2Tag()) {
                     title = song.getId3v2Tag().getTitle();
                     artist = new ArtistName(song.getId3v2Tag().getArtist());
-                }
-                else {
+                } else {
                     title = null;
                     artist = null;
                 }
 
-                if (title != null && artist.getArtistName()!= null) {
+                if (title != null && artist.getArtistName() != null) {
                     //System.out.println("Artist: " + artist.getArtistName() + " Title: " + title);
                     if (map.get(artist) == null) {
                         map.put(artist, new ArrayList<String>());
@@ -56,21 +57,56 @@ public final class Publisher {
             System.err.println("Exception");
         }
 
-        for (ArtistName name: map.keySet()){                //test
+        for (ArtistName name : map.keySet()) {                //test
             String key = name.getArtistName().toUpperCase();
             System.out.println(key);
-            for(String songTitleList: map.get(name)) {
+            for (String songTitleList : map.get(name)) {
                 System.out.println(songTitleList);
             }
             System.out.println(" ");
         }
     }
-    public void informBroker () {          //sends all Artists' name to each broker through socket communication
-        for (ArtistName artist: map.keySet()){
-            String key = artist.getArtistName();
 
-            //variable key is send to broker
+    public void informBroker(String address, int port) {          //sends all Artists' name to each broker through socket communication
+        Socket socket = null;
+        ObjectOutputStream out = null;
+
+        // constructor to put ip address and port
+
+        // establish a connection
+        try {
+            socket = new Socket(address, port);
+            System.out.println("Connected");
+
+            out = new ObjectOutputStream(socket.getOutputStream());           // sends output to the socket
+        } catch (UnknownHostException u) {
+            System.out.println(u);
+        } catch (IOException i) {
+            System.out.println(i);
         }
+
+        int size = map.keySet().size();                                 //make static array which can be send through socket
+        String artistList[] = new String[size];
+        int i = 0;
+        for (ArtistName artist : map.keySet()) {
+            artistList[i++] = artist.getArtistName();
+            System.out.println(artist.getArtistName());
+        }
+
+        try {
+            out.writeObject(artistList);                  //variable key is send to broker
+            out.flush();
+        } catch (IOException e) {
+            System.out.println(e);
+        } finally {
+            try {
+                out.close();
+                socket.close();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        }
+
 
     }
 
@@ -86,10 +122,9 @@ public final class Publisher {
     //public void notifyFailure(Broker broker) {}
 
 
-    private byte[] serializeChunk(final MusicFile chunk)
-    {
-        try(ByteArrayOutputStream baOut = new ByteArrayOutputStream();
-            ObjectOutputStream out = new ObjectOutputStream(baOut)) {
+    private byte[] serializeChunk(final MusicFile chunk) {
+        try (ByteArrayOutputStream baOut = new ByteArrayOutputStream();
+             ObjectOutputStream out = new ObjectOutputStream(baOut)) {
             out.writeObject(chunk);
             return baOut.toByteArray();
         } catch (IOException i) {
@@ -105,6 +140,7 @@ public final class Publisher {
         Publisher p = new Publisher("C:\\Users\\elena\\Desktop\\mp3_dataset");
 
         p.init();
+        p.informBroker("127.0.0.1", 4323);
 
 
     }

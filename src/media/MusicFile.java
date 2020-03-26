@@ -1,12 +1,12 @@
 package media;
 
 import com.mpatric.mp3agic.Mp3File;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 
-public final class MusicFile implements Serializable
-{
+public final class MusicFile implements Serializable {
     private static final long serialVersionUID = -1176320510135364380L;
     private String trackName;
     private String artistName;
@@ -18,10 +18,10 @@ public final class MusicFile implements Serializable
     private String tag;
 
 
-    public MusicFile(){}
+    public MusicFile() {
+    }
 
-    public MusicFile(Mp3File song)
-    {
+    public MusicFile(Mp3File song) {
         if (song.hasId3v1Tag()) {
             trackName = song.getId3v1Tag().getTitle();
             artistName = song.getId3v1Tag().getArtist();
@@ -29,21 +29,20 @@ public final class MusicFile implements Serializable
             genre = song.getId3v1Tag().getGenreDescription();
             song.removeId3v1Tag();
             tag = "Id3v1";
-        }
-        else if (song.hasId3v2Tag()) {
+        } else if (song.hasId3v2Tag()) {
             trackName = song.getId3v2Tag().getTitle();
             artistName = song.getId3v2Tag().getArtist();
             albumInfo = song.getId3v2Tag().getAlbum();
             genre = song.getId3v2Tag().getGenreDescription();
             song.removeId3v2Tag();
             tag = "id3v2";
+        } else {
+            System.out.println("Unknown tag");
         }
-        else {System.out.println ("Unknown tag");}
     }
 
     public MusicFile(String trackName, String artistName, String albumInfo, String genre,
-                     int chunkNumber, int totalChunks, byte[] musicFileExtract)
-    {
+                     int chunkNumber, int totalChunks, byte[] musicFileExtract) {
         this.trackName = trackName;
         this.artistName = artistName;
         this.albumInfo = albumInfo;
@@ -53,67 +52,64 @@ public final class MusicFile implements Serializable
         this.totalChunks = totalChunks;
     }
 
-    public void setTrackName(String trackName)
-    {
+    public void setTrackName(String trackName) {
         this.trackName = trackName;
     }
 
-    public void setArtistName(String artistName)
-    {
+    public void setArtistName(String artistName) {
         this.artistName = artistName;
     }
 
-    public void setAlbumInfo(String albumInfo)
-    {
+    public void setAlbumInfo(String albumInfo) {
         this.albumInfo = albumInfo;
     }
 
-    public void setGenre(String genre)
-    {
+    public void setGenre(String genre) {
         this.genre = genre;
     }
 
-    public void setMusicFileExtract(byte[] musicFileExtract)
-    {
+    public void setMusicFileExtract(byte[] musicFileExtract) {
         this.musicFileExtract = musicFileExtract;
     }
 
-    public String getTrackName()
-    {
+    public String getTrackName() {
         return trackName;
     }
 
-    public String getArtistName()
-    {
+    public String getArtistName() {
         return artistName;
     }
 
-    public String getAlbumInfo()
-    {
+    public String getAlbumInfo() {
         return albumInfo;
     }
 
-    public String getGenre()
-    {
+    public String getGenre() {
         return genre;
     }
 
-    public int getChunkNumber() { return chunkNumber; }
+    public int getChunkNumber() {
+        return chunkNumber;
+    }
 
-    public void setChunkNumber(int chunkNumber) { this.chunkNumber = chunkNumber; }
+    public void setChunkNumber(int chunkNumber) {
+        this.chunkNumber = chunkNumber;
+    }
 
-    public int getTotalChunks() { return totalChunks; }
+    public int getTotalChunks() {
+        return totalChunks;
+    }
 
-    public void setTotalChunks(int totalChunks) { this.totalChunks = totalChunks; }
+    public void setTotalChunks(int totalChunks) {
+        this.totalChunks = totalChunks;
+    }
 
-    public byte[] getMusicFileExtract()
-    {
+    public byte[] getMusicFileExtract() {
         return musicFileExtract;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "MusicFile{" +
                 "trackName='" + trackName + '\'' +
                 ", artistName='" + artistName + '\'' +
@@ -124,8 +120,7 @@ public final class MusicFile implements Serializable
     }
 
     @Override
-    public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MusicFile musicFile = (MusicFile) o;
@@ -137,8 +132,7 @@ public final class MusicFile implements Serializable
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         int result = Objects.hash(trackName, artistName, albumInfo, genre);
         result = 31 * result + Arrays.hashCode(musicFileExtract);
         return result;
