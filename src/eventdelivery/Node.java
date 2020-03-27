@@ -8,6 +8,10 @@ import java.util.Objects;
 
 public abstract class Node
 {
+    public String ipAddr;
+    public int portNum;
+    public Socket connection;
+
     public List<Broker> brokers;
 
     public void init(int i){}
