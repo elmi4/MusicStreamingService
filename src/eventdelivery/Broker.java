@@ -3,21 +3,22 @@ package eventdelivery;
 import media.ArtistName;
 
 import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Objects;
 
 import java.io.*;
 import java.net.*;
-import java.util.Scanner;
 
 public final class Broker extends Node
 {
     public ArrayList<Consumer> registeredUsers = new ArrayList<>();
     public ArrayList<Publisher> registeredPublishers = new ArrayList<>();
-    public ArrayList<String> songNamesArray = new ArrayList<>();
+    private HashMap<ConnectionInfo, ArrayList<String>> publishersToArtists = new HashMap<>();
 
-    public int hashedValue;
+    public BigInteger hashedValue;
 
     public Broker(String ip, int port){
         this.ipAddr = ip;
@@ -29,7 +30,22 @@ public final class Broker extends Node
     public String getIp() {return ipAddr;}
     public int getPort() {return portNum;}
 
-    public void calculateKeys(){}
+    public void calculateKey() {
+        try {
+            String input = ipAddr + String.valueOf(portNum);
+
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            byte[] messageDigest = md.digest(input.getBytes());
+
+            hashedValue = new BigInteger(1, messageDigest);
+
+            System.out.println("Broker's Hash Hey: "+ hashedValue);
+
+
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public Socket acceptConnection(int serverPort){
         ServerSocket server = null;
@@ -54,7 +70,7 @@ public final class Broker extends Node
         ObjectOutputStream out = null ;
 
         try {
-            providerSocket = new ServerSocket(4040, 10);
+            providerSocket = new ServerSocket(this.portNum, 10);
             try {
 
                 while (true) {      //Infinite loop for accepting connections
@@ -70,13 +86,18 @@ public final class Broker extends Node
                     //requesting further action
                     switch (request){
                         case "HashValue":       //Send the ip and port hashed
-                            BigInteger hashValue = new BigInteger("123456789");     /*This number is bs i just dont know what to do here*/
-                            out.writeObject(hashValue);
+                            //BigInteger hashValue = new BigInteger("123456789");     /*This number is bs i just dont know what to do here*/
+                            this.calculateKey();
+                            out.writeObject(hashedValue);
                             break;
 
-                        case "SendingSongArrayStream":      //Receive an array list of songs that the broker can transmit
+                        case "SendingSongArrayStream":      //Receive an array list of artists that the broker can serve
+                            System.out.println("HERE");
                             ArrayList<String> songNameArray = (ArrayList<String>)in.readObject();
-                            songNamesArray.addAll(songNameArray);
+                            int port = in.readInt();
+                            String ip = in.readUTF();
+                            ConnectionInfo info = new ConnectionInfo(ip, port);
+                            publishersToArtists.put(info, songNameArray);
                             break;
 
                         case "SongRequest":     //Customer notifies the broker that he is about to request a song
@@ -86,11 +107,10 @@ public final class Broker extends Node
                              * A handler must be made and passed on to a thread here
 
                              */
-
-
                     }
 
                 }
+
             }catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -107,27 +127,38 @@ public final class Broker extends Node
         }
 
     }
+    public void print (){
+        for (ConnectionInfo c : publishersToArtists.keySet()) {                //test
+            System.out.println("Publisher: " );
+            for (String artistList : publishersToArtists.get(c)) {
+                System.out.println(artistList);
+            }
+            System.out.println(" ");
+        }
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         Broker broker = (Broker) o;
-        return hashedValue == broker.hashedValue &&
-                Objects.equals(registeredUsers, broker.registeredUsers) &&
+        return Objects.equals(registeredUsers, broker.registeredUsers) &&
                 Objects.equals(registeredPublishers, broker.registeredPublishers) &&
-                Objects.equals(songNamesArray, broker.songNamesArray);
+                Objects.equals(publishersToArtists, broker.publishersToArtists) &&
+                Objects.equals(hashedValue, broker.hashedValue);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), registeredUsers, registeredPublishers, songNamesArray, hashedValue);
+        return Objects.hash(super.hashCode(), registeredUsers, registeredPublishers, publishersToArtists, hashedValue);
     }
 
     public static void main(String args[]){
         Broker test = new Broker("127.0.0.1", 4040);
        // Broker test2 = new Broker("127.0.0.1", 4080);
+        //test.calculateKey();
         test.initiate();
        // test2.initiate();
+        test.print();
     }
 }
