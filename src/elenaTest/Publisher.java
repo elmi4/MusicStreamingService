@@ -135,7 +135,7 @@ public final class Publisher {
     }
 
 
-    public static void main(String args[]) {
+    /*public static void main(String args[]) {
 
         Publisher p = new Publisher("C:\\Users\\elena\\Desktop\\mp3_dataset");
 
@@ -143,6 +143,6 @@ public final class Publisher {
         p.informBroker("127.0.0.1", 4323);
 
 
-    }
+    }*/
 }
 

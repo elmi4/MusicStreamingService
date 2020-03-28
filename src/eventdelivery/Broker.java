@@ -2,6 +2,7 @@ package eventdelivery;
 
 import media.ArtistName;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -25,6 +26,9 @@ public final class Broker extends Node
 
     public Broker(){}
 
+    public String getIp() {return ipAddr;}
+    public int getPort() {return portNum;}
+
     public void calculateKeys(){}
 
     public Socket acceptConnection(int serverPort){
@@ -42,23 +46,6 @@ public final class Broker extends Node
     public void notifyPublisher(String s){}
 
     public void pull(ArtistName artistName){}
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        Broker broker = (Broker) o;
-        return registeredUsers.equals(broker.registeredUsers) &&
-                registeredPublishers.equals(broker.registeredPublishers);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(super.hashCode(), registeredUsers, registeredPublishers);
-    }
 
     public void initiate(){
         ServerSocket providerSocket = null;
@@ -83,7 +70,7 @@ public final class Broker extends Node
                     //requesting further action
                     switch (request){
                         case "HashValue":       //Send the ip and port hashed
-                            int hashValue = -1;     /*This number is bs i just dont know what to do here*/
+                            BigInteger hashValue = new BigInteger("123456789");     /*This number is bs i just dont know what to do here*/
                             out.writeObject(hashValue);
                             break;
 
@@ -120,9 +107,27 @@ public final class Broker extends Node
         }
 
     }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Broker broker = (Broker) o;
+        return hashedValue == broker.hashedValue &&
+                Objects.equals(registeredUsers, broker.registeredUsers) &&
+                Objects.equals(registeredPublishers, broker.registeredPublishers) &&
+                Objects.equals(songNamesArray, broker.songNamesArray);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), registeredUsers, registeredPublishers, songNamesArray, hashedValue);
+    }
 
     public static void main(String args[]){
         Broker test = new Broker("127.0.0.1", 4040);
+       // Broker test2 = new Broker("127.0.0.1", 4080);
         test.initiate();
+       // test2.initiate();
     }
 }

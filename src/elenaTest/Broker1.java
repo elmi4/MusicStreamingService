@@ -19,7 +19,7 @@ public class Broker1 {
     private int portNumber;
     private BigInteger brokerHashKey;
     private HashMap<Integer, ArrayList<ArtistName>> map = new HashMap<Integer, ArrayList<ArtistName>>();        //maps publisher to artists served by broker,
-                                                                                                                // (publisher is a defined from port#, change that later)
+    // (publisher is a defined from port#, change that later)
     private HashMap<String, BigInteger> allBrokersList = new HashMap<String, BigInteger>();                  //maps broker to hashkey,
 
     public Broker1(String ip, int portNumber) {

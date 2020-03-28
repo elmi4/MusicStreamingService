@@ -2,7 +2,9 @@ package eventdelivery;
 
 import javax.imageio.IIOException;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -12,9 +14,9 @@ public abstract class Node
     public int portNum;
     public Socket connection;
 
-    public List<Broker> brokers;
+    public HashMap<ConnectionInfo, BigInteger> brokers;
 
-    public void init(int i){}
+    public void init(){}
 
     public List<Broker> getBrokers(){return null;}
 
@@ -39,12 +41,14 @@ public abstract class Node
     public void updateNodes(){}
 
     @Override
-    public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Node node = (Node) o;
-        return brokers.equals(node.brokers);
+        return portNum == node.portNum &&
+                Objects.equals(ipAddr, node.ipAddr) &&
+                Objects.equals(connection, node.connection) &&
+                Objects.equals(brokers, node.brokers);
     }
 
     @Override
