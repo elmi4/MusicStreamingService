@@ -18,19 +18,25 @@ public abstract class Utilities
     }
 
     //calculate the hash of a serialized hash and compare it before and after sending it in the network
-    public static void MD5HashChunk(final byte[] chunk)
+    public static String MD5HashChunk(final byte[] chunk)
     {
+        StringBuilder hex = null;
+
         try {
+            //calculate md5 hash
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(chunk);
             byte[] digest = md.digest();
 
-            System.out.println("The MD5 hash: ");
-            for(byte b : digest){
-                System.out.print(b);
+            //transform it to hex String
+            hex = new StringBuilder();
+            for (byte b : digest) {
+                hex.append(String.format("%02x", b));
             }
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+
+        return (hex == null) ? null : hex.toString();
     }
 }

@@ -1,14 +1,21 @@
 package media;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public final class ArtistName
+public final class ArtistName implements Serializable
 {
+    private static final long serialVersionUID = 6235919307298454903L;
     private String artistName;
 
     public ArtistName(String artistName)
     {
         this.artistName = artistName;
+    }
+
+    public static ArtistName of(String artistName)
+    {
+        return new ArtistName(artistName);
     }
 
     public String getArtistName()

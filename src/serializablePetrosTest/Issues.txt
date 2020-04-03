@@ -1,0 +1,16 @@
+- ArtistName -> Artist
+
+
+
+---------------------------------------------- High level ----------------------------------------------
+
+- Outer package
+
+- Consumer out of eventdelivery ("κατά την πρώτη επικοινωνία του consumer με το Event Delivery System")
+
+- Different packages for each subclass of Node (?)
+
+- "Production" branch with different .gitignore (?)
+
+- Create xml (?) file to store the paths for the useful dirs like the brokerCredentials.txt and the dir of the songs
+ and create ReaderHandler that will use this .xml and interact then with the classes

@@ -1,12 +1,16 @@
 package eventdelivery;
 
+import assist.Utilities;
 import media.ArtistName;
+import media.MusicFile;
+import media.SongInfo;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import java.io.*;
@@ -17,6 +21,9 @@ public final class Broker extends Node
     public ArrayList<Consumer> registeredUsers = new ArrayList<>();
     public ArrayList<Publisher> registeredPublishers = new ArrayList<>();
     private HashMap<ConnectionInfo, ArrayList<String>> publishersToArtists = new HashMap<>();
+
+    // give artist name and get the connection info of the broker that serves this artist
+    private Map<ArtistName, ConnectionInfo> artistToBroker = new HashMap<>();
 
     public BigInteger hashedValue;
 
@@ -100,13 +107,27 @@ public final class Broker extends Node
                             publishersToArtists.put(info, songNameArray);
                             break;
 
-                        case "SongRequest":     //Customer notifies the broker that he is about to request a song
+                        case "ListArtists":
+                            System.out.println("Sending the list...");
+                            artistToBroker.put(new ArtistName("testArtist"), new ConnectionInfo("127.0.0.1",4040));
+                            out.writeObject(artistToBroker);
                             break;
-                            /*
-                             * Check song name array
-                             * A handler must be made and passed on to a thread here
 
-                             */
+                        case "SongRequest": //Customer notifies the broker that he is about to request a song
+                            SongInfo msg = (SongInfo) in.readObject();
+                            System.out.println("A request was made for the song: '"+msg.getSongName()+"'");
+                            //pull MusicFiles from publisher
+
+                            //get buffer (byte[]) of MusicFile
+                            //print result of Utilities.MD5HashChunk() to be able to validate it later on consumer
+                            byte[] testBuffer = {1,2,3,4,5,6,7,8,9};
+                            int chunkNumber = 1;
+                            MusicFile mf = new MusicFile(msg.getSongName(), msg.getArtistName().getArtistName(),
+                                    "", "", chunkNumber, 10, testBuffer);
+                            System.out.println("(Broker) Hash of chunk "+chunkNumber+" : \n"+ Utilities.MD5HashChunk(testBuffer));
+                            out.writeObject(mf);
+                            out.flush();
+                            break;
                     }
 
                 }

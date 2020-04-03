@@ -1,9 +1,13 @@
 package eventdelivery;
 
 
+import java.io.Serializable;
+
 //use this class to save information used to identify Nodes
-public final class ConnectionInfo
+public final class ConnectionInfo implements Serializable
 {
+    private static final long serialVersionUID = -2194559770414809890L;
+
     private String IP;
     private int port;
 
