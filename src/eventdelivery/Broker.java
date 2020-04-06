@@ -68,7 +68,22 @@ public final class Broker extends Node
 
     public void notifyPublisher(String s){}
 
-    public void pull(ArtistName artistName){}
+    public void pull(ArtistName artistName){            //oti exo grapsei einai gia na kano test tin push ston publisher
+        System.out.println("HORNS");
+        try{
+            Socket socket=new Socket("127.0.0.1",9999);
+            ObjectInputStream inStream=new ObjectInputStream(socket.getInputStream());
+            ObjectOutputStream outStream=new ObjectOutputStream(socket.getOutputStream());
+
+            outStream.writeObject("Horns");
+            System.out.println("HORNS");
+            outStream.close();
+            outStream.close();
+            socket.close();
+        }catch(Exception e){
+            System.out.println(e);
+        }
+    }
 
     public void initiate(){
         ServerSocket providerSocket = null;
@@ -120,7 +135,7 @@ public final class Broker extends Node
                                     }
                                 }
                             }
-                            print();        //test
+                            //print();        //test
                             break;
 
                         case "ListArtists":
@@ -135,6 +150,8 @@ public final class Broker extends Node
                             SongInfo msg = (SongInfo) in.readObject();
                             System.out.println("A request was made for the song: '"+msg.getSongName()+"'");
                             //pull MusicFiles from publisher
+
+
 
                             //get buffer (byte[]) of MusicFile
                             //print result of Utilities.MD5HashChunk() to be able to validate it later on consumer
@@ -199,10 +216,11 @@ public final class Broker extends Node
 
     public static void main(String args[]){
         Broker test = new Broker("127.0.0.1", 4040);
-        //Broker test2 = new Broker("127.0.0.1", 4080);
+
         //test.calculateKey();
         test.initiate();
-       //test2.initiate();
-        test.print();
+
+        //test.print();
+        test.pull(new ArtistName("Kevin MacLeod"));
     }
 }
