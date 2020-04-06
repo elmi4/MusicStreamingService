@@ -149,7 +149,7 @@ public final class Publisher extends Node {
             try {
                 requestSocket = new Socket(br.getIP(),br.getPort());
                 out = new ObjectOutputStream(requestSocket.getOutputStream());
-                out.writeObject("SendingArtistArrayStream");
+                out.writeObject("SendingArtistArray");
 
                 for(BigInteger key: artistsToBroker.keySet()) {
                     if(key.equals(brokers.get(br))) {               //to find connection info data for broker, using hashValue as identifier
@@ -188,6 +188,8 @@ public final class Publisher extends Node {
                 }
             }
         }
+        //Phase 3 transmit their names in an array list
+
     }
 
     public BigInteger hashTopic(String artist) {
@@ -254,13 +256,13 @@ public final class Publisher extends Node {
                 System.out.println("Problem in hashing Artist's name");
             }
         }
-        /*for (BigInteger b : artistsToBroker.keySet()) {                //test
+        for (BigInteger b : artistsToBroker.keySet()) {                //test
             System.out.println("Broker with hash: " + b);
             for (String songTitleList : artistsToBroker.get(b)) {
                 System.out.println(songTitleList);
             }
             System.out.println(" ");
-        }*/
+        }
 
     }
 
