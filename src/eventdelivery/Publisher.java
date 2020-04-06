@@ -11,6 +11,7 @@ import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.UnsupportedTagException;
 import media.ArtistName;
+import media.SongInfo;
 import media.Value;
 
 public final class Publisher extends Node {
@@ -95,8 +96,6 @@ public final class Publisher extends Node {
         }
     }       //read from file
 
-    public void push(ArtistName artistName, Value value) {
-    }
 
     public void notifyFailure(Broker broker) {
     }
@@ -267,15 +266,14 @@ public final class Publisher extends Node {
     }
 
     public void acceptBrokerRequests(){
+
         try{
             ServerSocket server=new ServerSocket(portNum);
             System.out.println("Server Started ....");
             while(true){
                 Socket clientSocket=server.accept();
-                System.out.println("HERE");
                 BrokerRequestHandler handler = new BrokerRequestHandler(clientSocket, dataFolder, artistsToSongs); //send  the request to a separate thread
                 handler.start();
-                System.out.println("HERE");
             }
         }catch(Exception e){
             System.out.println(e);
@@ -285,6 +283,8 @@ public final class Publisher extends Node {
     public static void main(String args[]) {
         Publisher test = new Publisher("127.0.0.1", 9999, "files/Tracks/");
         test.init();
+
+
         test.initiate();
         test.acceptBrokerRequests();
     }

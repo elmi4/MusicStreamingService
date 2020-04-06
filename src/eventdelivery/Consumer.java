@@ -160,7 +160,7 @@ class ConsumerEntry
         c1.init();
 
         // 2 ASYNCHRONOUS requests for songs
-        c1.requestSongData("testArtist", "testSong");
-        c1.requestSongData("testArtist1", "testSong1");
+        c1.requestSongData("Kacey Smith", "Poison");
+        //c1.requestSongData("testArtist1", "testSong1");
     }
 }
