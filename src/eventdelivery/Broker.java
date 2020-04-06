@@ -131,7 +131,7 @@ public final class Broker extends Node
                             out.writeObject(artistToBroker);
                             break;
 
-                        case "SongRequest": //Customer notifies the broker that he is about to request a song
+                        case "SongRequest": //Consumer notifies the broker that he is about to request a song
                             SongInfo msg = (SongInfo) in.readObject();
                             System.out.println("A request was made for the song: '"+msg.getSongName()+"'");
                             //pull MusicFiles from publisher

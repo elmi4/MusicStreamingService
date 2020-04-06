@@ -1,10 +1,7 @@
 package eventdelivery;
 
 import assist.Utilities;
-import com.mpatric.mp3agic.InvalidDataException;
-import com.mpatric.mp3agic.Mp3File;
-import com.mpatric.mp3agic.UnsupportedTagException;
-import io.IOHandler;
+
 import media.ArtistName;
 import media.MusicFile;
 import media.SongInfo;
@@ -12,7 +9,6 @@ import java.io.*;
 import java.net.*;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public final class Consumer extends Node

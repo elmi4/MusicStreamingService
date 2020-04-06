@@ -40,7 +40,6 @@ public abstract class IOHandler
                 int currentChunkSize = Math.min(remainingSize, standardChunkSize);
 
                 chunks.add(new byte[currentChunkSize]);
-                int offset = standardChunkSize * chunkCounter;
                 buf.read(chunks.get(chunkCounter++));
 
                 remainingSize -= currentChunkSize;
