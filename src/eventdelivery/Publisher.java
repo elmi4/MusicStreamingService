@@ -14,7 +14,7 @@ import media.ArtistName;
 import media.Value;
 
 public final class Publisher extends Node {
-    private HashMap<ArtistName, ArrayList<String>> map = new HashMap<>();            //Maps Artists to their songs
+    private HashMap<ArtistName, ArrayList<String>> artistsToSongs = new HashMap<>();            //Maps Artists to their songs
     private String dataFolder;
     private HashMap<BigInteger, ArrayList<String>> artistsToBroker = new HashMap<>();       //change happened here (rename)
 
@@ -53,10 +53,10 @@ public final class Publisher extends Node {
                 }
 
                 if (title != null && artist.getArtistName() != null) {
-                    if (map.get(artist) == null) {
-                        map.put(artist, new ArrayList<String>());
+                    if (artistsToSongs.get(artist) == null) {
+                        artistsToSongs.put(artist, new ArrayList<String>());
                     }
-                    map.get(artist).add(title);
+                    artistsToSongs.get(artist).add(title);
                 }
             }
 
@@ -64,20 +64,16 @@ public final class Publisher extends Node {
             System.err.println("Exception");
         }
 
-        for (ArtistName name : map.keySet()) {                //test
+        /*for (ArtistName name : artistsToSongs.keySet()) {                //test
             String key = name.getArtistName().toUpperCase();
             System.out.println(key);
-            for (String songTitleList : map.get(name)) {
+            for (String songTitleList : artistsToSongs.get(name)) {
                 System.out.println(songTitleList);
             }
             System.out.println(" ");
-        }
+        }*/
     }
 
-    //Reads the credentials of all the brokers from a file
-    //In the file are contained ip addresses and port numbers in sequence
-    //so two lines (the first is the ip and the second the port)
-    //indicate a separate broker node
     public void getBrokerList(String filePath) {
         try {
             File file = new File(filePath);
@@ -96,7 +92,7 @@ public final class Publisher extends Node {
             System.out.println("File not found.");
             e.printStackTrace();
         }
-    }
+    }       //read from file
 
     public void push(ArtistName artistName, Value value) {
     }
@@ -116,7 +112,7 @@ public final class Publisher extends Node {
 
         for (ConnectionInfo br : brokers.keySet()) {
             try {
-                requestSocket = new Socket(br.getIP(), br.getPort());           //charge later to: br.getIP(), br.getPort()
+                requestSocket = new Socket(br.getIP(), br.getPort());
                 out = new ObjectOutputStream(requestSocket.getOutputStream());
                 in = new ObjectInputStream(requestSocket.getInputStream());
                 try {
@@ -207,16 +203,6 @@ public final class Publisher extends Node {
 
     public void distributeArtistsToBrokers() {
 
-        //TEST -> add 3 fake brokers for testing (this won't be needed when we have more brokers on different machines)
-        /*System.out.println("Only real broker is: " + brokers.toString());
-        ConnectionInfo fakeBroker1 = new ConnectionInfo("156.647.225.685",2460);
-        ConnectionInfo fakeBroker2 = new ConnectionInfo("466.472.256.855",6460);
-        ConnectionInfo fakeBroker3 = new ConnectionInfo("656.647.225.685",7460);
-        brokers.put(fakeBroker1, hashTopic("156.647.225.685" + "2460"));
-        brokers.put(fakeBroker2, hashTopic("466.472.256.855" + "6460"));
-        brokers.put(fakeBroker3, hashTopic("656.647.225.685" + "7460"));*/
-        //END TEST
-
         int size = brokers.values().size();
         BigInteger hashkeys[] = new BigInteger[size];
 
@@ -228,14 +214,14 @@ public final class Publisher extends Node {
         Arrays.sort(hashkeys);
 
         //TEST-> see order of hash keys
-        System.out.println(" ORDERED KEYS ");
+        /*System.out.println(" ORDERED KEYS ");
         for (BigInteger b : hashkeys) {
             System.out.println(b);
         }
-        System.out.println(" ");
+        System.out.println(" ");*/
         //END TEST
 
-        for (ArtistName artist : map.keySet()) {
+        for (ArtistName artist : artistsToSongs.keySet()) {
             BigInteger artistHash = this.hashTopic(artist.getArtistName());
             if (artistHash != null) {
                 BigInteger one = new BigInteger("1");
@@ -246,10 +232,10 @@ public final class Publisher extends Node {
                     if (artistHash.compareTo(low) == 1 && artistHash.compareTo(high) == -1) {
                         artistsToBroker.computeIfAbsent(high, k -> new ArrayList<>());
                         artistsToBroker.get(high).add(artist.getArtistName());
-                        System.out.println("this range");
+                        /*System.out.println("this range");
                         System.out.println("LOW : " + low);
                         System.out.println("KEY : " + artistHash + " ARTIST: " + artist.getArtistName());
-                        System.out.println("HIGH: " + high + "\n");
+                        System.out.println("HIGH: " + high + "\n");*/
                         break;
                     } else if (++j < size) {
                         low = high.add(one);
@@ -257,8 +243,8 @@ public final class Publisher extends Node {
                     } else {
                         artistsToBroker.computeIfAbsent(hashkeys[0], k -> new ArrayList<>());
                         artistsToBroker.get(hashkeys[0]).add(artist.getArtistName());
-                        System.out.println("ARTIST TO SMALLEST BROKER ");
-                        System.out.println("KEY : " + artistHash + " ARTIST: " + artist.getArtistName() + "\n");
+                        //System.out.println("ARTIST TO SMALLEST BROKER ");
+                        //System.out.println("KEY : " + artistHash + " ARTIST: " + artist.getArtistName() + "\n");
                         break;
                     }
                 }
@@ -266,20 +252,37 @@ public final class Publisher extends Node {
                 System.out.println("Problem in hashing Artist's name");
             }
         }
-        for (BigInteger b : artistsToBroker.keySet()) {                //test
+        /*for (BigInteger b : artistsToBroker.keySet()) {                //test
             System.out.println("Broker with hash: " + b);
             for (String songTitleList : artistsToBroker.get(b)) {
                 System.out.println(songTitleList);
             }
             System.out.println(" ");
-        }
+        }*/
 
     }
 
+    public void acceptBrokerRequests(){
+        try{
+            ServerSocket server=new ServerSocket(portNum);
+            System.out.println("Server Started ....");
+            while(true){
+                Socket clientSocket=server.accept();
+                System.out.println("HERE");
+                BrokerRequestHandler handler = new BrokerRequestHandler(clientSocket, dataFolder, artistsToSongs); //send  the request to a separate thread
+                handler.start();
+                System.out.println("HERE");
+            }
+        }catch(Exception e){
+            System.out.println(e);
+        }
+    }
+
     public static void main(String args[]) {
-        Publisher test = new Publisher("ip", 9999, "C:\\Users\\elena\\Desktop\\mp3_dataset");
+        Publisher test = new Publisher("127.0.0.1", 9999, "C:\\Users\\elena\\Desktop\\mp3_dataset");
         test.init();
         test.initiate();
+        test.acceptBrokerRequests();
 
 
     }
