@@ -20,10 +20,10 @@ public final class Broker extends Node
 {
     public ArrayList<Consumer> registeredUsers = new ArrayList<>();
     public ArrayList<Publisher> registeredPublishers = new ArrayList<>();
-    private HashMap<ConnectionInfo, ArrayList<String>> publishersToArtists = new HashMap<>();
+    private HashMap<ConnectionInfo, ArrayList<String>> publishersToArtists = new HashMap<>();           //HERE artist is a string NOT Artistname object!
 
     // give artist name and get the connection info of the broker that serves this artist
-    private Map<ArtistName, ConnectionInfo> artistToBroker = new HashMap<>();
+    private HashMap<ArtistName, ConnectionInfo> artistToBroker = new HashMap<>();
 
     public BigInteger hashedValue;
 
@@ -81,30 +81,46 @@ public final class Broker extends Node
             try {
 
                 while (true) {      //Infinite loop for accepting connections
+
                     connection = providerSocket.accept();       //Accepting a connection
 
                     out = new ObjectOutputStream(connection.getOutputStream());     //Creating input and output tools
                     in = new ObjectInputStream(connection.getInputStream());
-
                     System.out.println("Client connected.");
+
                     String request = (String)in.readObject();
 
                     //The first message that arrives will always be a string
                     //requesting further action
                     switch (request){
                         case "HashValue":       //Send the ip and port hashed
-                            //BigInteger hashValue = new BigInteger("123456789");     /*This number is bs i just dont know what to do here*/
                             this.calculateKey();
                             out.writeObject(hashedValue);
                             break;
 
-                        case "SendingSongArrayStream":      //Receive an array list of artists that the broker can serve
+                        case "SendingArtistArrayStream":      //Receive an array list of artists that the broker can serve          //change happened here
                             System.out.println("HERE");
-                            ArrayList<String> songNameArray = (ArrayList<String>)in.readObject();
-                            int port = in.readInt();
-                            String ip = in.readUTF();
-                            ConnectionInfo info = new ConnectionInfo(ip, port);
-                            publishersToArtists.put(info, songNameArray);
+                            String subcase = "";
+                            while(!subcase.equals("over")) {
+                                subcase = (String)in.readObject();
+                                if (subcase.equals("YourData")) {
+                                    ArrayList<String> songNameArray = (ArrayList<String>) in.readObject();
+                                    int publisherPort = in.readInt();
+                                    String publisherIP = in.readUTF();
+                                    ConnectionInfo info = new ConnectionInfo(publisherIP, publisherPort);
+                                    publishersToArtists.put(info, songNameArray);
+                                } else if (subcase.equals("OtherBrokers'Data")) {
+                                    ArrayList<String> artistArray = (ArrayList<String>) in.readObject();
+                                    int brokerPort = in.readInt();
+                                    String brokerIP = in.readUTF();
+                                    ConnectionInfo brokerInfo = new ConnectionInfo(brokerIP, brokerPort);
+                                    for (String name : artistArray) {
+                                        ArtistName artist = new ArtistName(name);
+                                        artistToBroker.put(artist, brokerInfo);
+                                    }
+                                }
+                            }
+                            print();        //test
                             break;
 
                         case "ListArtists":
@@ -151,13 +167,18 @@ public final class Broker extends Node
 
     }
     public void print (){
-        for (ConnectionInfo c : publishersToArtists.keySet()) {                //test
-            System.out.println("Publisher: " );
+        for (ConnectionInfo c : publishersToArtists.keySet()) {
+            System.out.println("IN THIS BROKER FROM PUBLISHER WITH IP: " + c.getIP() + ", PORT: "+ c.getPort());
             for (String artistList : publishersToArtists.get(c)) {
                 System.out.println(artistList);
             }
             System.out.println(" ");
         }
+        System.out.println("IN OTHER BROKERS: " );
+        for (ArtistName name : artistToBroker.keySet()) {
+            System.out.println("Artist: " + name.getArtistName() + ", is served on broker with IP: " + artistToBroker.get(name).getIP() + ", PORT: " + artistToBroker.get(name).getPort());
+        }
+        System.out.println(" ");
     }
     @Override
     public boolean equals(Object o) {
@@ -178,10 +199,10 @@ public final class Broker extends Node
 
     public static void main(String args[]){
         Broker test = new Broker("127.0.0.1", 4040);
-       // Broker test2 = new Broker("127.0.0.1", 4080);
+        //Broker test2 = new Broker("127.0.0.1", 4080);
         //test.calculateKey();
         test.initiate();
-       // test2.initiate();
+       //test2.initiate();
         test.print();
     }
 }
