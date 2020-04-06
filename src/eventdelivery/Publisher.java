@@ -38,8 +38,9 @@ public final class Publisher extends Node {
         try {
             for (File mp3 : mp3s) {
 
+                String tracksDir = "files/Tracks/";
                 String name = mp3.getName();
-                Mp3File song = new Mp3File(name);
+                Mp3File song = new Mp3File(tracksDir + name);
                 if (song.hasId3v1Tag()) {
                     title = song.getId3v1Tag().getTitle();
                     artist = new ArtistName(song.getId3v1Tag().getArtist());
@@ -61,7 +62,7 @@ public final class Publisher extends Node {
             }
 
         } catch (IOException | UnsupportedTagException | InvalidDataException e) {
-            System.err.println("Exception");
+            e.printStackTrace();
         }
 
         /*for (ArtistName name : artistsToSongs.keySet()) {                //test
@@ -103,6 +104,7 @@ public final class Publisher extends Node {
     public void initiate() {
         brokers = new HashMap<>();
         getBrokerList("BrokerCredentials.txt");
+
 
         Socket requestSocket = null;
         ObjectOutputStream out = null;
@@ -283,8 +285,6 @@ public final class Publisher extends Node {
         test.init();
         test.initiate();
         test.acceptBrokerRequests();
-
-
     }
 
 }
