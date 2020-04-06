@@ -102,7 +102,7 @@ public final class Publisher extends Node {
 
     public void initiate() {
         brokers = new HashMap<>();
-        getBrokerList("C:\\Users\\elena\\Desktop\\BrokerCredentials.txt");
+        getBrokerList("BrokerCredentials.txt");
 
         Socket requestSocket = null;
         ObjectOutputStream out = null;
@@ -279,7 +279,7 @@ public final class Publisher extends Node {
     }
 
     public static void main(String args[]) {
-        Publisher test = new Publisher("127.0.0.1", 9999, "C:\\Users\\elena\\Desktop\\mp3_dataset");
+        Publisher test = new Publisher("127.0.0.1", 9999, "files/Tracks/");
         test.init();
         test.initiate();
         test.acceptBrokerRequests();
