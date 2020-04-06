@@ -110,6 +110,8 @@ public final class Broker extends Node
                         case "ListArtists":
                             System.out.println("Sending the list...");
                             artistToBroker.put(new ArtistName("testArtist"), new ConnectionInfo("127.0.0.1",4040));
+                            artistToBroker.put(new ArtistName("testArtist1"), new ConnectionInfo("127.0.0.1",4040));
+
                             out.writeObject(artistToBroker);
                             break;
 

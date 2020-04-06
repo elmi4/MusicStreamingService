@@ -11,6 +11,7 @@
 
 # General
 files/musicfile.ser
+saves/
 
 # User-specific stuff
 .idea/**/workspace.xml

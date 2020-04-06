@@ -1,5 +1,5 @@
 - ArtistName -> Artist
-
+- Node contains a ConnectionInfo
 
 
 ---------------------------------------------- High level ----------------------------------------------
@@ -14,3 +14,26 @@
 
 - Create xml (?) file to store the paths for the useful dirs like the brokerCredentials.txt and the dir of the songs
  and create ReaderHandler that will use this .xml and interact then with the classes
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ IDEAS________________________________
+
+- If request saveSong() or playData() before having finished retrieving the chunks:
+  at the end of the thread execution call a servePendingRequests() that checks if a particular song has been requested
+  to be played or saved while it wasn't retrieved fully retrieved

@@ -8,14 +8,26 @@ public abstract class Utilities
 {
     public static Byte[] toByteObjectArray(final byte[] bytesPrim)
     {
-        Byte[] bytes = new Byte[bytesPrim.length];
+        Byte[] Bytes = new Byte[bytesPrim.length];
         int i = 0;
         for (byte b : bytesPrim){
-            bytes[i++] = b; //Autoboxing
+            Bytes[i++] = b;
+        }
+
+        return Bytes;
+    }
+
+
+    public static byte[] toBytePrimitiveArray(final Byte[] bytesObj)
+    {
+        byte[] bytes = new byte[bytesObj.length];
+        for(int i = 0; i < bytesObj.length; i++){
+            bytes[i] = bytesObj[i];
         }
 
         return bytes;
     }
+
 
     //calculate the hash of a serialized hash and compare it before and after sending it in the network
     public static String MD5HashChunk(final byte[] chunk)
