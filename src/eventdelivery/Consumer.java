@@ -12,11 +12,17 @@ import java.util.*;
 
 public final class Consumer extends Node
 {
-    private final Map<String, Map<Integer,Byte[]>> songNamesToChunksMap = new HashMap<>();
-    private final List<String> unfinishedSongs = Collections.synchronizedList(new ArrayList<>());
-    private final Map<String, Queue<Consumer.PendingRequest>> songNameToRequests = new HashMap<>();
+    private final Map<String, Map<Integer,Byte[]>> songNamesToChunksMap = Collections.synchronizedMap(new HashMap<>());
 
     private Map<ArtistName, ConnectionInfo> artistToBroker;
+
+    public enum RequestType{
+        NONE,
+        VALIDATE,
+        DOWNLOAD_FULL_SONG,
+        DOWNLOAD_CHUNKS,
+        PLAY_CHUNKS;
+    }
 
 
     @Override
@@ -28,25 +34,25 @@ public final class Consumer extends Node
 
     /**
      * Make song requests to appropriate brokers ASYNCHRONOUSLY
+     * Define what happens with the received data by specifying the "requestType"
      */
-    public void requestSongData(final String artistName, final String songName) throws IllegalStateException
+    public void requestSongData(final String artistName, final String songName,
+                                final RequestType requestType) throws IllegalStateException
     {
         if(artistToBroker == null) throw new IllegalStateException("Consumer was not initialized correctly.");
-        unfinishedSongs.add(songName);
 
         new Thread(() -> {
 
             ArtistName artistObj = ArtistName.of(artistName);
             if(!artistIsServed(artistObj)){
                 System.out.println("The artist '"+artistObj.getArtistName()+"' is not being served.");
-                unfinishedSongs.remove(songName);
                 return;
             }
 
             //get the broker that serves the artist you want
             ConnectionInfo appropriateBrokerInfo = artistToBroker.get(artistObj);
             Socket requestSocket = connect(appropriateBrokerInfo.getIP(),appropriateBrokerInfo.getPort());
-            if(connection == null){
+            if(requestSocket == null){
                 System.err.println("Could not connect to broker");
                 return;
             }
@@ -66,47 +72,28 @@ public final class Consumer extends Node
                     Map<Integer, Byte[]> chunkNumToChunkData = new HashMap<>();
                     chunkNumToChunkData.put(mf.getChunkNumber(), Utilities.toByteObjectArray(mf.getMusicFileExtract()));
 
-                    //get exclusive access to "songNamesToChunksMap" in order to add the chunk
-                    synchronized (this) {
-                        Map<Integer,Byte[]> existing = songNamesToChunksMap.putIfAbsent(mf.getTrackName(), chunkNumToChunkData);
-                        if(existing != null){
-                            existing.put(mf.getChunkNumber(), Utilities.toByteObjectArray(mf.getMusicFileExtract()));
-                        }
+                    //Adding chunk. "songNamesToChunksMap" is synchronized (check declaration)
+                    Map<Integer,Byte[]> existing = songNamesToChunksMap.putIfAbsent(mf.getTrackName(), chunkNumToChunkData);
+                    if(existing != null){
+                        existing.put(mf.getChunkNumber(), Utilities.toByteObjectArray(mf.getMusicFileExtract()));
                     }
 
-                    validateData(mf.getMusicFileExtract(), mf.getChunkNumber());
-                    //IOHandler.writeToFile(mf); //it works but the mp3 cannot play with test data
+                    if(requestType == RequestType.VALIDATE){
+                        validateData(mf.getMusicFileExtract(), mf.getChunkNumber());
+                    }else if(requestType == RequestType.DOWNLOAD_CHUNKS){
+                        IOHandler.writeToFile(mf); //it works but the mp3 cannot play with test data
+                    }
                 }
-                unfinishedSongs.remove(songName);
+
+                if(requestType == RequestType.DOWNLOAD_FULL_SONG){
+                    //it works but the mp3 cannot play with test data
+                    IOHandler.writeToFile(artistObj.getArtistName(), songName, "FULL", reconstructSong(songName));
+                }
             }catch(IOException | ClassNotFoundException e){
                 e.printStackTrace();
             }
 
         }).start();
-    }
-
-
-    /**
-     * Play chunks of the mp3
-     */
-    public void playData()
-    {
-
-    }
-
-
-    /**
-     * Save a whole reconstructed song locally as an mp3
-     */
-    public void downloadSong(final String songName)
-    {
-        if(unfinishedSongs.contains(songName)){
-            makeRequest(songName, PendingRequest.Type.DOWNLOAD_FULL);
-        }
-
-        if(songNamesToChunksMap.get(songName) == null){
-            System.out.println("Song '"+songName+"' doesn't exist and cannot be downloaded");
-        }
     }
 
 
@@ -140,29 +127,6 @@ public final class Consumer extends Node
 
 
     /**
-     * Add a request to the queue of requests of a song if it doesn't exist
-     */
-    private void makeRequest(final String referringSong, final PendingRequest.Type requestType)
-    {
-        PendingRequest request = new PendingRequest(requestType);
-
-        Queue<Consumer.PendingRequest> requestQueue = new ArrayDeque<>();
-        requestQueue.add(request);
-        Queue<Consumer.PendingRequest> existing = songNameToRequests.putIfAbsent(referringSong, requestQueue);
-        if(existing != null){
-            if(existing.contains(request)) return;
-            existing.add(request);
-        }
-    }
-
-
-    private void servePendingRequests()
-    {
-
-    }
-
-
-    /**
      * Show the hash of a chunk and see if it matches the hash before it was sent
      */
     private void validateData(final byte[] chunk, final int chunkNumber)
@@ -186,8 +150,8 @@ public final class Consumer extends Node
 
         int keyLength = keys.size();
         Byte [] lastChunk = chunkMap.get(keys.get(keyLength - 1));
-        //for testing instead of STANDARD_CHUNK_SIZE use the test chunk size of broker (9 in my case)
-        int arrLength = ((keyLength - 1) * IOHandler.STANDARD_CHUNK_SIZE) + lastChunk.length;
+        //for production, instead of * 9 use the STANDARD_CHUNK_SIZE of IOHandler
+        int arrLength = ((keyLength - 1) * 9) + lastChunk.length;
         byte[] reconstructed = new byte[arrLength];
 
         int offset = 0;
@@ -208,40 +172,6 @@ public final class Consumer extends Node
     {
         return artistToBroker.containsKey(artistName);
     }
-
-
-    /**
-     * Class used to create and queue requests about a song, while it is being retrieved / not yet retrieved
-     * and serve them when it is available
-     */
-    public static class PendingRequest
-    {
-        public Type type;
-
-        public enum Type{
-            DOWNLOAD_FULL,
-            DOWNLOAD_CHUNK,
-            PLAY_CHUNK
-        }
-
-        public PendingRequest(Type t)
-        {
-            this.type = t;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            PendingRequest that = (PendingRequest) o;
-            return type == that.type;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(type);
-        }
-    }
 }
 
 
@@ -255,10 +185,11 @@ class ConsumerEntry
         c1.init();
 
         // 2 ASYNCHRONOUS requests for songs
-        c1.requestSongData("testArtist1", "testSong1");
+        c1.requestSongData("testArtist", "testSong", Consumer.RequestType.DOWNLOAD_CHUNKS);
+        c1.requestSongData("testArtist1", "testSong1", Consumer.RequestType.DOWNLOAD_FULL_SONG);
 
-        System.out.println(22);
-        //c1.requestSongData("Kacey Smith", "Poison");
-        //c1.requestSongData("testArtist1", "testSong1");
+        //(elena test)
+        //c1.requestSongData("Kacey Smith", "Poison", Consumer.RequestType.NONE);
+        //c1.requestSongData("testArtist1", "testSong1", Consumer.RequestType.NONE);
     }
 }

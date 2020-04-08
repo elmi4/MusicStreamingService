@@ -3,7 +3,9 @@ package assist;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-//helper class with irrelevant useful functions
+/**
+ * helper class with irrelevant useful functions
+ */
 public abstract class Utilities
 {
     public static Byte[] toByteObjectArray(final byte[] bytesPrim)
@@ -50,5 +52,18 @@ public abstract class Utilities
         }
 
         return (hex == null) ? null : hex.toString();
+    }
+
+    public static boolean isNumeric(String strNum) {
+        if (strNum == null) {
+            return false;
+        }
+
+        try {
+            double d = Double.parseDouble(strNum);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
     }
 }

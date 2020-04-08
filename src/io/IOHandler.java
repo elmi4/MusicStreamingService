@@ -1,5 +1,6 @@
 package io;
 
+import assist.Utilities;
 import media.MusicFile;
 
 import java.io.*;
@@ -13,13 +14,19 @@ public abstract class IOHandler
     public static final int STANDARD_CHUNK_SIZE = 512 * 1024; //512KB
 
 
-    public static void writeToFile(MusicFile data)
+    public static void writeToFile(MusicFile mf)
+    {
+        writeToFile(mf.getArtistName(), mf.getTrackName(), String.valueOf(mf.getChunkNumber()), mf.getMusicFileExtract());
+    }
+
+    public static void writeToFile(String artistName, String trackName, String part, byte[] data)
     {
         createDestinationFolderIfMissing();
 
-        String fileName = DESTINATION_DIR + data.getTrackName() + "_" + data.getArtistName() + "_part" + data.getChunkNumber() + ".mp3";
+        String fileName = DESTINATION_DIR + trackName + "_" + artistName;
+        fileName += (Utilities.isNumeric(part)) ? "_part" + part + ".mp3" : "_" + part + ".mp3";
         try (FileOutputStream stream = new FileOutputStream(fileName)) {
-            stream.write(data.getMusicFileExtract());
+            stream.write(data);
         } catch (IOException e) {
             e.printStackTrace();
         }
