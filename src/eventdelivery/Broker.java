@@ -147,17 +147,21 @@ public final class Broker extends Node {
                             SongInfo msg = (SongInfo) in.readObject();
                             System.out.println("A request was made for the song: '" + msg.getSongName() + "'");
                             //pull MusicFiles from publisher
-                            pull(msg);                  //elena test
+                            //pull(msg);      //elena test  //(petros): it throws a "ConnectException" for me
 
                             //get buffer (byte[]) of MusicFile
                             //print result of Utilities.MD5HashChunk() to be able to validate it later on consumer
-                            byte[] testBuffer = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-                            int chunkNumber = 1;
-                            MusicFile mf = new MusicFile(msg.getSongName(), msg.getArtistName().getArtistName(),
-                                    "", "", chunkNumber, 10, testBuffer);
-                            System.out.println("(Broker) Hash of chunk " + chunkNumber + " : \n" + Utilities.MD5HashChunk(testBuffer));
-                            out.writeObject(mf);
-                            out.flush();
+                            //simulating 10 chunks being sent to the consumer
+                            for (int i = 1; i < 11; i++) {
+                                byte[] testBuffer = {(byte)i, (byte)i, (byte)i, (byte)i, (byte)i, (byte)i, (byte)i, (byte)i, (byte)i};
+                                MusicFile mf = new MusicFile(msg.getSongName(), msg.getArtistName().getArtistName(),
+                                        "", "", i, 10, testBuffer);
+                                System.out.println("(Broker) Hash of chunk " + i + " : \n" + Utilities.MD5HashChunk(testBuffer));
+                                out.writeObject(mf);
+                                out.flush();
+                            }
+                            //send null so that the consumer knows it has got all the chunks of the song
+                            out.writeObject(null);
                             break;
                     }
 

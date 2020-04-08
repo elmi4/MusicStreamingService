@@ -10,6 +10,7 @@ public abstract class IOHandler
 {
     public static final String TRACKS_DIR = "files/Tracks/";
     public static final String DESTINATION_DIR = "saves/";
+    public static final int STANDARD_CHUNK_SIZE = 512 * 1024; //512KB
 
 
     public static void writeToFile(MusicFile data)
@@ -31,13 +32,12 @@ public abstract class IOHandler
 
         File mp3File = new File(path);
         int remainingSize = (int) mp3File.length();
-        int standardChunkSize = 512 * 1024; // 512KB
         int chunkCounter = 0;
 
         try (BufferedInputStream buf = new BufferedInputStream(new FileInputStream(mp3File)))
         {
             while (remainingSize > 0){
-                int currentChunkSize = Math.min(remainingSize, standardChunkSize);
+                int currentChunkSize = Math.min(remainingSize, STANDARD_CHUNK_SIZE);
 
                 chunks.add(new byte[currentChunkSize]);
                 buf.read(chunks.get(chunkCounter++));
