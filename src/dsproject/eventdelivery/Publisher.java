@@ -1,6 +1,8 @@
 package dsproject.eventdelivery;
 
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -11,8 +13,13 @@ import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.UnsupportedTagException;
 import dsproject.Node;
+import dsproject.assist.io.IOHandler;
 import dsproject.assist.network.ConnectionInfo;
 import dsproject.media.ArtistName;
+import dsproject.media.MusicFile;
+import dsproject.media.SongInfo;
+
+import javax.swing.*;
 
 
 public final class Publisher extends Node
@@ -252,8 +259,70 @@ public final class Publisher extends Node
             System.out.println("Server Started ....");
             while(true){
                 Socket clientSocket=server.accept();
-                BrokerRequestHandler handler = new BrokerRequestHandler(clientSocket, DATA_FOLDER, artistsToSongs); //send  the request to a separate thread
-                handler.start();
+                new Thread(()->{
+                    try(ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+                        ObjectInputStream  in  = new ObjectInputStream(clientSocket.getInputStream()))
+                    {
+                        String request=null;
+                        try {
+                            request = (String)in.readObject();
+                        } catch (ClassNotFoundException e) {
+                            e.printStackTrace();
+                        }
+
+                        if(request!=null && request.equals("SongRequest")){
+                            SongInfo songRequest = null;
+                            try {
+                                songRequest = (SongInfo) in.readObject();       //Get name of the song
+                            } catch (ClassNotFoundException e) {
+                                e.printStackTrace();
+                            }
+
+                            String songName = songRequest.getSongName();
+
+                            String filePath =  DATA_FOLDER+songName+".mp3";
+
+                            if(Files.exists(Paths.get(filePath))) {     //Check if file already exists and consequently if the client is signed up
+
+                                Mp3File mp3 = null;
+
+                                try {
+                                    mp3 = new Mp3File(DATA_FOLDER + songName + ".mp3");
+                                } catch (UnsupportedTagException | InvalidDataException e) {
+                                    e.printStackTrace();
+                                }
+
+                                List<byte[]> rawAudio = IOHandler.readMp3(DATA_FOLDER + songName + ".mp3");
+
+                                MusicFile originalMp3 = new MusicFile(mp3);
+
+                                String trackName = originalMp3.getTrackName();
+                                String artistName = originalMp3.getArtistName();
+                                String albumInfo = originalMp3.getAlbumInfo();
+                                String genre = originalMp3.getGenre();
+
+                                int chunkNum = 1;
+
+                                while (!rawAudio.isEmpty()) {
+
+                                    byte[] chunk = rawAudio.remove(0);
+                                    MusicFile mf = new MusicFile(trackName, artistName, albumInfo, genre, chunkNum, chunk);
+
+                                    out.writeObject(mf);
+                                }
+
+                                out.writeObject(null);
+
+                            }
+                            else{
+                                out.writeObject("Song isn't served by the publisher or it doesn't exist.");
+                            }
+                        }
+
+                    }catch (IOException e){
+                        e.printStackTrace();
+                    }
+                }).start();
             }
         }catch(Exception e){
             System.out.println(e);
