@@ -56,7 +56,8 @@ public abstract class Utilities
         return (hex == null) ? null : hex.toString();
     }
 
-    public static boolean isNumeric(String strNum) {
+    public static boolean isNumeric(final String strNum)
+    {
         if (strNum == null) {
             return false;
         }
@@ -67,5 +68,15 @@ public abstract class Utilities
             return false;
         }
         return true;
+    }
+
+    public static boolean isStringLiteral(final Object ob)
+    {
+        try{
+            String s = (String)ob;
+            return true;
+        }catch (ClassCastException e){
+            return false;
+        }
     }
 }

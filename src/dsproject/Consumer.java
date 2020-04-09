@@ -70,9 +70,15 @@ public final class Consumer extends Node
                 out.writeObject("SongRequest");
                 out.writeObject(SongInfo.of(artistObj, songName));
 
-                //Accept all the song chunks from broker
-                Object ob;
-                while ((ob = in.readObject()) != null){
+                //If error msg was sent, return. (song doesn't exist)
+                Object ob = in.readObject();
+                if(Utilities.isStringLiteral(ob)){
+                    System.out.println((String)ob);
+                    return;
+                }
+
+                //Accept all the song chunks from broker until null is received (no more chunks)
+                do{
                     MusicFile mf = (MusicFile)ob;
 
                     Map<Integer, Byte[]> chunkNumToChunkData = new HashMap<>();
@@ -90,7 +96,7 @@ public final class Consumer extends Node
                         System.out.println("Downloading chunk:"+mf.getChunkNumber()+" ...");
                         IOHandler.writeToFile(mf);
                     }
-                }
+                } while ((ob = in.readObject()) != null);
 
                 if(requestType == RequestType.DOWNLOAD_FULL_SONG){
                     System.out.println("Downloading the whole song '"+songName+"' ...");
