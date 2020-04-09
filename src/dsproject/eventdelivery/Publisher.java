@@ -28,11 +28,14 @@ public final class Publisher extends Node
     private final HashMap<ConnectionInfo, BigInteger> brokersConnToHash = new HashMap<>();
     private final HashMap<BigInteger, ArrayList<String>> artistsToBroker = new HashMap<>();
 
-    public static final String DATA_FOLDER = "files/Tracks/";
+    private String ownFolder;
+
+    public static final String GENERAL_DATA_FOLDER = "files/Tracks/";
 
 
-    public Publisher(ConnectionInfo connInfo) {
+    public Publisher(ConnectionInfo connInfo, String ownFolder) {
         super(connInfo);
+        this.ownFolder = ownFolder;
     }
 
 
@@ -40,7 +43,7 @@ public final class Publisher extends Node
     public void init() {                                 //initializes publisher's data
         super.init(); //read and get the brokers list
 
-        File folder = new File(DATA_FOLDER);
+        File folder = new File(GENERAL_DATA_FOLDER+ownFolder);
         File[] mp3s = folder.listFiles();
 
         ArtistName artist;
@@ -48,8 +51,7 @@ public final class Publisher extends Node
 
         try {
             for (File mp3 : mp3s) {
-                String name = mp3.getName();
-                Mp3File song = new Mp3File(DATA_FOLDER + name);
+                Mp3File song = new Mp3File(mp3.getAbsolutePath());
                 if (song.hasId3v1Tag()) {
                     title = song.getId3v1Tag().getTitle();
                     artist = new ArtistName(song.getId3v1Tag().getArtist());
@@ -280,19 +282,19 @@ public final class Publisher extends Node
 
                             String songName = songRequest.getSongName();
 
-                            String filePath =  DATA_FOLDER+songName+".mp3";
+                            String filePath =  GENERAL_DATA_FOLDER+songName+".mp3";
 
                             if(Files.exists(Paths.get(filePath))) {     //Check if file already exists and consequently if the client is signed up
 
                                 Mp3File mp3 = null;
 
                                 try {
-                                    mp3 = new Mp3File(DATA_FOLDER + songName + ".mp3");
+                                    mp3 = new Mp3File(GENERAL_DATA_FOLDER + songName + ".mp3");
                                 } catch (UnsupportedTagException | InvalidDataException e) {
                                     e.printStackTrace();
                                 }
 
-                                List<byte[]> rawAudio = IOHandler.readMp3(DATA_FOLDER + songName + ".mp3");
+                                List<byte[]> rawAudio = IOHandler.readMp3(GENERAL_DATA_FOLDER + songName + ".mp3");
 
                                 MusicFile originalMp3 = new MusicFile(mp3);
 
@@ -331,7 +333,7 @@ public final class Publisher extends Node
     }
 
     public static void main(String args[]) {
-        Publisher test = new Publisher(ConnectionInfo.of("127.0.0.1", 9999));
+        Publisher test = new Publisher(ConnectionInfo.of("127.0.0.1", 9999), "");
         test.init();
 
 
