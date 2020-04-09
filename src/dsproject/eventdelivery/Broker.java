@@ -15,6 +15,7 @@ import java.util.HashMap;
 
 import java.io.*;
 import java.net.*;
+import java.util.Map;
 
 public final class Broker extends Node
 {
@@ -36,9 +37,6 @@ public final class Broker extends Node
             byte[] messageDigest = md.digest(input.getBytes());
 
             hashedValue = new BigInteger(1, messageDigest);
-
-            System.out.println("Broker's Hash Hey: " + hashedValue);
-
 
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
@@ -76,12 +74,11 @@ public final class Broker extends Node
 
                     out = new ObjectOutputStream(connection.getOutputStream());     //Creating input and output tools
                     in = new ObjectInputStream(connection.getInputStream());
-                    System.out.println("Client connected.");
+                    System.out.println("Just connected to client " + connection.getInetAddress() + " " +  connection.getPort());
 
                     String request = (String) in.readObject();
 
                     //The first message that arrives will always be a string
-                    //requesting further action
                     switch (request) {
                         case "HashValue": //Send the ip and port hashed
                             this.calculateKey();
@@ -115,11 +112,10 @@ public final class Broker extends Node
                                     }
                                 }
                             }
-                            print(); //test
                             break;
 
                         case "ListArtists":
-                            System.out.println("Sending the list...");
+                            System.out.println("Consumer's first connection.");
                             artistToBroker.put(new ArtistName("testArtist"), ConnectionInfo.of("127.0.0.1", 4040));
                             artistToBroker.put(new ArtistName("testArtist1"), ConnectionInfo.of("127.0.0.1", 4040));
 
@@ -128,28 +124,14 @@ public final class Broker extends Node
 
                         case "SongRequest": //Consumer notifies the broker that he is about to request a song
                             SongInfo msg = (SongInfo) in.readObject();
+                            String fileName = (String) in.readObject();
                             System.out.println("\nA request was made for the song: '" + msg.getSongName() + "'");
-                            //pull MusicFiles from publisher
-                            //pull(msg);      //elena test  //(petros): it throws a "ConnectException" for me
 
-                            //get buffer (byte[]) of MusicFile
-                            //print result of Utilities.MD5HashChunk() to be able to validate it later on consumer
-                            //simulating 10 chunks being sent to the consumer
-                            for (int i = 1; i < 11; i++) {
-                                byte[] testBuffer = {(byte)i, (byte)i, (byte)i, (byte)i, (byte)i, (byte)i, (byte)i, (byte)i, (byte)i};
-                                MusicFile mf = new MusicFile(msg.getSongName(), msg.getArtistName().getArtistName(),
-                                        "", "", i, testBuffer);
-                                System.out.println("(Broker) Hash of chunk " + i + " : \n" + Utilities.MD5HashChunk(testBuffer));
-                                out.writeObject(mf);
-                                out.flush();
-                            }
-                            //send null so that the consumer knows it has got all the chunks of the song
-                            out.writeObject(null);
+                            //pull MusicFiles from publisher
+                            pull(msg, fileName, out);
                             break;
                     }
-
                 }
-
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -164,46 +146,70 @@ public final class Broker extends Node
                 ioException.printStackTrace();
             }
         }
-
-    }
-    public void pull(SongInfo songInfo) {            //oti exo grapsei einai gia na kano test tin push ston publisher
-
-        try {
-            Socket socket = new Socket("127.0.0.1", 9999);
-            ObjectInputStream inStream = new ObjectInputStream(socket.getInputStream());
-            ObjectOutputStream outStream = new ObjectOutputStream(socket.getOutputStream());
-
-            outStream.writeObject(songInfo);
-            System.out.println("INSIDE PULL");
-            outStream.close();
-            outStream.close();
-            socket.close();
-        } catch (Exception e) {
-            System.out.println(e);
-        }
     }
 
-    public void print() {
-        for (ConnectionInfo c : publishersToArtists.keySet()) {
-            System.out.println("IN THIS BROKER FROM PUBLISHER WITH IP: " + c.getIP() + ", PORT: " + c.getPort());
-            for (ArtistName artistList : publishersToArtists.get(c)) {
-                System.out.println(artistList.getArtistName());
+
+    public void pull(SongInfo songInfo, String fileName, ObjectOutputStream consumerOut) {
+        ArtistName artist = songInfo.getArtistName();
+
+        //Finding the corresponding publisher and establishing a connection
+        String ip = null;
+        int port = 0;
+
+        for (Map.Entry entry: publishersToArtists.entrySet()) {
+            for(int i=0; i< ((ArrayList)entry.getValue()).size(); i++) {
+                if ((((ArrayList)entry.getValue()).get(i)).equals(artist)) {
+                    ip = ((ConnectionInfo) entry.getKey()).getIP();
+                    port = ((ConnectionInfo) entry.getKey()).getPort();
+                }
             }
-            System.out.println(" ");
         }
-        System.out.println("IN ALL BROKERS: ");
-        for (ArtistName name : artistToBroker.keySet()) {
-            System.out.println("Artist: " + name.getArtistName() + ", is served on broker with IP: " + artistToBroker.get(name).getIP() + ", PORT: " + artistToBroker.get(name).getPort());
+        if (ip != null) {
+            System.out.println("This is the corresponding publisher's connectionInfo: " + ip + port);
+
+            Socket publisherSocket = null;
+            try {
+                publisherSocket = new Socket(ip, port);
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+
+            //Pulling the requested song from the publisher
+            Socket finalPublisherSocket = publisherSocket;
+            new Thread(() -> {
+                try {
+                    ObjectOutputStream out = new ObjectOutputStream(finalPublisherSocket.getOutputStream());
+                    ObjectInputStream in = new ObjectInputStream(finalPublisherSocket.getInputStream());
+
+                    //Asking for the song
+                    out.writeObject("SongRequest");
+                    out.writeObject(fileName);
+
+                    //Getting publisher's answer and passing it on to consumer
+                    try {
+                        Object answer = in.readObject();
+
+                        do {
+                            System.out.println("Just received and sent: " + answer);
+                            consumerOut.writeObject(answer);
+                            answer = in.readObject();
+                        }
+                        while (answer!=null);
+                    } catch (IOException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                }catch  ( IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
         }
-        System.out.println(" ");
+        else { System.err.println("Couldn't find a publisher for this song."); }
     }
+
 
     public static void main(String args[]) {
         Broker test = new Broker(ConnectionInfo.of("127.0.0.1", 4040));
-
-        //test.calculateKey();
-       test.initiate();
-
-        //test.print();
+        test.initiate();
     }
 }

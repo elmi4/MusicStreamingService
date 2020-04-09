@@ -83,7 +83,7 @@ public final class MusicFile implements Serializable
                 ", artistName='" + artistName + '\'' +
                 ", albumInfo='" + albumInfo + '\'' +
                 ", genre='" + genre + '\'' +
-                // ", number of bits: "+musicFileExtract.length +
+                 ", number of bits: "+musicFileExtract.length +
                 '}';
     }
 
