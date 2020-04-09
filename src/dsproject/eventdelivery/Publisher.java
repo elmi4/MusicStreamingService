@@ -307,8 +307,9 @@ public final class Publisher extends Node
 
                                     byte[] chunk = rawAudio.remove(0);
                                     MusicFile mf = new MusicFile(trackName, artistName, albumInfo, genre, chunkNum, chunk);
-
                                     out.writeObject(mf);
+                                    chunkNum++;
+
                                 }
 
                                 out.writeObject(null);
