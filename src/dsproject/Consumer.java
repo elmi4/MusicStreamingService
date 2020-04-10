@@ -43,7 +43,7 @@ public final class Consumer extends Node
      * Make song requests to appropriate brokers ASYNCHRONOUSLY
      * Define what happens with the received data by specifying the "requestType"
      */
-    public void requestSongData(final String fileName, final String artistName, final String songName,             //added the final String fileName for pull to work; Eleni
+    public void requestSongData(final String fileName, final String artistName, final String songName,
                                 final RequestType requestType) throws IllegalStateException
     {
         if(artistToBroker == null) throw new IllegalStateException("Consumer was not initialized correctly.");
@@ -75,7 +75,6 @@ public final class Consumer extends Node
 
                 //If error msg was sent, return. (song doesn't exist)
                 Object ob = in.readObject();
-
                 if(Utilities.isStringLiteral(ob)){
                     System.out.println("Just got " + ob);
                     return;
@@ -177,8 +176,7 @@ public final class Consumer extends Node
 
         int keyLength = keys.size();
         Byte [] lastChunk = chunkMap.get(keys.get(keyLength - 1));
-        //for production, instead of * 9 use the STANDARD_CHUNK_SIZE of IOHandler
-        int arrLength = ((keyLength - 1) * 9) + lastChunk.length;
+        int arrLength = ((keyLength - 1) * IOHandler.STANDARD_CHUNK_SIZE) + lastChunk.length;
         byte[] reconstructed = new byte[arrLength];
 
         int offset = 0;
@@ -211,8 +209,7 @@ class ConsumerEntry
         //initialize the consumer (request the state of the eventDelivery - get the artists and brokers that serve them)
         c1.init();
 
-        // 2 ASYNCHRONOUS requests for songs
-        c1.requestSongData("Apocalypse-Magic","Apocalypse", "Magic", Consumer.RequestType.NONE);
-
+        //make ASYNCHRONOUS requests
+        c1.requestSongData("Apocalypse-Magic","Apocalypse", "Magic", Consumer.RequestType.DOWNLOAD_FULL_SONG);
     }
 }

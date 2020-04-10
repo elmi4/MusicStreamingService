@@ -15,6 +15,7 @@ import java.util.HashMap;
 
 import java.io.*;
 import java.net.*;
+import java.util.List;
 import java.util.Map;
 
 public final class Broker extends Node
@@ -68,11 +69,11 @@ public final class Broker extends Node
             providerSocket = new ServerSocket(super.getPort(), 10);
             try {
 
-                while (true) {      //Infinite loop for accepting connections
+                while (true) { //Infinite loop for accepting connections
 
-                    connection = providerSocket.accept();       //Accepting a connection
+                    connection = providerSocket.accept();
 
-                    out = new ObjectOutputStream(connection.getOutputStream());     //Creating input and output tools
+                    out = new ObjectOutputStream(connection.getOutputStream());
                     in = new ObjectInputStream(connection.getInputStream());
                     System.out.println("Just connected to client " + connection.getInetAddress() + " " +  connection.getPort());
 
@@ -80,12 +81,12 @@ public final class Broker extends Node
 
                     //The first message that arrives will always be a string
                     switch (request) {
-                        case "HashValue": //Send the ip and port hashed
+                        case "HashValue": //(from Publisher) Send the ip and port hashed
                             this.calculateKey();
                             out.writeObject(hashedValue);
                             break;
 
-                        case "SendingArtistArray": //Receive an array list of artists that the broker can serve
+                        case "SendingArtistArray": //(from Publisher) Receive a list of artists that the broker can serve
                             String subcase = "";
                             while(!subcase.equals("over")) {
                                 subcase = (String)in.readObject();
@@ -114,20 +115,17 @@ public final class Broker extends Node
                             }
                             break;
 
-                        case "ListArtists":
+                        case "ListArtists": //Consumer artists request
                             System.out.println("Consumer's first connection.");
-                            artistToBroker.put(new ArtistName("testArtist"), ConnectionInfo.of("127.0.0.1", 4040));
-                            artistToBroker.put(new ArtistName("testArtist1"), ConnectionInfo.of("127.0.0.1", 4040));
-
                             out.writeObject(artistToBroker);
                             break;
 
-                        case "SongRequest": //Consumer notifies the broker that he is about to request a song
+                        case "SongRequest": //Consumer song request
                             SongInfo msg = (SongInfo) in.readObject();
                             String fileName = (String) in.readObject();
                             System.out.println("\nA request was made for the song: '" + msg.getSongName() + "'");
 
-                            //pull MusicFiles from publisher
+                            //Create new thread, pull MusicFiles from Publisher and send them to Consumer
                             pull(msg, fileName, out);
                             break;
                     }
@@ -150,26 +148,24 @@ public final class Broker extends Node
 
 
     public void pull(SongInfo songInfo, String fileName, ObjectOutputStream consumerOut) {
-        ArtistName artist = songInfo.getArtistName();
+        ArtistName wantedArtist = songInfo.getArtistName();
 
         //Finding the corresponding publisher and establishing a connection
-        String ip = null;
-        int port = 0;
-
+        ConnectionInfo publisherInfo = null;
         for (Map.Entry entry: publishersToArtists.entrySet()) {
-            for(int i=0; i< ((ArrayList)entry.getValue()).size(); i++) {
-                if ((((ArrayList)entry.getValue()).get(i)).equals(artist)) {
-                    ip = ((ConnectionInfo) entry.getKey()).getIP();
-                    port = ((ConnectionInfo) entry.getKey()).getPort();
-                }
+            if(((ArrayList)entry.getValue()).contains(wantedArtist)){
+                publisherInfo = ConnectionInfo.of(
+                        ((ConnectionInfo) entry.getKey()).getIP(),((ConnectionInfo) entry.getKey()).getPort());
+                break;
             }
         }
-        if (ip != null) {
-            System.out.println("This is the corresponding publisher's connectionInfo: " + ip + port);
+
+        if (publisherInfo != null) {
+            System.out.println("This is the corresponding publisher's connectionInfo: " + publisherInfo.getIP() + publisherInfo.getPort());
 
             Socket publisherSocket = null;
             try {
-                publisherSocket = new Socket(ip, port);
+                publisherSocket = new Socket(publisherInfo.getIP(), publisherInfo.getPort());
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
@@ -187,14 +183,12 @@ public final class Broker extends Node
 
                     //Getting publisher's answer and passing it on to consumer
                     try {
-                        Object answer = in.readObject();
-
-                        do {
+                        Object answer;
+                        while ((answer = in.readObject()) != null){
                             System.out.println("Just received and sent: " + answer);
                             consumerOut.writeObject(answer);
-                            answer = in.readObject();
                         }
-                        while (answer!=null);
+                        consumerOut.writeObject(null);
                     } catch (IOException | ClassNotFoundException e) {
                         e.printStackTrace();
                     }
