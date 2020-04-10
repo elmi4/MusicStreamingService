@@ -273,8 +273,8 @@ public final class Publisher extends Node
 
     }
 
-    public void acceptBrokerRequests(){
-
+    public void acceptBrokerRequests()
+    {
         try{
             ServerSocket server = new ServerSocket(super.getPort());
             System.out.println("Connected to server.");
@@ -294,8 +294,7 @@ public final class Publisher extends Node
                         if(request!=null && request.equals("SongRequest")){
                             SongInfo songRequest = null;
                             try {
-                                //songRequest = (SongInfo) in.readObject();       //Get name of the song
-                                songRequest = (SongInfo)in.readObject();            //I changed it for pull to work
+                                songRequest = (SongInfo)in.readObject();
                             } catch (ClassNotFoundException e) {
                                 e.printStackTrace();
                             }
@@ -310,7 +309,7 @@ public final class Publisher extends Node
                 }).start();
             }
         }catch(Exception e){
-            System.out.println(e);
+            e.printStackTrace();
         }
     }
 

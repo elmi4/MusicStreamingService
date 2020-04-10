@@ -14,6 +14,7 @@ import java.util.HashMap;
 
 import java.io.*;
 import java.net.*;
+import java.util.List;
 import java.util.Map;
 
 public final class Broker extends Node
@@ -57,7 +58,7 @@ public final class Broker extends Node
 
 
     @SuppressWarnings("unchecked")
-    public void initiate() {
+    public void serveRequests() {
         ServerSocket providerSocket = null;
 
         try {
@@ -65,14 +66,14 @@ public final class Broker extends Node
 
                 while (true) { //Infinite loop for accepting connections
 
-                Socket connection = providerSocket.accept();       //Accepting a connection
+                Socket connection = providerSocket.accept();
 
                 new Thread(()->{
                     try(ObjectOutputStream out = new ObjectOutputStream(connection.getOutputStream());
                         ObjectInputStream  in  = new ObjectInputStream(connection.getInputStream())) {
                         System.out.println("Just connected to client " + connection.getInetAddress() + " " +  connection.getPort());
 
-                        String request = null;
+                        String request;
                         try {
                             request = (String) in.readObject();
                         } catch (ClassNotFoundException e) {
@@ -87,46 +88,32 @@ public final class Broker extends Node
                             out.writeObject(hashedValue);
                             break;
 
-                            case "SendingArtistArray": //(from Publisher) Receive a list of artists that the broker can serve
-                                String subcase = "";
-                                while (!subcase.equals("over")) {
-                                    try {
-                                        subcase = (String) in.readObject();
-                                    } catch (ClassNotFoundException e) {
-                                        e.printStackTrace();
+                        case "SendingArtistArray": //(from Publisher) Receive a list of artists that the broker can serve
+                            String subcase = "";
+                            while (!subcase.equals("over")) {
+                                subcase = (String) in.readObject();
+
+                                if (subcase.equals("YourData")) {
+                                    List<String> songNameArray = (ArrayList<String>) in.readObject();
+                                    ArrayList<ArtistName> artists = new ArrayList<>();
+                                    for (String name : songNameArray) {
+                                        ArtistName artist = new ArtistName(name);
+                                        artistToBroker.put(artist, ConnectionInfo.of(super.getIP(), super.getPort()));
+                                        artists.add(artist);
                                     }
-                                    if (subcase.equals("YourData")) {
-                                        ArrayList<String> songNameArray;
-                                        try {
-                                            songNameArray = (ArrayList<String>) in.readObject();
-                                        } catch (ClassNotFoundException e) {
-                                            e.printStackTrace();
-                                            return;
-                                        }
-                                        ArrayList<ArtistName> artists = new ArrayList<>();
-                                        for (String name : songNameArray) {
-                                            ArtistName artist = new ArtistName(name);
-                                            artistToBroker.put(artist, ConnectionInfo.of(super.getIP(), super.getPort()));
-                                            artists.add(artist);
-                                        }
-                                        ConnectionInfo thisBrokerInfo = (ConnectionInfo)in.readObject();
-                                        publishersToArtists.put(thisBrokerInfo, artists);
-                                    } else if (subcase.equals("OtherBrokers'Data")) {
-                                        ArrayList<String> artistArray;
-                                        try {
-                                            artistArray = (ArrayList<String>) in.readObject();
-                                        } catch (ClassNotFoundException e) {
-                                            e.printStackTrace();
-                                            return;
-                                        }
-                                        ConnectionInfo brokerInfoInfo = (ConnectionInfo)in.readObject();
-                                        for (String name : artistArray) {
-                                            ArtistName artist = new ArtistName(name);
-                                            artistToBroker.put(artist, brokerInfoInfo);
-                                        }
+                                    ConnectionInfo thisBrokerInfo = (ConnectionInfo)in.readObject();
+                                    publishersToArtists.put(thisBrokerInfo, artists);
+                                } else if (subcase.equals("OtherBrokers'Data")) {
+                                    List<String> artistArray = (ArrayList<String>) in.readObject();
+                                    ConnectionInfo brokerInfoInfo = (ConnectionInfo)in.readObject();
+
+                                    for (String name : artistArray) {
+                                        ArtistName artist = new ArtistName(name);
+                                        artistToBroker.put(artist, brokerInfoInfo);
                                     }
                                 }
-                                break;
+                            }
+                            break;
 
                         case "ListArtists": //Consumer artists request
                             System.out.println("Consumer's first connection.");
@@ -213,8 +200,7 @@ public final class Broker extends Node
                     consumerOut.writeObject(answer);
                     answer = in.readObject();
                 }while (answer!=null);
-                //Notify consumer that all the packages have been sent
-                consumerOut.writeObject(null);
+                consumerOut.writeObject(null); //Notify consumer that all the packages have been sent
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -227,6 +213,6 @@ public final class Broker extends Node
 
     public static void main(String args[]) {
         Broker test = new Broker(ConnectionInfo.of("127.0.0.1", 4040));
-        test.initiate();
+        test.serveRequests();
     }
 }
