@@ -43,7 +43,7 @@ public final class Consumer extends Node
      * Make song requests to appropriate brokers ASYNCHRONOUSLY
      * Define what happens with the received data by specifying the "requestType"
      */
-    public void requestSongData(final String fileName, final String artistName, final String songName,
+    public void requestSongData(final String artistName, final String songName,             //added the final String fileName for pull to work; Eleni
                                 final RequestType requestType) throws IllegalStateException
     {
         if(artistToBroker == null) throw new IllegalStateException("Consumer was not initialized correctly.");
@@ -70,7 +70,6 @@ public final class Consumer extends Node
                 //Notify broker that you will make a song request
                 out.writeObject("SongRequest");
                 out.writeObject(SongInfo.of(artistObj, songName));
-                out.writeObject(fileName);                                       //I added it for pull to work; Eleni
                 System.out.println("Just asked for song " + songName);
 
                 //If error msg was sent, return. (song doesn't exist)
@@ -210,6 +209,7 @@ class ConsumerEntry
         c1.init();
 
         //make ASYNCHRONOUS requests
-        c1.requestSongData("Apocalypse-Magic","Apocalypse", "Magic", Consumer.RequestType.DOWNLOAD_FULL_SONG);
+        c1.requestSongData("Apocalypse", "Magic", Consumer.RequestType.NONE);
+
     }
 }

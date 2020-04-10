@@ -122,11 +122,11 @@ public final class Broker extends Node
 
                         case "SongRequest": //Consumer song request
                             SongInfo msg = (SongInfo) in.readObject();
-                            String fileName = (String) in.readObject();
+
                             System.out.println("\nA request was made for the song: '" + msg.getSongName() + "'");
 
                             //Create new thread, pull MusicFiles from Publisher and send them to Consumer
-                            pull(msg, fileName, out);
+                            pull(msg, out);
                             break;
                     }
                 }
@@ -147,7 +147,7 @@ public final class Broker extends Node
     }
 
 
-    public void pull(SongInfo songInfo, String fileName, ObjectOutputStream consumerOut) {
+    public void pull(SongInfo songInfo, ObjectOutputStream consumerOut) {
         ArtistName wantedArtist = songInfo.getArtistName();
 
         //Finding the corresponding publisher and establishing a connection
@@ -179,15 +179,18 @@ public final class Broker extends Node
 
                     //Asking for the song
                     out.writeObject("SongRequest");
-                    out.writeObject(fileName);
+                    out.writeObject(songInfo);
 
                     //Getting publisher's answer and passing it on to consumer
                     try {
-                        Object answer;
-                        while ((answer = in.readObject()) != null){
+                        Object answer = in.readObject();
+
+                        do {
                             System.out.println("Just received and sent: " + answer);
                             consumerOut.writeObject(answer);
+                            answer = in.readObject();
                         }
+                        while (answer!=null);
                         consumerOut.writeObject(null);
                     } catch (IOException | ClassNotFoundException e) {
                         e.printStackTrace();

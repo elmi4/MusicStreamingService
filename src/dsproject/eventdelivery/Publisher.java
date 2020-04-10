@@ -24,6 +24,7 @@ import javax.swing.*;
 
 public final class Publisher extends Node
 {
+    private final HashMap<SongInfo , String> songInfoToFilePath = new HashMap<>();
     private final HashMap<ArtistName, ArrayList<String>> artistsToSongs = new HashMap<>();
     private final HashMap<ConnectionInfo, BigInteger> brokersConnToHash = new HashMap<>();
     private final HashMap<BigInteger, ArrayList<String>> artistsToBroker = new HashMap<>();
@@ -69,6 +70,7 @@ public final class Publisher extends Node
                         artistsToSongs.put(artist, new ArrayList<String>());
                     }
                     artistsToSongs.get(artist).add(title);
+                    songInfoToFilePath.put(SongInfo.of(artist,title),mp3.getAbsolutePath());
                 }
             }
 
@@ -225,6 +227,54 @@ public final class Publisher extends Node
         }
     }
 
+    public void push(SongInfo info , ObjectOutputStream out){
+        try {
+
+            String filePath = songInfoToFilePath.get(info);
+
+            System.out.println("I was just asked for song " + info.getSongName());
+
+            if (filePath != null && Files.exists(Paths.get(filePath))) {     //Check if file already exists and consequently if the client is signed up
+                Mp3File mp3 = null;
+
+                try {
+                    mp3 = new Mp3File(filePath);
+                } catch (UnsupportedTagException | InvalidDataException e) {
+                    e.printStackTrace();
+                }
+
+                List<byte[]> rawAudio = IOHandler.readMp3(filePath);
+
+                MusicFile originalMp3 = new MusicFile(mp3);
+
+                String trackName = originalMp3.getTrackName();
+                String artistName = originalMp3.getArtistName();
+                String albumInfo = originalMp3.getAlbumInfo();
+                String genre = originalMp3.getGenre();
+
+                int chunkNum = 1;
+
+                while (!rawAudio.isEmpty()) {
+
+                    byte[] chunk = rawAudio.remove(0);
+                    MusicFile mf = new MusicFile(trackName, artistName, albumInfo, genre, chunkNum, chunk);
+                    out.writeObject(mf);
+                    System.out.println("Sending chunk " + chunkNum + " of song " + trackName);
+                    chunkNum++;
+
+                }
+            } else {
+                out.writeObject("Song isn't served by the publisher or it doesn't exist.");
+                System.out.println("Song isn't served by the publisher or it doesn't exist.");
+            }
+            out.writeObject(null);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
+
+    }
+
     public void acceptBrokerRequests(){
 
         try{
@@ -244,55 +294,16 @@ public final class Publisher extends Node
                         }
 
                         if(request!=null && request.equals("SongRequest")){
-                            //SongInfo songRequest = null;
-                            String songRequest = null;                           //I changed it for pull to work; Eleni
+                            SongInfo songRequest = null;
                             try {
                                 //songRequest = (SongInfo) in.readObject();       //Get name of the song
-                                songRequest = (String)in.readObject();            //I changed it for pull to work
+                                songRequest = (SongInfo)in.readObject();            //I changed it for pull to work
                             } catch (ClassNotFoundException e) {
                                 e.printStackTrace();
                             }
 
-                            //String songName = songRequest.getSongName();
-                            String songName = songRequest;                          //I changed it for pull to work
-                            System.out.println("I was just asked for song " + songName);
-                            String filePath =  GENERAL_DATA_FOLDER+this.ownFolder+songName+".mp3";
+                            push(songRequest,out);
 
-                            if(Files.exists(Paths.get(filePath))) {     //Check if file already exists and consequently if the client is signed up
-                                Mp3File mp3 = null;
-
-                                try {
-                                    mp3 = new Mp3File(filePath);
-                                } catch (UnsupportedTagException | InvalidDataException e) {
-                                    e.printStackTrace();
-                                }
-
-                                List<byte[]> rawAudio = IOHandler.readMp3(filePath);
-
-                                MusicFile originalMp3 = new MusicFile(mp3);
-
-                                String trackName = originalMp3.getTrackName();
-                                String artistName = originalMp3.getArtistName();
-                                String albumInfo = originalMp3.getAlbumInfo();
-                                String genre = originalMp3.getGenre();
-
-                                int chunkNum = 1;
-
-                                while (!rawAudio.isEmpty()) {
-
-                                    byte[] chunk = rawAudio.remove(0);
-                                    MusicFile mf = new MusicFile(trackName, artistName, albumInfo, genre, chunkNum, chunk);
-                                    out.writeObject(mf);
-                                    System.out.println("Sending chunk " + chunkNum + " of song " + trackName);
-                                    chunkNum++;
-
-                                }
-                            }
-                            else{
-                                out.writeObject("Song isn't served by the publisher or it doesn't exist.");
-                                System.out.println("Song isn't served by the publisher or it doesn't exist.");
-                            }
-                            out.writeObject(null);
                         }
 
                     }catch (IOException e){
