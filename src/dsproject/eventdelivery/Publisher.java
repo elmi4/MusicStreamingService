@@ -225,6 +225,54 @@ public final class Publisher extends Node
         }
     }
 
+    public void push(SongInfo info , ObjectOutputStream out){
+        try {
+
+            String filePath = songInfoToFilePath.get(info);
+
+            System.out.println("I was just asked for song " + info.getSongName());
+
+            if (filePath != null && Files.exists(Paths.get(filePath))) {     //Check if file already exists and consequently if the client is signed up
+                Mp3File mp3 = null;
+
+                try {
+                    mp3 = new Mp3File(filePath);
+                } catch (UnsupportedTagException | InvalidDataException e) {
+                    e.printStackTrace();
+                }
+
+                List<byte[]> rawAudio = IOHandler.readMp3(filePath);
+
+                MusicFile originalMp3 = new MusicFile(mp3);
+
+                String trackName = originalMp3.getTrackName();
+                String artistName = originalMp3.getArtistName();
+                String albumInfo = originalMp3.getAlbumInfo();
+                String genre = originalMp3.getGenre();
+
+                int chunkNum = 1;
+
+                while (!rawAudio.isEmpty()) {
+
+                    byte[] chunk = rawAudio.remove(0);
+                    MusicFile mf = new MusicFile(trackName, artistName, albumInfo, genre, chunkNum, chunk);
+                    out.writeObject(mf);
+                    System.out.println("Sending chunk " + chunkNum + " of song " + trackName);
+                    chunkNum++;
+
+                }
+            } else {
+                out.writeObject("Song isn't served by the publisher or it doesn't exist.");
+                System.out.println("Song isn't served by the publisher or it doesn't exist.");
+            }
+            out.writeObject(null);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
+
+    }
+
     public void acceptBrokerRequests(){
 
         try{
@@ -252,45 +300,8 @@ public final class Publisher extends Node
                                 e.printStackTrace();
                             }
 
-                            String filePath = songInfoToFilePath.get(songRequest);
+                            push(songRequest,out);
 
-                            System.out.println("I was just asked for song " + songRequest.getSongName());
-
-                            if(filePath!=null && Files.exists(Paths.get(filePath))) {     //Check if file already exists and consequently if the client is signed up
-                                Mp3File mp3 = null;
-
-                                try {
-                                    mp3 = new Mp3File(filePath);
-                                } catch (UnsupportedTagException | InvalidDataException e) {
-                                    e.printStackTrace();
-                                }
-
-                                List<byte[]> rawAudio = IOHandler.readMp3(filePath);
-
-                                MusicFile originalMp3 = new MusicFile(mp3);
-
-                                String trackName = originalMp3.getTrackName();
-                                String artistName = originalMp3.getArtistName();
-                                String albumInfo = originalMp3.getAlbumInfo();
-                                String genre = originalMp3.getGenre();
-
-                                int chunkNum = 1;
-
-                                while (!rawAudio.isEmpty()) {
-
-                                    byte[] chunk = rawAudio.remove(0);
-                                    MusicFile mf = new MusicFile(trackName, artistName, albumInfo, genre, chunkNum, chunk);
-                                    out.writeObject(mf);
-                                    System.out.println("Sending chunk " + chunkNum + " of song " + trackName);
-                                    chunkNum++;
-
-                                }
-                            }
-                            else{
-                                out.writeObject("Song isn't served by the publisher or it doesn't exist.");
-                                System.out.println("Song isn't served by the publisher or it doesn't exist.");
-                            }
-                            out.writeObject(null);
                         }
 
                     }catch (IOException e){
