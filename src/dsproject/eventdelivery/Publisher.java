@@ -24,6 +24,7 @@ import javax.swing.*;
 
 public final class Publisher extends Node
 {
+    private final HashMap<SongInfo , String> songInfoToFilePath = new HashMap<>();
     private final HashMap<ArtistName, ArrayList<String>> artistsToSongs = new HashMap<>();
     private final HashMap<ConnectionInfo, BigInteger> brokersConnToHash = new HashMap<>();
     private final HashMap<BigInteger, ArrayList<String>> artistsToBroker = new HashMap<>();
@@ -67,6 +68,7 @@ public final class Publisher extends Node
                         artistsToSongs.put(artist, new ArrayList<String>());
                     }
                     artistsToSongs.get(artist).add(title);
+                    songInfoToFilePath.put(SongInfo.of(artist,title),DATA_FOLDER + name);
                 }
             }
 
@@ -242,30 +244,28 @@ public final class Publisher extends Node
                         }
 
                         if(request!=null && request.equals("SongRequest")){
-                            //SongInfo songRequest = null;
-                            String songRequest = null;                           //I changed it for pull to work; Eleni
+                            SongInfo songRequest = null;
                             try {
                                 //songRequest = (SongInfo) in.readObject();       //Get name of the song
-                                songRequest = (String)in.readObject();            //I changed it for pull to work
+                                songRequest = (SongInfo)in.readObject();            //I changed it for pull to work
                             } catch (ClassNotFoundException e) {
                                 e.printStackTrace();
                             }
 
-                            //String songName = songRequest.getSongName();
-                            String songName = songRequest;                          //I changed it for pull to work
-                            System.out.println("I was just asked for song " + songName);
-                            String filePath =  DATA_FOLDER+songName+".mp3";
+                            String filePath = songInfoToFilePath.get(songRequest);
 
-                            if(Files.exists(Paths.get(filePath))) {     //Check if file already exists and consequently if the client is signed up
+                            System.out.println("I was just asked for song " + songRequest.getSongName());
+
+                            if(filePath!=null && Files.exists(Paths.get(filePath))) {     //Check if file already exists and consequently if the client is signed up
                                 Mp3File mp3 = null;
 
                                 try {
-                                    mp3 = new Mp3File(DATA_FOLDER + songName + ".mp3");
+                                    mp3 = new Mp3File(filePath);
                                 } catch (UnsupportedTagException | InvalidDataException e) {
                                     e.printStackTrace();
                                 }
 
-                                List<byte[]> rawAudio = IOHandler.readMp3(DATA_FOLDER + songName + ".mp3");
+                                List<byte[]> rawAudio = IOHandler.readMp3(filePath);
 
                                 MusicFile originalMp3 = new MusicFile(mp3);
 

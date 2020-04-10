@@ -124,11 +124,11 @@ public final class Broker extends Node
 
                         case "SongRequest": //Consumer notifies the broker that he is about to request a song
                             SongInfo msg = (SongInfo) in.readObject();
-                            String fileName = (String) in.readObject();
+
                             System.out.println("\nA request was made for the song: '" + msg.getSongName() + "'");
 
                             //pull MusicFiles from publisher
-                            pull(msg, fileName, out);
+                            pull(msg, out);
                             break;
                     }
                 }
@@ -149,7 +149,7 @@ public final class Broker extends Node
     }
 
 
-    public void pull(SongInfo songInfo, String fileName, ObjectOutputStream consumerOut) {
+    public void pull(SongInfo songInfo, ObjectOutputStream consumerOut) {
         ArtistName artist = songInfo.getArtistName();
 
         //Finding the corresponding publisher and establishing a connection
@@ -183,7 +183,7 @@ public final class Broker extends Node
 
                     //Asking for the song
                     out.writeObject("SongRequest");
-                    out.writeObject(fileName);
+                    out.writeObject(songInfo);
 
                     //Getting publisher's answer and passing it on to consumer
                     try {
