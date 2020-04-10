@@ -75,20 +75,7 @@ public final class Publisher extends Node
         } catch (IOException | UnsupportedTagException | InvalidDataException e) {
             e.printStackTrace();
         }
-
-        /*for (ArtistName name : artistsToSongs.keySet()) {                //test
-            String key = name.getArtistName().toUpperCase();
-            System.out.println(key);
-            for (String songTitleList : artistsToSongs.get(name)) {
-                System.out.println(songTitleList);
-            }
-            System.out.println(" ");
-        }*/
     }
-
-    //Not needed. "brokers" is initialized in super.init()
-    public void getBrokerList() {}
-
 
     public void notifyFailure(Broker broker) {
     }
@@ -205,14 +192,6 @@ public final class Publisher extends Node
 
         Arrays.sort(hashkeys);
 
-        //TEST-> see order of hash keys
-        /*System.out.println(" ORDERED KEYS ");
-        for (BigInteger b : hashkeys) {
-            System.out.println(b);
-        }
-        System.out.println(" ");*/
-        //END TEST
-
         for (ArtistName artist : artistsToSongs.keySet()) {
             BigInteger artistHash = this.hashTopic(artist.getArtistName());
             if (artistHash != null) {
@@ -224,7 +203,7 @@ public final class Publisher extends Node
                     if (artistHash.compareTo(low) == 1 && artistHash.compareTo(high) == -1) {
                         artistsToBroker.computeIfAbsent(high, k -> new ArrayList<>());
                         artistsToBroker.get(high).add(artist.getArtistName());
-                        /*System.out.println("this range");
+                        /*System.out.println("this range");     //keeping it in case it is needed
                         System.out.println("LOW : " + low);
                         System.out.println("KEY : " + artistHash + " ARTIST: " + artist.getArtistName());
                         System.out.println("HIGH: " + high + "\n");*/
@@ -235,7 +214,7 @@ public final class Publisher extends Node
                     } else {
                         artistsToBroker.computeIfAbsent(hashkeys[0], k -> new ArrayList<>());
                         artistsToBroker.get(hashkeys[0]).add(artist.getArtistName());
-                        //System.out.println("ARTIST TO SMALLEST BROKER ");
+                        //System.out.println("ARTIST TO SMALLEST BROKER ");     //keeping it in case it is needed
                         //System.out.println("KEY : " + artistHash + " ARTIST: " + artist.getArtistName() + "\n");
                         break;
                     }
@@ -244,21 +223,13 @@ public final class Publisher extends Node
                 System.out.println("Problem in hashing Artist's name");
             }
         }
-        for (BigInteger b : artistsToBroker.keySet()) {                //test
-            System.out.println("Broker with hash: " + b);
-            for (String songTitleList : artistsToBroker.get(b)) {
-                System.out.println(songTitleList);
-            }
-            System.out.println(" ");
-        }
-
     }
 
     public void acceptBrokerRequests(){
 
         try{
             ServerSocket server = new ServerSocket(super.getPort());
-            System.out.println("Server Started ....");
+            System.out.println("Connected to server.");
             while(true){
                 Socket clientSocket=server.accept();
                 new Thread(()->{
@@ -273,28 +244,30 @@ public final class Publisher extends Node
                         }
 
                         if(request!=null && request.equals("SongRequest")){
-                            SongInfo songRequest = null;
+                            //SongInfo songRequest = null;
+                            String songRequest = null;                           //I changed it for pull to work; Eleni
                             try {
-                                songRequest = (SongInfo) in.readObject();       //Get name of the song
+                                //songRequest = (SongInfo) in.readObject();       //Get name of the song
+                                songRequest = (String)in.readObject();            //I changed it for pull to work
                             } catch (ClassNotFoundException e) {
                                 e.printStackTrace();
                             }
 
-                            String songName = songRequest.getSongName();
-
-                            String filePath =  GENERAL_DATA_FOLDER+songName+".mp3";
+                            //String songName = songRequest.getSongName();
+                            String songName = songRequest;                          //I changed it for pull to work
+                            System.out.println("I was just asked for song " + songName);
+                            String filePath =  GENERAL_DATA_FOLDER+this.ownFolder+songName+".mp3";
 
                             if(Files.exists(Paths.get(filePath))) {     //Check if file already exists and consequently if the client is signed up
-
                                 Mp3File mp3 = null;
 
                                 try {
-                                    mp3 = new Mp3File(GENERAL_DATA_FOLDER + songName + ".mp3");
+                                    mp3 = new Mp3File(filePath);
                                 } catch (UnsupportedTagException | InvalidDataException e) {
                                     e.printStackTrace();
                                 }
 
-                                List<byte[]> rawAudio = IOHandler.readMp3(GENERAL_DATA_FOLDER + songName + ".mp3");
+                                List<byte[]> rawAudio = IOHandler.readMp3(filePath);
 
                                 MusicFile originalMp3 = new MusicFile(mp3);
 
@@ -310,16 +283,16 @@ public final class Publisher extends Node
                                     byte[] chunk = rawAudio.remove(0);
                                     MusicFile mf = new MusicFile(trackName, artistName, albumInfo, genre, chunkNum, chunk);
                                     out.writeObject(mf);
+                                    System.out.println("Sending chunk " + chunkNum + " of song " + trackName);
                                     chunkNum++;
 
                                 }
-
-                                out.writeObject(null);
-
                             }
                             else{
                                 out.writeObject("Song isn't served by the publisher or it doesn't exist.");
+                                System.out.println("Song isn't served by the publisher or it doesn't exist.");
                             }
+                            out.writeObject(null);
                         }
 
                     }catch (IOException e){
@@ -335,10 +308,7 @@ public final class Publisher extends Node
     public static void main(String args[]) {
         Publisher test = new Publisher(ConnectionInfo.of("127.0.0.1", 9999), "");
         test.init();
-
-
         test.initiate();
         test.acceptBrokerRequests();
     }
-
 }
