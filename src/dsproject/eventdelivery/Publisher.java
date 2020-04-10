@@ -133,8 +133,7 @@ public final class Publisher extends Node
                         out.writeObject("YourData");
                         ArrayList<String> artistList = artistsToBroker.get(key);
                         out.writeObject(artistList);
-                        out.writeInt(super.getPort()); //JUST SEND THE connInfo
-                        out.writeUTF(super.getIP());
+                        out.writeObject(super.connInfo);
                         out.flush();
                     } else {
                         out.writeObject("OtherBrokers'Data");
@@ -142,8 +141,7 @@ public final class Publisher extends Node
                         out.writeObject(artistList);
                         for(ConnectionInfo b : super.brokers){
                             if(key.equals(brokersConnToHash.get(b))) {
-                                out.writeInt(b.getPort()); //JUST SEND THE connInfo
-                                out.writeUTF(b.getIP());
+                                out.writeObject(super.connInfo);
                                 out.flush();
                                 break;
                             }

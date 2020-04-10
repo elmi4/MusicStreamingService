@@ -4,7 +4,6 @@ import dsproject.Node;
 import dsproject.assist.Utilities;
 import dsproject.assist.network.ConnectionInfo;
 import dsproject.media.ArtistName;
-import dsproject.media.MusicFile;
 import dsproject.media.SongInfo;
 
 import java.math.BigInteger;
@@ -15,7 +14,6 @@ import java.util.HashMap;
 
 import java.io.*;
 import java.net.*;
-import java.util.List;
 import java.util.Map;
 
 public final class Broker extends Node
@@ -79,6 +77,7 @@ public final class Broker extends Node
                             request = (String) in.readObject();
                         } catch (ClassNotFoundException e) {
                             e.printStackTrace();
+                            return;
                         }
 
                     //The first message that arrives will always be a string
@@ -88,7 +87,7 @@ public final class Broker extends Node
                             out.writeObject(hashedValue);
                             break;
 
-                            case "SendingArtistArray": //Receive an array list of artists that the broker can serve
+                            case "SendingArtistArray": //(from Publisher) Receive a list of artists that the broker can serve
                                 String subcase = "";
                                 while (!subcase.equals("over")) {
                                     try {
@@ -97,11 +96,12 @@ public final class Broker extends Node
                                         e.printStackTrace();
                                     }
                                     if (subcase.equals("YourData")) {
-                                        ArrayList<String> songNameArray = null;
+                                        ArrayList<String> songNameArray;
                                         try {
                                             songNameArray = (ArrayList<String>) in.readObject();
                                         } catch (ClassNotFoundException e) {
                                             e.printStackTrace();
+                                            return;
                                         }
                                         ArrayList<ArtistName> artists = new ArrayList<>();
                                         for (String name : songNameArray) {
@@ -109,23 +109,20 @@ public final class Broker extends Node
                                             artistToBroker.put(artist, ConnectionInfo.of(super.getIP(), super.getPort()));
                                             artists.add(artist);
                                         }
-                                        int publisherPort = in.readInt();
-                                        String publisherIP = in.readUTF();
-                                        ConnectionInfo info = new ConnectionInfo(publisherIP, publisherPort);
-                                        publishersToArtists.put(info, artists);
+                                        ConnectionInfo thisBrokerInfo = (ConnectionInfo)in.readObject();
+                                        publishersToArtists.put(thisBrokerInfo, artists);
                                     } else if (subcase.equals("OtherBrokers'Data")) {
-                                        ArrayList<String> artistArray = null;
+                                        ArrayList<String> artistArray;
                                         try {
                                             artistArray = (ArrayList<String>) in.readObject();
                                         } catch (ClassNotFoundException e) {
                                             e.printStackTrace();
+                                            return;
                                         }
-                                        int brokerPort = in.readInt();
-                                        String brokerIP = in.readUTF();
-                                        ConnectionInfo brokerInfo = new ConnectionInfo(brokerIP, brokerPort);
+                                        ConnectionInfo brokerInfoInfo = (ConnectionInfo)in.readObject();
                                         for (String name : artistArray) {
                                             ArtistName artist = new ArtistName(name);
-                                            artistToBroker.put(artist, brokerInfo);
+                                            artistToBroker.put(artist, brokerInfoInfo);
                                         }
                                     }
                                 }
@@ -136,21 +133,22 @@ public final class Broker extends Node
                             out.writeObject(artistToBroker);
                             break;
 
-                            case "SongRequest": //Consumer notifies the broker that he is about to request a song
-                                SongInfo msg = null;
-                                try {
-                                    msg = (SongInfo) in.readObject();
-                                } catch (ClassNotFoundException e) {
-                                    e.printStackTrace();
-                                }
+                        case "SongRequest": //Consumer notifies the broker that he is about to request a song
+                            SongInfo msg;
+                            try {
+                                msg = (SongInfo) in.readObject();
+                            } catch (ClassNotFoundException e) {
+                                e.printStackTrace();
+                                return;
+                            }
 
-                                System.out.println("\nA request was made for the song: '" + msg.getSongName() + "'");
+                            System.out.println("\nA request was made for the song: '" + msg.getSongName() + "'");
 
-                                //Create new thread, pull MusicFiles from Publisher and send them to Consumer
-                                pull(msg, out);
-                                break;
+                            //Create new thread, pull MusicFiles from Publisher and send them to Consumer
+                            pull(msg, out);
+                            break;
                         }
-                    }catch(IOException e){
+                    }catch(IOException | ClassNotFoundException e){
                         e.printStackTrace();
                     }
                 }).start();
@@ -170,55 +168,60 @@ public final class Broker extends Node
     public void pull(SongInfo songInfo, ObjectOutputStream consumerOut) {
         ArtistName wantedArtist = songInfo.getArtistName();
 
-        //Finding the corresponding publisher and establishing a connection
+        //Get the connectionInfo of the publisher that serves the artist
         ConnectionInfo publisherInfo = null;
-        for (Map.Entry entry: publishersToArtists.entrySet()) {
-            if(((ArrayList)entry.getValue()).contains(wantedArtist)){
-                publisherInfo = ConnectionInfo.of(
-                        ((ConnectionInfo) entry.getKey()).getIP(),((ConnectionInfo) entry.getKey()).getPort());
+        for (Map.Entry<ConnectionInfo, ArrayList<ArtistName>> entry: publishersToArtists.entrySet()) {
+            if((entry.getValue()).contains(wantedArtist)){
+                publisherInfo = ConnectionInfo.of((entry.getKey()).getIP(),(entry.getKey()).getPort());
                 break;
             }
         }
+        if(publisherInfo == null){
+            System.err.println("Couldn't find a publisher for this song.");
+            return;
+        }
 
-        if (publisherInfo != null) {
-            System.out.println("This is the corresponding publisher's connectionInfo: " + publisherInfo.getIP() + publisherInfo.getPort());
+        System.out.println("This is the corresponding publisher's connectionInfo: " + publisherInfo.getIP() + publisherInfo.getPort());
 
-            Socket publisherSocket = null;
+        Socket publisherSocket;
+        try {
+            publisherSocket = new Socket(publisherInfo.getIP(), publisherInfo.getPort());
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+            return;
+        }
+
+        Socket finalPublisherSocket = publisherSocket;
+        try {
+            ObjectOutputStream out = new ObjectOutputStream(finalPublisherSocket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(finalPublisherSocket.getInputStream());
+
+            out.writeObject("SongRequest");
+            out.writeObject(songInfo);
+
+            //Getting publisher's answer and passing it on to consumer
             try {
-                publisherSocket = new Socket(publisherInfo.getIP(), publisherInfo.getPort());
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
-
-            //Pulling the requested song from the publisher
-            Socket finalPublisherSocket = publisherSocket;
-            try {
-                ObjectOutputStream out = new ObjectOutputStream(finalPublisherSocket.getOutputStream());
-                ObjectInputStream in = new ObjectInputStream(finalPublisherSocket.getInputStream());
-
-                //Asking for the song
-                out.writeObject("SongRequest");
-                out.writeObject(songInfo);
-
-                //Getting publisher's answer and passing it on to consumer
-                try {
-                    Object answer = in.readObject();
-
-                    do {
-                        System.out.println("Just received and sent: " + answer);
-                        consumerOut.writeObject(answer);
-                        answer = in.readObject();
-                    }
-                    while (answer!=null);
-                } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
+                Object answer = in.readObject();
+                //if first msg is a string, then it is the "artist not found" msg from the publisher
+                if(Utilities.isStringLiteral(answer)){
+                    consumerOut.writeObject(answer);
+                    return;
                 }
 
-            }catch  ( IOException e) {
+                do {
+                    System.out.println("Just received and sent: " + answer);
+                    consumerOut.writeObject(answer);
+                    answer = in.readObject();
+                }while (answer!=null);
+                //Notify consumer that all the packages have been sent
+                consumerOut.writeObject(null);
+            } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
+
+        }catch  ( IOException e) {
+            e.printStackTrace();
         }
-        else { System.err.println("Couldn't find a publisher for this song."); }
     }
 
 

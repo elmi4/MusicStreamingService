@@ -58,10 +58,12 @@ public final class Consumer extends Node
 
             //get the broker that serves the artist you want
             Socket requestSocket = connect(artistToBroker.get(artistObj));
-            System.out.println("Just connected to broker " + artistToBroker.get(artistObj).getIP() + artistToBroker.get(artistObj).getPort());
             if(requestSocket == null){
                 System.err.println("Could not connect to broker");
                 return;
+            }else{
+                System.out.println("Connected to broker " + artistToBroker.get(artistObj).getIP()
+                        +" "+ artistToBroker.get(artistObj).getPort());
             }
 
             try(ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
@@ -70,19 +72,19 @@ public final class Consumer extends Node
                 //Notify broker that you will make a song request
                 out.writeObject("SongRequest");
                 out.writeObject(SongInfo.of(artistObj, songName));
-                System.out.println("Just asked for song " + songName);
+                System.out.println("Asked for song " + songName);
 
                 //If error msg was sent, return. (song doesn't exist)
                 Object ob = in.readObject();
                 if(Utilities.isStringLiteral(ob)){
-                    System.out.println("Just got " + ob);
+                    System.out.println(ob);
                     return;
                 }
 
                 //Accept all the song chunks from broker until null is received (no more chunks)
                 do{
-                    System.out.println("Just got " + ob);
                     MusicFile mf = (MusicFile)ob;
+                    System.out.println("Got " + mf + "  Chunk: " +mf.getChunkNumber());
 
                     Map<Integer, Byte[]> chunkNumToChunkData = new HashMap<>();
                     chunkNumToChunkData.put(mf.getChunkNumber(), Utilities.toByteObjectArray(mf.getMusicFileExtract()));
@@ -209,7 +211,6 @@ class ConsumerEntry
         c1.init();
 
         //make ASYNCHRONOUS requests
-        c1.requestSongData("Apocalypse", "Magic", Consumer.RequestType.NONE);
-
+        c1.requestSongData("Apocalypse", "Magic", Consumer.RequestType.DOWNLOAD_FULL_SONG);
     }
 }
