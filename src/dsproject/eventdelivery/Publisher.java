@@ -19,37 +19,42 @@ import dsproject.media.ArtistName;
 import dsproject.media.MusicFile;
 import dsproject.media.SongInfo;
 
-import javax.swing.*;
-
 
 public final class Publisher extends Node
 {
     private final HashMap<SongInfo , String> songInfoToFilePath = new HashMap<>();
     private final HashMap<ArtistName, ArrayList<String>> artistsToSongs = new HashMap<>();
-    private final HashMap<ConnectionInfo, BigInteger> brokersConnToHash = new HashMap<>();
     private final HashMap<BigInteger, ArrayList<String>> artistsToBroker = new HashMap<>();
 
+    private Map<ConnectionInfo, BigInteger> brokersConnToHash;
     private String ownFolder;
 
     public static final String GENERAL_DATA_FOLDER = "files/Tracks/";
 
 
-    public Publisher(ConnectionInfo connInfo, String ownFolder) {
+    public Publisher(ConnectionInfo connInfo, String ownFolder)
+    {
         super(connInfo);
         this.ownFolder = ownFolder;
     }
 
 
+    /**
+     * Reads mp3 directory and initializes artistsToSongs, songInfoToFilePath
+     */
     @Override
-    public void init() {                                 //initializes publisher's data
+    public void init() {
         super.init(); //read and get the brokers list
 
         File folder = new File(GENERAL_DATA_FOLDER+ownFolder);
         File[] mp3s = folder.listFiles();
+        if(mp3s == null){
+            System.err.println("The directory given for the mp3s doesn't exist.");
+            return;
+        }
 
         ArtistName artist;
         String title;
-
         try {
             for (File mp3 : mp3s) {
                 Mp3File song = new Mp3File(mp3.getAbsolutePath());
@@ -66,68 +71,163 @@ public final class Publisher extends Node
                 }
 
                 if (title != null && artist.getArtistName() != null) {
-                    if (artistsToSongs.get(artist) == null) {
-                        artistsToSongs.put(artist, new ArrayList<String>());
-                    }
+                    artistsToSongs.computeIfAbsent(artist, k -> new ArrayList<>());
                     artistsToSongs.get(artist).add(title);
                     songInfoToFilePath.put(SongInfo.of(artist,title),mp3.getAbsolutePath());
                 }
             }
-
         } catch (IOException | UnsupportedTagException | InvalidDataException e) {
             e.printStackTrace();
         }
     }
 
-    public void notifyFailure(Broker broker) {
+
+    public void initiate()
+    {
+        //Phase 1
+        brokersConnToHash = getBrokerHashes();
+
+        //Phase 2
+        distributeArtistsToBrokers(); //can you make this return value for 'artistsToBroker'? No idea wtf is going on in that while() lol
+
+        //Phase 3
+        sendArtistsToBrokers();
     }
 
-    public void initiate() {
-        Socket requestSocket = null;
-        ObjectOutputStream out = null;
-        ObjectInputStream in = null;
 
-        //Phase 1 collect the ip and port hash values from all of the brokers
+    public void serveBrokerRequests()
+    {
+        try{
+            ServerSocket server = new ServerSocket(super.getPort());
+            System.out.println("Connected to server.");
+            while(true){
+                Socket clientSocket=server.accept();
+                new Thread(()->{
+                    try(ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+                        ObjectInputStream  in  = new ObjectInputStream(clientSocket.getInputStream()))
+                    {
+                        String request = (String)in.readObject();
+                        if(request!=null && request.equals("SongRequest")){
+                            SongInfo songRequest = (SongInfo)in.readObject();
+                            push(songRequest,out);
+                        }
 
+                    }catch (IOException | ClassNotFoundException e){
+                        e.printStackTrace();
+                    }
+                }).start();
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+
+
+    // ---------------------------------   PRIVATE METHODS    ----------------------------------
+
+
+
+    /**
+     * Collect the ip and port hash values from all of the brokers
+     */
+    private Map<ConnectionInfo, BigInteger> getBrokerHashes()
+    {
+        Map<ConnectionInfo, BigInteger> outMap = new HashMap<>();
         for (ConnectionInfo br : super.brokers) {
-            try {
-                requestSocket = new Socket(br.getIP(), br.getPort());
-                out = new ObjectOutputStream(requestSocket.getOutputStream());
-                in = new ObjectInputStream(requestSocket.getInputStream());
-                try {
-                    out.writeObject("HashValue");
-                    BigInteger hashedValue = (BigInteger) in.readObject();
-                    brokersConnToHash.put(br, hashedValue);
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
-
-
-            } catch (UnknownHostException unknownHost) {
+            try (Socket requestSocket   = new Socket(br.getIP(), br.getPort());
+                 ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
+                 ObjectInputStream  in  = new ObjectInputStream(requestSocket.getInputStream()))
+            {
+                out.writeObject("HashValue");
+                BigInteger hashedValue = (BigInteger) in.readObject();
+                outMap.put(br, hashedValue);
+            } catch (UnknownHostException e) {
                 System.err.println("You are trying to connect to an unknown host!");
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            } finally {
-                try {
-                    in.close();
-                    out.close();
-                    requestSocket.close();
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
+                e.printStackTrace();
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        return (outMap.size() == 0) ? null : outMap;
+    }
+
+
+    /**
+     * Calculate which songs correspond to which brokers
+     */
+    private void distributeArtistsToBrokers()
+    {
+        int brokersCount = super.brokers.size();
+        BigInteger[] hashKeys = new BigInteger[brokersCount];
+
+        int i = 0;
+        for (ConnectionInfo broker : super.brokers) {
+            hashKeys[i++] = brokersConnToHash.get(broker);
+        }
+
+        Arrays.sort(hashKeys);
+
+        for (ArtistName artist : artistsToSongs.keySet()) {
+            BigInteger artistHash = this.hashTopic(artist.getArtistName());
+            if(artistHash == null){
+                System.out.println("Problem in hashing Artist's name");
+                continue;
+            }
+
+            BigInteger one = new BigInteger("1");
+            BigInteger low = new BigInteger("0");
+            BigInteger high = hashKeys[0];
+            int j = 0;
+            while (true) {
+                if (artistHash.compareTo(low) > 0 && artistHash.compareTo(high) < 0) {
+                    artistsToBroker.computeIfAbsent(high, k -> new ArrayList<>());
+                    artistsToBroker.get(high).add(artist.getArtistName());
+                    /*System.out.println("this range");     //keeping it in case it is needed
+                    System.out.println("LOW : " + low);
+                    System.out.println("KEY : " + artistHash + " ARTIST: " + artist.getArtistName());
+                    System.out.println("HIGH: " + high + "\n");*/
+                    break;
+                } else if (++j < brokersCount) {
+                    low = high.add(one);
+                    high = hashKeys[j];
+                } else {
+                    artistsToBroker.computeIfAbsent(hashKeys[0], k -> new ArrayList<>());
+                    artistsToBroker.get(hashKeys[0]).add(artist.getArtistName());
+                    //System.out.println("ARTIST TO SMALLEST BROKER ");     //keeping it in case it is needed
+                    //System.out.println("KEY : " + artistHash + " ARTIST: " + artist.getArtistName() + "\n");
+                    break;
                 }
             }
         }
+    }
 
-        //Phase 2 calculate which songs correspond to which brokers
-        this.distributeArtistsToBrokers();
 
-        //Phase 3 transmit their names in an array list
+    private BigInteger hashTopic(String artist)
+    {
+        BigInteger artistHash;
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            byte[] messageDigest = md.digest(artist.getBytes());
+
+            artistHash = new BigInteger(1, messageDigest);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        return artistHash;
+    }
+
+
+    /**
+     * Send to brokers the artists that they serve themselves and all the other brokers too
+     */
+    private void sendArtistsToBrokers()
+    {
         for(ConnectionInfo br : super.brokers){
-            try {
-                requestSocket = new Socket(br.getIP(),br.getPort());
-                out = new ObjectOutputStream(requestSocket.getOutputStream());
+            try (Socket requestSocket   = new Socket(br.getIP(), br.getPort());
+                 ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream()))
+            {
                 out.writeObject("SendingArtistArray");
-
                 for(BigInteger key: artistsToBroker.keySet()) {
                     if(key.equals(brokersConnToHash.get(br))) {
                         out.writeObject("YourData");
@@ -149,174 +249,70 @@ public final class Publisher extends Node
                     }
                 }
                 out.writeObject("over");
-
-            } catch (UnknownHostException unknownHost) {
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
                 System.err.println("You are trying to connect to an unknown host!");
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            } finally {
-                try {
-                    out.close();
-                    requestSocket.close();
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                }
-            }
-        }
-        //Phase 3 transmit their names in an array list
-
-    }
-
-    public BigInteger hashTopic(String artist) {
-        BigInteger artistHash;
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
-            byte[] messageDigest = md.digest(artist.getBytes());
-
-            artistHash = new BigInteger(1, messageDigest);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-        return artistHash;
-    }
-
-    public void distributeArtistsToBrokers() {
-
-        int size = super.brokers.size();
-        BigInteger hashkeys[] = new BigInteger[size];
-
-        int i = 0;
-        for (ConnectionInfo broker : super.brokers) {
-            hashkeys[i++] = brokersConnToHash.get(broker);
-        }
-
-        Arrays.sort(hashkeys);
-
-        for (ArtistName artist : artistsToSongs.keySet()) {
-            BigInteger artistHash = this.hashTopic(artist.getArtistName());
-            if (artistHash != null) {
-                BigInteger one = new BigInteger("1");
-                BigInteger low = new BigInteger("0");
-                BigInteger high = hashkeys[0];
-                int j = 0;
-                while (true) {
-                    if (artistHash.compareTo(low) == 1 && artistHash.compareTo(high) == -1) {
-                        artistsToBroker.computeIfAbsent(high, k -> new ArrayList<>());
-                        artistsToBroker.get(high).add(artist.getArtistName());
-                        /*System.out.println("this range");     //keeping it in case it is needed
-                        System.out.println("LOW : " + low);
-                        System.out.println("KEY : " + artistHash + " ARTIST: " + artist.getArtistName());
-                        System.out.println("HIGH: " + high + "\n");*/
-                        break;
-                    } else if (++j < size) {
-                        low = high.add(one);
-                        high = hashkeys[j];
-                    } else {
-                        artistsToBroker.computeIfAbsent(hashkeys[0], k -> new ArrayList<>());
-                        artistsToBroker.get(hashkeys[0]).add(artist.getArtistName());
-                        //System.out.println("ARTIST TO SMALLEST BROKER ");     //keeping it in case it is needed
-                        //System.out.println("KEY : " + artistHash + " ARTIST: " + artist.getArtistName() + "\n");
-                        break;
-                    }
-                }
-            } else {
-                System.out.println("Problem in hashing Artist's name");
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
 
-    public void push(SongInfo info , ObjectOutputStream out){
-        try {
 
+    /**
+     * Send requested data to broker
+     */
+    private void push(SongInfo info , ObjectOutputStream out)
+    {
+        try {
             String filePath = songInfoToFilePath.get(info);
 
             System.out.println("I was just asked for song " + info.getSongName());
 
-            if (filePath != null && Files.exists(Paths.get(filePath))) {     //Check if file already exists and consequently if the client is signed up
-                Mp3File mp3 = null;
+            //Check if file already exists and consequently if the client is signed up
+            if(filePath == null || !Files.exists(Paths.get(filePath))){
+                out.writeObject("Song '"+info.getSongName()+"' isn't served by the publisher or it doesn't exist.");
+                System.out.println("Song '"+info.getSongName()+"' isn't served by the publisher or it doesn't exist.");
+                return;
+            }
 
-                try {
-                    mp3 = new Mp3File(filePath);
-                } catch (UnsupportedTagException | InvalidDataException e) {
-                    e.printStackTrace();
-                }
+            Mp3File mp3;
+            try {
+                mp3 = new Mp3File(filePath);
+            } catch (UnsupportedTagException | InvalidDataException e) {
+                e.printStackTrace();
+                return;
+            }
 
-                List<byte[]> rawAudio = IOHandler.readMp3(filePath);
+            List<byte[]> rawAudio = IOHandler.readMp3(filePath);
 
-                MusicFile originalMp3 = new MusicFile(mp3);
+            MusicFile originalMp3 = new MusicFile(mp3);
 
-                String trackName = originalMp3.getTrackName();
-                String artistName = originalMp3.getArtistName();
-                String albumInfo = originalMp3.getAlbumInfo();
-                String genre = originalMp3.getGenre();
+            String trackName = originalMp3.getTrackName();
+            String artistName = originalMp3.getArtistName();
+            String albumInfo = originalMp3.getAlbumInfo();
+            String genre = originalMp3.getGenre();
 
-                int chunkNum = 1;
+            int chunkNum = 1;
 
-                while (!rawAudio.isEmpty()) {
-
-                    byte[] chunk = rawAudio.remove(0);
-                    MusicFile mf = new MusicFile(trackName, artistName, albumInfo, genre, chunkNum, chunk);
-                    out.writeObject(mf);
-                    System.out.println("Sending chunk " + chunkNum + " of song " + trackName);
-                    chunkNum++;
-
-                }
-            } else {
-                out.writeObject("Song isn't served by the publisher or it doesn't exist.");
-                System.out.println("Song isn't served by the publisher or it doesn't exist.");
+            while (!rawAudio.isEmpty()) {
+                byte[] chunk = rawAudio.remove(0);
+                MusicFile mf = new MusicFile(trackName, artistName, albumInfo, genre, chunkNum, chunk);
+                out.writeObject(mf);
+                System.out.println("Sending chunk " + chunkNum + " of song " + trackName);
+                chunkNum++;
             }
             out.writeObject(null);
         }catch (IOException e){
             e.printStackTrace();
         }
-
-
     }
 
-    public void acceptBrokerRequests()
-    {
-        try{
-            ServerSocket server = new ServerSocket(super.getPort());
-            System.out.println("Connected to server.");
-            while(true){
-                Socket clientSocket=server.accept();
-                new Thread(()->{
-                    try(ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
-                        ObjectInputStream  in  = new ObjectInputStream(clientSocket.getInputStream()))
-                    {
-                        String request=null;
-                        try {
-                            request = (String)in.readObject();
-                        } catch (ClassNotFoundException e) {
-                            e.printStackTrace();
-                        }
 
-                        if(request!=null && request.equals("SongRequest")){
-                            SongInfo songRequest = null;
-                            try {
-                                songRequest = (SongInfo)in.readObject();
-                            } catch (ClassNotFoundException e) {
-                                e.printStackTrace();
-                            }
-
-                            push(songRequest,out);
-
-                        }
-
-                    }catch (IOException e){
-                        e.printStackTrace();
-                    }
-                }).start();
-            }
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         Publisher test = new Publisher(ConnectionInfo.of("127.0.0.1", 9999), "");
         test.init();
         test.initiate();
-        test.acceptBrokerRequests();
+        test.serveBrokerRequests();
     }
 }
