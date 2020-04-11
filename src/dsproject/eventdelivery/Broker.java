@@ -34,11 +34,20 @@ public final class Broker extends Node
         try(ServerSocket providerSocket = new ServerSocket(super.getPort(), 10)) {
 
             while (true) { //Infinite loop for accepting connections
-                Socket connection = providerSocket.accept();
-                //new Thread(()->{
 
-                    try(ObjectOutputStream out = new ObjectOutputStream(connection.getOutputStream());
-                        ObjectInputStream  in  = new ObjectInputStream(connection.getInputStream())) {
+                Socket connection = providerSocket.accept();
+                ObjectOutputStream out;
+                ObjectInputStream in;
+                try{
+                    out = new ObjectOutputStream(connection.getOutputStream());
+                    in  = new ObjectInputStream(connection.getInputStream());
+                }catch(IOException e){
+                    e.printStackTrace();
+                    return;
+                }
+                new Thread(()->{
+
+                    try {
                         System.out.println("Just connected to client "+connection.getInetAddress()+" "+connection.getPort());
 
                         String request = (String) in.readObject();
@@ -96,7 +105,7 @@ public final class Broker extends Node
                         e.printStackTrace();
                     }
 
-                //}).start();
+                }).start();
             }
         } catch (IOException e) {
             e.printStackTrace();

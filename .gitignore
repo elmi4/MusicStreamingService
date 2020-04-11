@@ -12,6 +12,7 @@
 # General
 files/musicfile.ser
 saves/
+files/petrosIssues.txt
 
 # User-specific stuff
 .idea/**/workspace.xml
