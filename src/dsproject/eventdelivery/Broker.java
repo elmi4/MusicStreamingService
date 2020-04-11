@@ -64,22 +64,22 @@ public final class Broker extends Node
         try {
             providerSocket = new ServerSocket(super.getPort(), 10);
 
-                while (true) { //Infinite loop for accepting connections
+            while (true) { //Infinite loop for accepting connections
 
                 Socket connection = providerSocket.accept();
 
                 //new Thread(()->{
-                    try(ObjectOutputStream out = new ObjectOutputStream(connection.getOutputStream());
-                        ObjectInputStream  in  = new ObjectInputStream(connection.getInputStream())) {
-                        System.out.println("Just connected to client " + connection.getInetAddress() + " " +  connection.getPort());
+                try(ObjectOutputStream out = new ObjectOutputStream(connection.getOutputStream());
+                    ObjectInputStream  in  = new ObjectInputStream(connection.getInputStream())) {
+                    System.out.println("Just connected to client " + connection.getInetAddress() + " " +  connection.getPort());
 
-                        String request;
-                        try {
-                            request = (String) in.readObject();
-                        } catch (ClassNotFoundException e) {
-                            e.printStackTrace();
-                            return;
-                        }
+                    String request;
+                    try {
+                        request = (String) in.readObject();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                        return;
+                    }
 
                     //The first message that arrives will always be a string
                     switch (request) {
@@ -134,10 +134,10 @@ public final class Broker extends Node
                             //Create new thread, pull MusicFiles from Publisher and send them to Consumer
                             pull(msg, out);
                             break;
-                        }
-                    }catch(IOException | ClassNotFoundException e){
-                        e.printStackTrace();
                     }
+                }catch(IOException | ClassNotFoundException e){
+                    e.printStackTrace();
+                }
                 //}).start();
             }
         } catch (IOException ioException) {

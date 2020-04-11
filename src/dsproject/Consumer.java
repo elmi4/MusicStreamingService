@@ -211,6 +211,6 @@ class ConsumerEntry
         c1.init();
 
         //make ASYNCHRONOUS requests
-        c1.requestSongData("Alexander Nakarada", "Uberpunch", Consumer.RequestType.DOWNLOAD_FULL_SONG);
+        c1.requestSongData("Alexander Nakarada", "Uberpunch", Consumer.RequestType.DOWNLOAD_CHUNKS);
     }
 }
