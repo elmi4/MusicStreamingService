@@ -12,7 +12,6 @@ import java.util.List;
 public abstract class Node
 {
     protected ConnectionInfo connInfo;
-    protected Socket connection;
     protected List<ConnectionInfo> brokers = new ArrayList<>();
 
     protected Node(final ConnectionInfo connInfo)
@@ -35,8 +34,6 @@ public abstract class Node
         this.brokers = IOHandler.readBrokerCredentials();
     }
 
-    protected List<ConnectionInfo> getBrokers(){return brokers;}
-
     protected Socket connect(final ConnectionInfo connInfo){
         Socket connection = null;
         try {
@@ -47,7 +44,7 @@ public abstract class Node
         return connection;
     }
 
-    protected void disconnect(Socket connection){
+    protected void disconnect(final Socket connection){
         try {
             connection.close();
         } catch (IOException e) {

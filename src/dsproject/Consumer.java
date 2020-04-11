@@ -36,6 +36,7 @@ public final class Consumer extends Node
     {
         super.init();
         artistToBroker = requestState();
+        System.out.println("Requested artists from event delivery");
     }
 
 
@@ -212,5 +213,23 @@ class ConsumerEntry
 
         //make ASYNCHRONOUS requests
         c1.requestSongData("Alexander Nakarada", "Uberpunch", Consumer.RequestType.DOWNLOAD_CHUNKS);
+        //c1.requestSongData("Apocalypse", "Magic", Consumer.RequestType.DOWNLOAD_FULL_SONG);
+        //c1.requestSongData("Rob Gardner", "Come and See", Consumer.RequestType.DOWNLOAD_CHUNKS);
+    }
+}
+
+class ConsumerEntry1
+{
+    public static void main(String[] args)
+    {
+        Consumer c1 = new Consumer(ConnectionInfo.of("127.0.0.1", 4030));
+
+        //initialize the consumer (request the state of the eventDelivery - get the artists and brokers that serve them)
+        c1.init();
+
+        //make ASYNCHRONOUS requests
+        c1.requestSongData("Rob Gardner", "Come and See", Consumer.RequestType.DOWNLOAD_CHUNKS);
+        //c1.requestSongData("Alexander Nakarada", "Uberpunch", Consumer.RequestType.DOWNLOAD_CHUNKS);
+        //c1.requestSongData("Apocalypse", "Magic", Consumer.RequestType.DOWNLOAD_FULL_SONG);
     }
 }

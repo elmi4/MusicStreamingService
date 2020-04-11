@@ -22,10 +22,10 @@ import dsproject.media.SongInfo;
 
 public final class Publisher extends Node
 {
-    private final HashMap<SongInfo , String> songInfoToFilePath = new HashMap<>();
-    private final HashMap<ArtistName, ArrayList<String>> artistsToSongs = new HashMap<>();
-    private final HashMap<BigInteger, ArrayList<String>> artistsToBroker = new HashMap<>();
+    private final Map<SongInfo, String> songInfoToFilePath = new HashMap<>();
+    private final Map<ArtistName, ArrayList<String>> artistsToSongs = new HashMap<>();
 
+    private Map<BigInteger, ArrayList<String>> artistsToBroker = new HashMap<>();
     private Map<ConnectionInfo, BigInteger> brokersConnToHash;
     private String ownFolder;
 
@@ -88,7 +88,7 @@ public final class Publisher extends Node
         brokersConnToHash = getBrokerHashes();
 
         //Phase 2
-        distributeArtistsToBrokers(); //can you make this return value for 'artistsToBroker'? No idea wtf is going on in that while() lol
+        artistsToBroker = distributeArtistsToBrokers();
 
         //Phase 3
         sendArtistsToBrokers();
@@ -97,12 +97,12 @@ public final class Publisher extends Node
 
     public void serveBrokerRequests()
     {
-        try{
-            ServerSocket server = new ServerSocket(super.getPort());
+        try (ServerSocket server = new ServerSocket(super.getPort())){
             System.out.println("Connected to server.");
             while(true){
                 Socket clientSocket=server.accept();
                 new Thread(()->{
+
                     try(ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
                         ObjectInputStream  in  = new ObjectInputStream(clientSocket.getInputStream()))
                     {
@@ -115,6 +115,7 @@ public final class Publisher extends Node
                     }catch (IOException | ClassNotFoundException e){
                         e.printStackTrace();
                     }
+
                 }).start();
             }
         }catch(Exception e){
@@ -156,7 +157,7 @@ public final class Publisher extends Node
     /**
      * Calculate which songs correspond to which brokers
      */
-    private void distributeArtistsToBrokers()
+    private Map<BigInteger, ArrayList<String>> distributeArtistsToBrokers()
     {
         int brokersCount = super.brokers.size();
         BigInteger[] hashKeys = new BigInteger[brokersCount];
@@ -168,6 +169,7 @@ public final class Publisher extends Node
 
         Arrays.sort(hashKeys);
 
+        Map<BigInteger, ArrayList<String>> outMap = new HashMap<>();
         for (ArtistName artist : artistsToSongs.keySet()) {
             BigInteger artistHash = this.hashTopic(artist.getArtistName());
             if(artistHash == null){
@@ -181,25 +183,21 @@ public final class Publisher extends Node
             int j = 0;
             while (true) {
                 if (artistHash.compareTo(low) > 0 && artistHash.compareTo(high) < 0) {
-                    artistsToBroker.computeIfAbsent(high, k -> new ArrayList<>());
-                    artistsToBroker.get(high).add(artist.getArtistName());
-                    /*System.out.println("this range");     //keeping it in case it is needed
-                    System.out.println("LOW : " + low);
-                    System.out.println("KEY : " + artistHash + " ARTIST: " + artist.getArtistName());
-                    System.out.println("HIGH: " + high + "\n");*/
+                    outMap.computeIfAbsent(high, k -> new ArrayList<>());
+                    outMap.get(high).add(artist.getArtistName());
                     break;
                 } else if (++j < brokersCount) {
                     low = high.add(one);
                     high = hashKeys[j];
                 } else {
-                    artistsToBroker.computeIfAbsent(hashKeys[0], k -> new ArrayList<>());
-                    artistsToBroker.get(hashKeys[0]).add(artist.getArtistName());
-                    //System.out.println("ARTIST TO SMALLEST BROKER ");     //keeping it in case it is needed
-                    //System.out.println("KEY : " + artistHash + " ARTIST: " + artist.getArtistName() + "\n");
+                    outMap.computeIfAbsent(hashKeys[0], k -> new ArrayList<>());
+                    outMap.get(hashKeys[0]).add(artist.getArtistName());
                     break;
                 }
             }
         }
+
+        return outMap;
     }
 
 
@@ -276,16 +274,8 @@ public final class Publisher extends Node
                 return;
             }
 
-            Mp3File mp3;
-            try {
-                mp3 = new Mp3File(filePath);
-            } catch (UnsupportedTagException | InvalidDataException e) {
-                e.printStackTrace();
-                return;
-            }
-
+            Mp3File mp3 = new Mp3File(filePath);
             List<byte[]> rawAudio = IOHandler.readMp3(filePath);
-
             MusicFile originalMp3 = new MusicFile(mp3);
 
             String trackName = originalMp3.getTrackName();
@@ -294,7 +284,6 @@ public final class Publisher extends Node
             String genre = originalMp3.getGenre();
 
             int chunkNum = 1;
-
             while (!rawAudio.isEmpty()) {
                 byte[] chunk = rawAudio.remove(0);
                 MusicFile mf = new MusicFile(trackName, artistName, albumInfo, genre, chunkNum, chunk);
@@ -303,17 +292,30 @@ public final class Publisher extends Node
                 chunkNum++;
             }
             out.writeObject(null);
-        }catch (IOException e){
+        }catch (IOException | UnsupportedTagException | InvalidDataException e){
             e.printStackTrace();
         }
     }
+}
 
+class PublisherEntry
+{
+    public static void main(String[] args)
+    {
+        Publisher pb = new Publisher(ConnectionInfo.of("127.0.0.1", 9999), "artists A-M");
+        pb.init();
+        pb.initiate();
+        pb.serveBrokerRequests();
+    }
+}
 
-    public static void main(String[] args) {
-        Publisher test = new Publisher(ConnectionInfo.of("127.0.0.1", 9999), "folder1");
-        test.init();
-        test.initiate();
-        test.serveBrokerRequests();
-
+class PublisherEntry1
+{
+    public static void main(String[] args)
+    {
+        Publisher pb = new Publisher(ConnectionInfo.of("127.0.0.1", 8888), "artists N-Z");
+        pb.init();
+        pb.initiate();
+        pb.serveBrokerRequests();
     }
 }
