@@ -44,7 +44,7 @@ public final class Consumer extends Node
      * Make song requests to appropriate brokers ASYNCHRONOUSLY
      * Define what happens with the received data by specifying the "requestType"
      */
-    public void requestSongData(final String artistName, final String songName,             //added the final String fileName for pull to work; Eleni
+    public void requestSongData(final String artistName, final String songName,
                                 final RequestType requestType) throws IllegalStateException
     {
         if(artistToBroker == null) throw new IllegalStateException("Consumer was not initialized correctly.");
@@ -57,7 +57,7 @@ public final class Consumer extends Node
                 return;
             }
 
-            //get the broker that serves the artist you want
+            //Get the broker that serves the artist you want
             Socket requestSocket = connect(artistToBroker.get(artistObj));
             if(requestSocket == null){
                 System.err.println("Could not connect to broker");
@@ -212,9 +212,8 @@ class ConsumerEntry
         c1.init();
 
         //make ASYNCHRONOUS requests
-        c1.requestSongData("Alexander Nakarada", "Uberpunch", Consumer.RequestType.DOWNLOAD_CHUNKS);
-        //c1.requestSongData("Apocalypse", "Magic", Consumer.RequestType.DOWNLOAD_FULL_SONG);
-        //c1.requestSongData("Rob Gardner", "Come and See", Consumer.RequestType.DOWNLOAD_CHUNKS);
+        c1.requestSongData("Alexander Nakarada", "The Lagoon", Consumer.RequestType.DOWNLOAD_CHUNKS);
+        c1.requestSongData("Orchestralis", "Motions", Consumer.RequestType.DOWNLOAD_FULL_SONG);
     }
 }
 
@@ -228,8 +227,7 @@ class ConsumerEntry1
         c1.init();
 
         //make ASYNCHRONOUS requests
-        c1.requestSongData("Rob Gardner", "Come and See", Consumer.RequestType.DOWNLOAD_CHUNKS);
-        //c1.requestSongData("Alexander Nakarada", "Uberpunch", Consumer.RequestType.DOWNLOAD_CHUNKS);
-        //c1.requestSongData("Apocalypse", "Magic", Consumer.RequestType.DOWNLOAD_FULL_SONG);
+        c1.requestSongData("Jason Shaw", "River Meditation", Consumer.RequestType.DOWNLOAD_CHUNKS);
+        c1.requestSongData("Jasn Shaw", "Rier Meditation", Consumer.RequestType.DOWNLOAD_CHUNKS);
     }
 }

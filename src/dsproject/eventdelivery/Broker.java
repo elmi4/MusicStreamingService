@@ -152,7 +152,7 @@ public final class Broker extends Node
             return;
         }
 
-        System.out.println("This is the corresponding publisher's connectionInfo: " + publisherInfo.getIP() + publisherInfo.getPort());
+        System.out.println("This is the corresponding publisher's connectionInfo: " + publisherInfo.getIP() + " " + publisherInfo.getPort());
 
         Socket finalPublisherSocket = super.connect(publisherInfo);
         try {
