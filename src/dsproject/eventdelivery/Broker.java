@@ -68,7 +68,7 @@ public final class Broker extends Node
 
                 Socket connection = providerSocket.accept();
 
-                new Thread(()->{
+                //new Thread(()->{
                     try(ObjectOutputStream out = new ObjectOutputStream(connection.getOutputStream());
                         ObjectInputStream  in  = new ObjectInputStream(connection.getInputStream())) {
                         System.out.println("Just connected to client " + connection.getInetAddress() + " " +  connection.getPort());
@@ -138,7 +138,7 @@ public final class Broker extends Node
                     }catch(IOException | ClassNotFoundException e){
                         e.printStackTrace();
                     }
-                }).start();
+                //}).start();
             }
         } catch (IOException ioException) {
             ioException.printStackTrace();

@@ -241,7 +241,7 @@ public final class Publisher extends Node
                         out.writeObject(artistList);
                         for(ConnectionInfo b : super.brokers){
                             if(key.equals(brokersConnToHash.get(b))) {
-                                out.writeObject(super.connInfo);
+                                out.writeObject(new ConnectionInfo(b.getIP(), b.getPort()));
                                 out.flush();
                                 break;
                             }
@@ -310,9 +310,10 @@ public final class Publisher extends Node
 
 
     public static void main(String[] args) {
-        Publisher test = new Publisher(ConnectionInfo.of("127.0.0.1", 9999), "");
+        Publisher test = new Publisher(ConnectionInfo.of("127.0.0.1", 9999), "folder1");
         test.init();
         test.initiate();
         test.serveBrokerRequests();
+
     }
 }
