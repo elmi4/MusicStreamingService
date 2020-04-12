@@ -5,7 +5,12 @@ Distributed Systems project (AUEB 2020)
 _GitHub Collaborators_:   
 @Eleni-Saxoni  
 @Elias-Magg  
-@elmi4
+@elmi4  
+
+#### Dependencies
+-mp3agic (https://github.com/mpatric/mp3agic)  
+-Maven  
+-JUnit5 (optional for unit tests inside _"test"_)
 
 ### Instructions
 - In order to run the program you first have to start:  
