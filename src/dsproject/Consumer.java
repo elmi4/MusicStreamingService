@@ -212,8 +212,8 @@ class ConsumerEntry
         c1.init();
 
         //make ASYNCHRONOUS requests
-        c1.requestSongData("Alexander Nakarada", "The Lagoon", Consumer.RequestType.DOWNLOAD_CHUNKS);
-        c1.requestSongData("Orchestralis", "Motions", Consumer.RequestType.DOWNLOAD_FULL_SONG);
+        c1.requestSongData("Rafael Krux", "The Drama", Consumer.RequestType.DOWNLOAD_CHUNKS);
+        c1.requestSongData("Kevin MacLeod", "Amazing Grace", Consumer.RequestType.DOWNLOAD_FULL_SONG);
     }
 }
 
@@ -227,7 +227,9 @@ class ConsumerEntry1
         c1.init();
 
         //make ASYNCHRONOUS requests
+        c1.requestSongData("Jason Shaw", "Landra's Dream", Consumer.RequestType.DOWNLOAD_CHUNKS);
         c1.requestSongData("Jason Shaw", "River Meditation", Consumer.RequestType.DOWNLOAD_CHUNKS);
-        c1.requestSongData("Jasn Shaw", "Rier Meditation", Consumer.RequestType.DOWNLOAD_CHUNKS);
+        c1.requestSongData("Alexander Nakarada", "The Crown", Consumer.RequestType.DOWNLOAD_CHUNKS);
+
     }
 }
