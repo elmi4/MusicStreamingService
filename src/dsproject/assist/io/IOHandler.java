@@ -27,8 +27,7 @@ public abstract class IOHandler
         String dataFolder = DESTINATION_DIR + artistName + "___" + trackName + "/";
         createDestinationFolderIfMissing(dataFolder);
 
-        String fileName = dataFolder + trackName + "__" + artistName;
-        fileName += (Utilities.isNumeric(part)) ? "_part" + part + ".mp3" : "_" + part + ".mp3";
+        String fileName = dataFolder + part + "_" + trackName + "__" + artistName + ".mp3";
         try (FileOutputStream stream = new FileOutputStream(fileName)) {
             stream.write(data);
         } catch (IOException e) {
