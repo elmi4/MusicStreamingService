@@ -1,6 +1,5 @@
 package dsproject.assist.io;
 
-import dsproject.assist.Utilities;
 import dsproject.assist.network.ConnectionInfo;
 import dsproject.media.MusicFile;
 
@@ -12,7 +11,7 @@ import java.util.Scanner;
 public abstract class IOHandler
 {
     public static final String DESTINATION_DIR = "saves/";
-    public static final String BROKER_CREDENTIALS_PATH = "BrokerCredentials.txt";
+    public static final String BROKER_CREDENTIALS_PATH = "files/BrokerCredentials.txt";
     public static final int STANDARD_CHUNK_SIZE = 512 * 1024; //512KB
 
 
@@ -68,6 +67,7 @@ public abstract class IOHandler
         try (Scanner reader = new Scanner(new File(BROKER_CREDENTIALS_PATH))) {
             while (reader.hasNextLine()) {
                 String line = reader.nextLine();
+                if(line.isEmpty()) break;
                 String brokerIp = line;
                 line = reader.nextLine();
                 int brokerPort = Integer.parseInt(line);

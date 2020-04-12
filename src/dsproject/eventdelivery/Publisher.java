@@ -265,7 +265,7 @@ public final class Publisher extends Node
         try {
             String filePath = songInfoToFilePath.get(info);
 
-            System.out.println("I was just asked for song " + info.getSongName());
+            System.out.println("\nI was just asked for song " + info.getSongName());
 
             //Check if file already exists and consequently if the client is signed up
             if(filePath == null || !Files.exists(Paths.get(filePath))){
