@@ -228,7 +228,7 @@ class ConsumerEntry1
 
         //make ASYNCHRONOUS requests
         c1.requestSongData("Jason Shaw", "Landra's Dream", Consumer.RequestType.DOWNLOAD_CHUNKS);
-        c1.requestSongData("Jason Shaw", "River Meditation", Consumer.RequestType.DOWNLOAD_CHUNKS);
+        //c1.requestSongData("Jason Shaw", "River Meditation", Consumer.RequestType.DOWNLOAD_CHUNKS);
         c1.requestSongData("Alexander Nakarada", "The Crown", Consumer.RequestType.DOWNLOAD_CHUNKS);
 
     }
