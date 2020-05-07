@@ -23,6 +23,8 @@ public final class Broker extends Node
     private final Map<ArtistName, ConnectionInfo> artistToBroker = new HashMap<>();
     private final BigInteger hashedValue = calculateKey();
 
+    private final Map<ArtistName, ArrayList<String>> artistsToSongs = new HashMap<>();
+
     public Broker(ConnectionInfo connInfo) {
         super(connInfo);
     }
@@ -82,9 +84,18 @@ public final class Broker extends Node
                                 }
                                 break;
 
+
                             case "ListArtists": //Consumer artists request
                                 System.out.println("Consumer's first connection.");
                                 out.writeObject(artistToBroker);
+                                break;
+
+                            case "SongsOfArtistRequest": //Consumer requests the list of songs of a specific artist
+                                String artistName = (String)in.readObject();
+                                ArrayList<String> songList = fetchSongsOfArtist(artistName);
+                                if (songList==null) break;
+                                out.writeObject(songList);
+
                                 break;
 
                             case "SongRequest": //Consumer notifies the broker that he is about to request a song
@@ -178,6 +189,42 @@ public final class Broker extends Node
         }catch  (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    private ArrayList<String> fetchSongsOfArtist(String artistName){
+        ArtistName selectedArtist = new ArtistName(artistName);
+        ArrayList<String> songList = null;
+
+        //Get the connectionInfo of the publisher that serves the artist
+        ConnectionInfo publisherInfo = null;
+        for (Map.Entry<ConnectionInfo, List<ArtistName>> entry: publishersToArtists.entrySet()) {
+            if((entry.getValue()).contains(selectedArtist)){
+                publisherInfo = ConnectionInfo.of((entry.getKey()).getIP(),(entry.getKey()).getPort());
+                break;
+            }
+        }
+        if(publisherInfo == null){
+            System.err.println("Couldn't find a publisher for this artist.");
+            return null;
+        }
+        System.out.println("This is the corresponding publisher's connectionInfo: " + publisherInfo.getIP() + " " + publisherInfo.getPort());
+
+        Socket finalPublisherSocket = super.connect(publisherInfo);
+        try {
+            ObjectOutputStream out = new ObjectOutputStream(finalPublisherSocket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(finalPublisherSocket.getInputStream());
+
+            out.writeObject("SongsOfArtistRequest");
+            out.flush();
+            out.writeObject(artistName);
+            out.flush();
+
+            songList = (ArrayList<String>)in.readObject();
+
+        }catch  (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return songList;
     }
 }
 

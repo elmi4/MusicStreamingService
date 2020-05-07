@@ -92,6 +92,7 @@ public final class Publisher extends Node
 
         //Phase 3
         sendArtistsToBrokers();
+
     }
 
 
@@ -110,6 +111,17 @@ public final class Publisher extends Node
                         if(request!=null && request.equals("SongRequest")){
                             SongInfo songRequest = (SongInfo)in.readObject();
                             push(songRequest,out);
+                        } else if(request!=null && request.equals("SongsOfArtistRequest")){
+                            String artistName=(String)in.readObject();
+
+                            ArtistName artistObj = ArtistName.of(artistName);
+
+                            for(ArtistName artist : artistsToSongs.keySet()){
+                                if(artist.equals(artistObj)) {
+                                    out.writeObject(artistsToSongs.get(artistObj));
+                                    out.flush();
+                                }
+                            }
                         }
 
                     }catch (IOException | ClassNotFoundException e){

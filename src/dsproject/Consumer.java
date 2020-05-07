@@ -115,7 +115,40 @@ public final class Consumer extends Node
         }).start();
     }
 
+    public ArrayList<String> requestSongOfArtist(String artistName) throws IllegalStateException {
+        ArrayList<String> songList = null;
+        if (artistToBroker == null) throw new IllegalStateException("Consumer was not initialized correctly.");
 
+        ArtistName artistObj = ArtistName.of(artistName);
+
+        //Get the broker that serves the artist you want
+        Socket requestSocket = connect(artistToBroker.get(artistObj));
+        if (requestSocket == null) {
+            System.err.println("Could not connect to broker");
+            return null;
+        } else {
+            System.out.println("Connected to broker " + artistToBroker.get(artistObj).getIP()
+                    + " " + artistToBroker.get(artistObj).getPort());
+        }
+
+        try (ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(requestSocket.getInputStream())) {
+
+            //Notify broker that you will make a Songs Of Artist request
+            out.writeObject("SongsOfArtistRequest");
+            out.flush();
+            out.writeObject(artistName);
+            out.flush();
+            System.out.println("Asked for the songs of " + artistName);
+
+            songList = (ArrayList<String>)in.readObject();
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return songList;
+    }
 
     // ---------------------------------   PRIVATE METHODS    ----------------------------------
 
@@ -227,9 +260,13 @@ class ConsumerEntry1
         c1.init();
 
         //make ASYNCHRONOUS requests
-        c1.requestSongData("Jason Shaw", "Landra's Dream", Consumer.RequestType.DOWNLOAD_CHUNKS);
+        //c1.requestSongData("Jason Shaw", "Landra's Dream", Consumer.RequestType.DOWNLOAD_CHUNKS);
         //c1.requestSongData("Jason Shaw", "River Meditation", Consumer.RequestType.DOWNLOAD_CHUNKS);
-        c1.requestSongData("Alexander Nakarada", "The Crown", Consumer.RequestType.DOWNLOAD_CHUNKS);
+        //c1.requestSongData("Alexander Nakarada", "The Crown", Consumer.RequestType.DOWNLOAD_CHUNKS);
+        ArrayList<String> songList = c1.requestSongOfArtist("Jason Shaw");
+        for(String song : songList){            //test
+            System.out.println(song);
+        }
 
     }
 }
