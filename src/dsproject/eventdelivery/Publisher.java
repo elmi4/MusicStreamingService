@@ -13,6 +13,7 @@ import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.UnsupportedTagException;
 import dsproject.Node;
+import dsproject.assist.Utilities;
 import dsproject.assist.io.IOHandler;
 import dsproject.assist.network.ConnectionInfo;
 import dsproject.media.ArtistName;
@@ -314,7 +315,7 @@ class PublisherEntry
 {
     public static void main(String[] args)
     {
-        Publisher pb = new Publisher(ConnectionInfo.of("127.0.0.1", 9999), "artists A-M");
+        Publisher pb = new Publisher(ConnectionInfo.of(Utilities.getCurrentIP(), 9999), "artists A-M");
         pb.init();
         pb.initiate();
         pb.serveBrokerRequests();
@@ -325,7 +326,7 @@ class PublisherEntry1
 {
     public static void main(String[] args)
     {
-        Publisher pb = new Publisher(ConnectionInfo.of("127.0.0.1", 8888), "artists N-Z");
+        Publisher pb = new Publisher(ConnectionInfo.of(Utilities.getCurrentIP(), 8888), "artists N-Z");
         pb.init();
         pb.initiate();
         pb.serveBrokerRequests();

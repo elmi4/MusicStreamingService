@@ -239,7 +239,7 @@ class ConsumerEntry
 {
     public static void main(String[] args)
     {
-        Consumer c1 = new Consumer(ConnectionInfo.of("127.0.0.1", 4030));
+        Consumer c1 = new Consumer(ConnectionInfo.of(Utilities.getCurrentIP(), 4030));
 
         //initialize the consumer (request the state of the eventDelivery - get the artists and brokers that serve them)
         c1.init();
@@ -254,7 +254,7 @@ class ConsumerEntry1
 {
     public static void main(String[] args)
     {
-        Consumer c1 = new Consumer(ConnectionInfo.of("127.0.0.1", 4030));
+        Consumer c1 = new Consumer(ConnectionInfo.of(Utilities.getCurrentIP(), 4030));
 
         //initialize the consumer (request the state of the eventDelivery - get the artists and brokers that serve them)
         c1.init();
