@@ -58,21 +58,17 @@ public final class Consumer extends Node
             }
 
             //Get the broker that serves the artist you want
-            Socket requestSocket = connect(artistToBroker.get(artistObj));
-            if(requestSocket == null){
-                System.err.println("Could not connect to broker");
-                return;
-            }else{
-                System.out.println("Connected to broker " + artistToBroker.get(artistObj).getIP()
-                        +" "+ artistToBroker.get(artistObj).getPort());
-            }
+            Socket requestSocket = getConnectionWithBrokerOfArtist(artistObj);
+            assert requestSocket != null;
 
             try(ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
                 ObjectInputStream  in  = new ObjectInputStream(requestSocket.getInputStream()))
             {
                 //Notify broker that you will make a song request
                 out.writeObject("SongRequest");
+                out.flush();
                 out.writeObject(SongInfo.of(artistObj, songName));
+                out.flush();
                 System.out.println("Asked for song " + songName);
 
                 //If error msg was sent, return. (song doesn't exist)
@@ -115,25 +111,18 @@ public final class Consumer extends Node
         }).start();
     }
 
-    public ArrayList<String> requestSongOfArtist(String artistName) throws IllegalStateException {
-        ArrayList<String> songList = null;
+
+    @SuppressWarnings("unchecked")
+    public List<String> requestSongsOfArtist(String artistName) throws IllegalStateException
+    {
         if (artistToBroker == null) throw new IllegalStateException("Consumer was not initialized correctly.");
 
-        ArtistName artistObj = ArtistName.of(artistName);
-
-        //Get the broker that serves the artist you want
-        Socket requestSocket = connect(artistToBroker.get(artistObj));
-        if (requestSocket == null) {
-            System.err.println("Could not connect to broker");
-            return null;
-        } else {
-            System.out.println("Connected to broker " + artistToBroker.get(artistObj).getIP()
-                    + " " + artistToBroker.get(artistObj).getPort());
-        }
+        Socket requestSocket = getConnectionWithBrokerOfArtist(ArtistName.of(artistName));
+        assert requestSocket != null;
 
         try (ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
-             ObjectInputStream in = new ObjectInputStream(requestSocket.getInputStream())) {
-
+             ObjectInputStream in = new ObjectInputStream(requestSocket.getInputStream()))
+        {
             //Notify broker that you will make a Songs Of Artist request
             out.writeObject("SongsOfArtistRequest");
             out.flush();
@@ -141,13 +130,11 @@ public final class Consumer extends Node
             out.flush();
             System.out.println("Asked for the songs of " + artistName);
 
-            songList = (ArrayList<String>)in.readObject();
-
+            return (ArrayList<String>)in.readObject();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
+            return null;
         }
-
-        return songList;
     }
 
     // ---------------------------------   PRIVATE METHODS    ----------------------------------
@@ -168,6 +155,7 @@ public final class Consumer extends Node
         {
             //Notify broker that he has to send the available artists and the brokers that serve them
             out.writeObject("ListArtists");
+            out.flush();
             outMap = (Map<ArtistName, ConnectionInfo>)in.readObject();
         }catch(IOException | ClassNotFoundException e){
             e.printStackTrace();
@@ -184,6 +172,23 @@ public final class Consumer extends Node
         }
 
         return super.brokers.get(0);
+    }
+
+
+    /**
+     * Finds the broker that serves the given artist, and returns a Socket connection with it
+     */
+    private Socket getConnectionWithBrokerOfArtist(final ArtistName artist)
+    {
+        Socket requestSocket = connect(artistToBroker.get(artist));
+        if (requestSocket == null) {
+            System.err.println("Could not connect to broker");
+            return null;
+        } else {
+            System.out.println("Connected to broker " + artistToBroker.get(artist).getIP()
+                    + " " + artistToBroker.get(artist).getPort());
+            return requestSocket;
+        }
     }
 
 
@@ -263,7 +268,7 @@ class ConsumerEntry1
         //c1.requestSongData("Jason Shaw", "Landra's Dream", Consumer.RequestType.DOWNLOAD_CHUNKS);
         //c1.requestSongData("Jason Shaw", "River Meditation", Consumer.RequestType.DOWNLOAD_CHUNKS);
         //c1.requestSongData("Alexander Nakarada", "The Crown", Consumer.RequestType.DOWNLOAD_CHUNKS);
-        ArrayList<String> songList = c1.requestSongOfArtist("Jason Shaw");
+        List<String> songList = c1.requestSongsOfArtist("Jason Shaw");
         for(String song : songList){            //test
             System.out.println(song);
         }
