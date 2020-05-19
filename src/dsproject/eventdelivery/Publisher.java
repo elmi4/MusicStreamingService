@@ -315,7 +315,7 @@ class PublisherEntry
 {
     public static void main(String[] args)
     {
-        Publisher pb = new Publisher(ConnectionInfo.of(Utilities.getCurrentIP(), 9999), "artists A-M");
+        Publisher pb = new Publisher(ConnectionInfo.of(Utilities.getMachineIP(), 9999), "artists A-M");
         pb.init();
         pb.initiate();
         pb.serveBrokerRequests();
@@ -326,7 +326,7 @@ class PublisherEntry1
 {
     public static void main(String[] args)
     {
-        Publisher pb = new Publisher(ConnectionInfo.of(Utilities.getCurrentIP(), 8888), "artists N-Z");
+        Publisher pb = new Publisher(ConnectionInfo.of(Utilities.getMachineIP(), 8888), "artists N-Z");
         pb.init();
         pb.initiate();
         pb.serveBrokerRequests();

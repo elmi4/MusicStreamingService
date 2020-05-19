@@ -232,7 +232,7 @@ class BrokerEntry
 {
     public static void main(String[] args)
     {
-        Broker br = new Broker(ConnectionInfo.of(Utilities.getCurrentIP(), 4040));
+        Broker br = new Broker(ConnectionInfo.of(Utilities.getMachineIP(), 4040));
         br.serveRequests();
     }
 }
@@ -241,7 +241,7 @@ class BrokerEntry1
 {
     public static void main(String[] args)
     {
-        Broker br = new Broker(ConnectionInfo.of(Utilities.getCurrentIP(), 4080));
+        Broker br = new Broker(ConnectionInfo.of(Utilities.getMachineIP(), 4080));
         br.serveRequests();
     }
 }
@@ -250,7 +250,7 @@ class BrokerEntry2
 {
     public static void main(String[] args)
     {
-        Broker br = new Broker(ConnectionInfo.of(Utilities.getCurrentIP(), 4120));
+        Broker br = new Broker(ConnectionInfo.of(Utilities.getMachineIP(), 4120));
         br.serveRequests();
     }
 }

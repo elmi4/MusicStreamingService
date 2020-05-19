@@ -57,7 +57,6 @@ public final class Consumer extends Node
                 return;
             }
 
-            //Get the broker that serves the artist you want
             Socket requestSocket = getConnectionWithBrokerOfArtist(artistObj);
             assert requestSocket != null;
 
@@ -244,7 +243,7 @@ class ConsumerEntry
 {
     public static void main(String[] args)
     {
-        Consumer c1 = new Consumer(ConnectionInfo.of(Utilities.getCurrentIP(), 4030));
+        Consumer c1 = new Consumer(ConnectionInfo.of(Utilities.getMachineIP(), 4030));
 
         //initialize the consumer (request the state of the eventDelivery - get the artists and brokers that serve them)
         c1.init();
@@ -259,7 +258,7 @@ class ConsumerEntry1
 {
     public static void main(String[] args)
     {
-        Consumer c1 = new Consumer(ConnectionInfo.of(Utilities.getCurrentIP(), 4030));
+        Consumer c1 = new Consumer(ConnectionInfo.of(Utilities.getMachineIP(), 4030));
 
         //initialize the consumer (request the state of the eventDelivery - get the artists and brokers that serve them)
         c1.init();
