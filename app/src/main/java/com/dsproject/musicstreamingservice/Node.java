@@ -1,6 +1,9 @@
 package com.dsproject.musicstreamingservice;
 
 
+import android.content.Context;
+import android.os.AsyncTask;
+
 import com.dsproject.musicstreamingservice.assist.io.IOHandler;
 import com.dsproject.musicstreamingservice.assist.network.ConnectionInfo;
 
@@ -14,10 +17,12 @@ public abstract class Node
 {
     protected ConnectionInfo connInfo;
     protected List<ConnectionInfo> brokers = new ArrayList<>();
+    protected Context context;
 
-    protected Node(final ConnectionInfo connInfo)
+    protected Node(final ConnectionInfo connInfo, final Context context)
     {
         this.connInfo = connInfo;
+        this.context = context;
     }
 
     protected String getIP()
@@ -30,9 +35,14 @@ public abstract class Node
         return connInfo.getPort();
     }
 
+    protected Context getContext()
+    {
+        return this.context;
+    }
+
     protected void init()
     {
-        this.brokers = IOHandler.readBrokerCredentials();
+        this.brokers = IOHandler.readBrokerCredentials(this.context);
     }
 
     protected Socket connect(final ConnectionInfo connInfo){

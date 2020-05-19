@@ -1,5 +1,9 @@
 package com.dsproject.musicstreamingservice.assist;
 
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -78,5 +82,26 @@ public abstract class Utilities
         }catch (ClassCastException e){
             return false;
         }
+    }
+
+    public static String getCurrentIP()
+    {
+        try(final DatagramSocket socket = new DatagramSocket()){
+            socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+            String ip = socket.getLocalAddress().getHostAddress();
+            return ip;
+        }catch (SocketException | UnknownHostException e){
+            System.err.println("WARNING - the current IP of the machine cannot be retrieved");
+            e.printStackTrace();
+            throw new IllegalStateException("No IP");
+        }
+    }
+
+    /**
+     * Change the IP from localhost to the machine's IP, and use the method
+     */
+    public static String getCustomIP()
+    {
+        return "192.168.1.7";
     }
 }

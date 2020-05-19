@@ -1,6 +1,8 @@
 package com.dsproject.musicstreamingservice.assist.io;
 
 
+import android.content.Context;
+
 import com.dsproject.musicstreamingservice.assist.network.ConnectionInfo;
 import com.dsproject.musicstreamingservice.media.MusicFile;
 
@@ -12,7 +14,7 @@ import java.util.Scanner;
 public abstract class IOHandler
 {
     public static final String DESTINATION_DIR = "saves/";
-    public static final String BROKER_CREDENTIALS_PATH = "files/BrokerCredentials.txt";
+    public static final String BROKER_CREDENTIALS_PATH = "BrokerCredentials.txt";
     public static final int STANDARD_CHUNK_SIZE = 512 * 1024; //512KB
 
 
@@ -61,11 +63,12 @@ public abstract class IOHandler
     }
 
 
-    public static List<ConnectionInfo> readBrokerCredentials()
+    public static List<ConnectionInfo> readBrokerCredentials(Context context)
     {
         List<ConnectionInfo> out = new ArrayList<>();
 
-        try (Scanner reader = new Scanner(new File(BROKER_CREDENTIALS_PATH))) {
+        context.getResources().getIdentifier("BrokerCredentials","raw",context.getPackageName());
+        try (Scanner reader = new Scanner(context.getAssets().open(BROKER_CREDENTIALS_PATH))) {
             while (reader.hasNextLine()) {
                 String line = reader.nextLine();
                 if(line.isEmpty()) break;
@@ -74,7 +77,7 @@ public abstract class IOHandler
                 int brokerPort = Integer.parseInt(line);
                 out.add(new ConnectionInfo(brokerIp, brokerPort));
             }
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
