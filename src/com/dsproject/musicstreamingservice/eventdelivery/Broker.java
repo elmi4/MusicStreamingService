@@ -1,10 +1,10 @@
-package dsproject.eventdelivery;
+package com.dsproject.musicstreamingservice.eventdelivery;
 
-import dsproject.Node;
-import dsproject.assist.Utilities;
-import dsproject.assist.network.ConnectionInfo;
-import dsproject.media.ArtistName;
-import dsproject.media.SongInfo;
+import com.dsproject.musicstreamingservice.Node;
+import com.dsproject.musicstreamingservice.assist.Utilities;
+import com.dsproject.musicstreamingservice.assist.network.ConnectionInfo;
+import com.dsproject.musicstreamingservice.media.ArtistName;
+import com.dsproject.musicstreamingservice.media.SongInfo;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -191,6 +191,8 @@ public final class Broker extends Node
         }
     }
 
+
+    @SuppressWarnings("unchecked")
     private ArrayList<String> fetchSongsOfArtist(String artistName){
         ArtistName selectedArtist = new ArtistName(artistName);
         ArrayList<String> songList = null;

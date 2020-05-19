@@ -1,4 +1,4 @@
-package dsproject.assist.network;
+package com.dsproject.musicstreamingservice.assist.network;
 
 import java.io.Serializable;
 import java.util.Objects;

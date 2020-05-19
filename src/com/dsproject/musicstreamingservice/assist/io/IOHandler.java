@@ -1,7 +1,7 @@
-package dsproject.assist.io;
+package com.dsproject.musicstreamingservice.assist.io;
 
-import dsproject.assist.network.ConnectionInfo;
-import dsproject.media.MusicFile;
+import com.dsproject.musicstreamingservice.assist.network.ConnectionInfo;
+import com.dsproject.musicstreamingservice.media.MusicFile;
 
 import java.io.*;
 import java.util.ArrayList;

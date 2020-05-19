@@ -1,8 +1,8 @@
-package dsproject;
+package com.dsproject.musicstreamingservice;
 
 
-import dsproject.assist.io.IOHandler;
-import dsproject.assist.network.ConnectionInfo;
+import com.dsproject.musicstreamingservice.assist.io.IOHandler;
+import com.dsproject.musicstreamingservice.assist.network.ConnectionInfo;
 
 import java.io.IOException;
 import java.net.Socket;

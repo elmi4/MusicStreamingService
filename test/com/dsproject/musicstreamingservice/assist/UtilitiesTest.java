@@ -1,4 +1,4 @@
-package dsproject.assist;
+package com.dsproject.musicstreamingservice.assist;
 
 import org.junit.jupiter.api.Test;
 
