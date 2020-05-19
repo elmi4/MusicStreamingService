@@ -1,10 +1,10 @@
-package com.dsproject.musicstreamingservice.assist.io;
+package com.dsproject.musicstreamingservice.domain.assist.io;
 
 
 import android.content.Context;
 
-import com.dsproject.musicstreamingservice.assist.network.ConnectionInfo;
-import com.dsproject.musicstreamingservice.media.MusicFile;
+import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
+import com.dsproject.musicstreamingservice.domain.media.MusicFile;
 
 import java.io.*;
 import java.util.ArrayList;

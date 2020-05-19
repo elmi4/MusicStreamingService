@@ -1,6 +1,6 @@
 package com.dsproject.musicstreamingservice;
 
-import com.dsproject.musicstreamingservice.assist.Utilities;
+import com.dsproject.musicstreamingservice.domain.assist.Utilities;
 
 import org.junit.Test;
 

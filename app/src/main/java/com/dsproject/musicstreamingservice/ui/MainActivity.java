@@ -1,4 +1,4 @@
-package com.dsproject.musicstreamingservice;
+package com.dsproject.musicstreamingservice.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -7,8 +7,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.Button;
 
-import com.dsproject.musicstreamingservice.assist.Utilities;
-import com.dsproject.musicstreamingservice.assist.network.ConnectionInfo;
+import com.dsproject.musicstreamingservice.R;
+import com.dsproject.musicstreamingservice.domain.Consumer;
+import com.dsproject.musicstreamingservice.domain.assist.Utilities;
+import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 
 public class MainActivity extends AppCompatActivity
 {

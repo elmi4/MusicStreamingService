@@ -1,11 +1,10 @@
-package com.dsproject.musicstreamingservice;
+package com.dsproject.musicstreamingservice.domain;
 
 
 import android.content.Context;
-import android.os.AsyncTask;
 
-import com.dsproject.musicstreamingservice.assist.io.IOHandler;
-import com.dsproject.musicstreamingservice.assist.network.ConnectionInfo;
+import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
+import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 
 
 import java.io.IOException;

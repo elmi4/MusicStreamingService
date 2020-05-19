@@ -1,4 +1,4 @@
-package com.dsproject.musicstreamingservice.assist;
+package com.dsproject.musicstreamingservice.domain.assist;
 
 import java.net.DatagramSocket;
 import java.net.InetAddress;

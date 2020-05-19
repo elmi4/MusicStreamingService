@@ -1,4 +1,4 @@
-package com.dsproject.musicstreamingservice.media;
+package com.dsproject.musicstreamingservice.domain.media;
 
 import java.io.Serializable;
 import java.util.Objects;
