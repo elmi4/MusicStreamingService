@@ -1,4 +1,4 @@
-package com.dsproject.musicstreamingservice.media;
+package com.dsproject.musicstreamingservice.domain.media;
 
 import com.mpatric.mp3agic.Mp3File;
 

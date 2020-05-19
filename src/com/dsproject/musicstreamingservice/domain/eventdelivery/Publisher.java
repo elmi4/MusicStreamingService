@@ -1,4 +1,4 @@
-package com.dsproject.musicstreamingservice.eventdelivery;
+package com.dsproject.musicstreamingservice.domain.eventdelivery;
 
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -12,13 +12,13 @@ import java.net.*;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.UnsupportedTagException;
-import com.dsproject.musicstreamingservice.Node;
-import com.dsproject.musicstreamingservice.assist.Utilities;
-import com.dsproject.musicstreamingservice.assist.io.IOHandler;
-import com.dsproject.musicstreamingservice.assist.network.ConnectionInfo;
-import com.dsproject.musicstreamingservice.media.ArtistName;
-import com.dsproject.musicstreamingservice.media.MusicFile;
-import com.dsproject.musicstreamingservice.media.SongInfo;
+import com.dsproject.musicstreamingservice.domain.Node;
+import com.dsproject.musicstreamingservice.domain.assist.Utilities;
+import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
+import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
+import com.dsproject.musicstreamingservice.domain.media.ArtistName;
+import com.dsproject.musicstreamingservice.domain.media.MusicFile;
+import com.dsproject.musicstreamingservice.domain.media.SongInfo;
 
 
 public final class Publisher extends Node

@@ -1,10 +1,10 @@
-package com.dsproject.musicstreamingservice.eventdelivery;
+package com.dsproject.musicstreamingservice.domain.eventdelivery;
 
-import com.dsproject.musicstreamingservice.Node;
-import com.dsproject.musicstreamingservice.assist.Utilities;
-import com.dsproject.musicstreamingservice.assist.network.ConnectionInfo;
-import com.dsproject.musicstreamingservice.media.ArtistName;
-import com.dsproject.musicstreamingservice.media.SongInfo;
+import com.dsproject.musicstreamingservice.domain.Node;
+import com.dsproject.musicstreamingservice.domain.assist.Utilities;
+import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
+import com.dsproject.musicstreamingservice.domain.media.ArtistName;
+import com.dsproject.musicstreamingservice.domain.media.SongInfo;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;

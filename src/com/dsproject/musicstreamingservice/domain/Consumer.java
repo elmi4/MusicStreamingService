@@ -1,11 +1,11 @@
-package com.dsproject.musicstreamingservice;
+package com.dsproject.musicstreamingservice.domain;
 
-import com.dsproject.musicstreamingservice.assist.Utilities;
-import com.dsproject.musicstreamingservice.assist.io.IOHandler;
-import com.dsproject.musicstreamingservice.assist.network.ConnectionInfo;
-import com.dsproject.musicstreamingservice.media.ArtistName;
-import com.dsproject.musicstreamingservice.media.MusicFile;
-import com.dsproject.musicstreamingservice.media.SongInfo;
+import com.dsproject.musicstreamingservice.domain.assist.Utilities;
+import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
+import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
+import com.dsproject.musicstreamingservice.domain.media.ArtistName;
+import com.dsproject.musicstreamingservice.domain.media.MusicFile;
+import com.dsproject.musicstreamingservice.domain.media.SongInfo;
 
 import java.io.*;
 import java.net.*;
