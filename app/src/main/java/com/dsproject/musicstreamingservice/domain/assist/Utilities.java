@@ -2,10 +2,13 @@ package com.dsproject.musicstreamingservice.domain.assist;
 
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * helper class with irrelevant useful functions
@@ -84,19 +87,42 @@ public abstract class Utilities
         }
     }
 
-    public static String getCurrentIP()
+    /**
+     * Get IPv4 address from first non-localhost interface.
+     * @return IPv4 String or throws {@code IllegalStateException} if it fails.
+     */
+    public static String getCurrentIP() throws IllegalStateException
     {
-        try(final DatagramSocket socket = new DatagramSocket()){
-            socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
-            String ip = socket.getLocalAddress().getHostAddress();
-            return ip;
-        }catch (SocketException | UnknownHostException e){
-            System.err.println("WARNING - the current IP of the machine cannot be retrieved");
-            e.printStackTrace();
-            throw new IllegalStateException("No IP");
-        }
+        try {
+            List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface intf : interfaces) {
+                List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
+                for (InetAddress addr : addrs) {
+                    if (!addr.isLoopbackAddress()) {
+                        String sAddr = addr.getHostAddress();
+                        //boolean isIPv4 = InetAddressUtils.isIPv4Address(sAddr);
+                        boolean isIPv4 = sAddr.indexOf(':')<0;
+                        if (isIPv4) return sAddr;
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        System.err.println("WARNING - IPv4 of the machine cannot be retrieved automatically.");
+        throw new IllegalStateException("No IPv4");
     }
 
+    /**
+     * Change the IP from localhost to the machine's IP, and use the method
+     */
+    public static String getCustomIP()
+    {
+        return "192.168.2.2";
+    }
+
+    /**
+    * Get the IPv4 of the mobile automatically or if it fails, return {@code getCustomIP()}
+     */
     public static String getMachineIP()
     {
         try{
@@ -105,11 +131,5 @@ public abstract class Utilities
             return getCustomIP();
         }
     }
-    /**
-     * Change the IP from localhost to the machine's IP, and use the method
-     */
-    public static String getCustomIP()
-    {
-        return "192.168.1.7";
-    }
+
 }

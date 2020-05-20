@@ -60,8 +60,8 @@
 
     <Switch
         android:id="@+id/switch1"
-        android:layout_width="132dp"
-        android:layout_height="34dp"
+        android:layout_width="164dp"
+        android:layout_height="33dp"
         android:layout_centerHorizontal="false"
         android:layout_marginEnd="200dp"
         android:checked="false"

@@ -1,18 +1,14 @@
 package com.dsproject.musicstreamingservice.ui;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
@@ -22,7 +18,11 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.Objects;
 
-public class CustomRequestActivity extends AppCompatActivity {
+public class CustomRequestActivity extends AppCompatActivity
+{
+    private static final String PLAY_REQUEST = "play";
+    private static final String DOWNLOAD_REQUEST = "download";
+
     private TextInputLayout artist_input_field;
     private TextInputLayout song_input_field;
     private Button Req;
@@ -30,7 +30,8 @@ public class CustomRequestActivity extends AppCompatActivity {
     private TextView tag;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_request);
 
@@ -43,52 +44,49 @@ public class CustomRequestActivity extends AppCompatActivity {
         Req = (Button) findViewById(R.id.Req);
     }
 
-    public void onStart() {
+
+    @Override
+    public void onStart()
+    {
         super.onStart();
 
-        switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
-                    switch1.setText("Download");
-                }
-                else {
-                    switch1.setText("Play Now");
-                }
+        switch1.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if(isChecked){
+                switch1.setText("Download");
+            }
+            else {
+                switch1.setText("Play Now");
             }
         });
 
-        Req.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.i("DEBUG", "here2");
+        Req.setOnClickListener(view -> {
+            String artist = Objects.requireNonNull(artist_input_field.getEditText()).getText().toString().trim();
+            String song = Objects.requireNonNull(song_input_field.getEditText()).getText().toString().trim();
 
-                String artist = Objects.requireNonNull(artist_input_field.getEditText()).getText().toString();
-                String song = Objects.requireNonNull(song_input_field.getEditText()).getText().toString();
-                Boolean playNow = switch1.isChecked();
+            boolean playNow = switch1.isChecked();
+            String request_type = (playNow) ? DOWNLOAD_REQUEST : PLAY_REQUEST;
 
-                String request_type = (playNow) ? "play" : "download";
+            Log.d("DEBUG", artist +" , "+ song);
 
-                Log.d("DEBUG", artist);
-                Log.d("DEBUG", song);
-
-                AsyncTaskRunner runner = new AsyncTaskRunner();
-                runner.execute(artist, song, request_type);
-
-
-            }
+            AsyncTaskRunner runner = new AsyncTaskRunner();
+            runner.execute(artist, song, request_type);
         });
     }
-    private class AsyncTaskRunner extends AsyncTask<String, Void, Void> {
+
+    @SuppressLint("StaticFieldLeak")
+    private class AsyncTaskRunner extends AsyncTask<String, Void, Void>
+    {
         @Override
         protected Void doInBackground(String... params) {
-            Log.d("DEBUG", "doInBackground");
+            Consumer c1 = new Consumer(ConnectionInfo.of(Utilities.getMachineIP(), 4030), CustomRequestActivity.this);
+            Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
+                    Consumer.RequestType.PLAY_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
 
-            Consumer c1 = new Consumer(ConnectionInfo.of("168.192.2.7", 4030), CustomRequestActivity.this);
-
-            Consumer.RequestType type = (params[2].equals("play")) ? Consumer.RequestType.PLAY_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
             c1.init();
+            Log.d("DEBUG", "Got: "+c1.artistToBroker.size()+" artists in eventDelivery.");
             c1.requestSongData(params[0], params[1], type);
+
+            Log.d("DEBUG", "Got: "+c1.requestSongsOfArtist("Jason Shaw").size()+" songs for this artist");
 
             return null;
         }

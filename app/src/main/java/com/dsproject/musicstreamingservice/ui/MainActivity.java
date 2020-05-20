@@ -19,14 +19,11 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         Button customReq = (Button) findViewById(R.id.customReq);
-        customReq.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //go to Activity2
-                Log.i("DEBUG", "here");
-                Intent myIntent = new Intent(view.getContext(), CustomRequestActivity.class);
-                startActivity(myIntent);
-            }
+        customReq.setOnClickListener(view -> {
+            //go to Activity2
+            Log.i("DEBUG", "here");
+            Intent myIntent = new Intent(view.getContext(), CustomRequestActivity.class);
+            startActivity(myIntent);
         });
     }
 }
