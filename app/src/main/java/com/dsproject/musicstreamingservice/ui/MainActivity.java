@@ -2,45 +2,31 @@ package com.dsproject.musicstreamingservice.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.annotation.SuppressLint;
-import android.os.AsyncTask;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 
 import com.dsproject.musicstreamingservice.R;
-import com.dsproject.musicstreamingservice.domain.Consumer;
-import com.dsproject.musicstreamingservice.domain.assist.Utilities;
-import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 
 public class MainActivity extends AppCompatActivity
 {
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        Button testBtn = (Button) findViewById(R.id.buttontest);
-        testBtn.setOnClickListener((v -> {
-            TestAsync t = new TestAsync();
-            t.execute("Jason Shaw");
-        }));
-    }
-
-    @SuppressLint("StaticFieldLeak")
-    private class TestAsync extends AsyncTask<String, Integer, String>
-    {
-
-        @Override
-        protected String doInBackground(String... strings) {
-            Consumer cons = new Consumer(ConnectionInfo.of(Utilities.getCustomIP(), 4032), MainActivity.this);
-
-            cons.init();
-            System.out.println(cons.requestSongsOfArtist(strings[0]).size());
-
-            return "all good";
-        }
+        Button customReq = (Button) findViewById(R.id.customReq);
+        customReq.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //go to Activity2
+                Log.i("DEBUG", "here");
+                Intent myIntent = new Intent(view.getContext(), CustomRequestActivity.class);
+                startActivity(myIntent);
+            }
+        });
     }
 }

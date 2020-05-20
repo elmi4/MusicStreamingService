@@ -1,6 +1,7 @@
 package com.dsproject.musicstreamingservice.domain;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.dsproject.musicstreamingservice.domain.assist.Utilities;
 import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
@@ -38,7 +39,8 @@ public final class Consumer extends Node
     {
         super.init();
         artistToBroker = requestState();
-        System.out.println("Requested artists from event delivery");
+        //System.out.println("Requested artists from event delivery");
+        Log.i("DEBUG", "init");
     }
 
 
@@ -49,9 +51,10 @@ public final class Consumer extends Node
     public void requestSongData(final String artistName, final String songName,
                                 final RequestType requestType) throws IllegalStateException
     {
+        Log.i("DEBUG", "requestSongData");
         if(artistToBroker == null) throw new IllegalStateException("Consumer was not initialized correctly.");
 
-        new Thread(() -> {
+        //new Thread(() -> {
 
             ArtistName artistObj = ArtistName.of(artistName);
             if(!artistIsServed(artistObj)){
@@ -109,7 +112,7 @@ public final class Consumer extends Node
                 e.printStackTrace();
             }
 
-        }).start();
+        //}).start();
     }
 
 

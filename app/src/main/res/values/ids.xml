@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="customReq" type="id" />
+    <item name="artist_input_field" type="id" />
+    <item name="song_input_field" type="id" />
+    <item name="Req" type="id" />
+</resources>

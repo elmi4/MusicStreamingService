@@ -97,6 +97,14 @@ public abstract class Utilities
         }
     }
 
+    public static String getMachineIP()
+    {
+        try{
+            return getCurrentIP();
+        }catch (IllegalStateException e){
+            return getCustomIP();
+        }
+    }
     /**
      * Change the IP from localhost to the machine's IP, and use the method
      */
