@@ -10,4 +10,20 @@
     <string name="settings">Settings</string>
     <string name="play_now">Play Now</string>
     <string name="download">Download</string>
+    <string name="title_activity_credits">CreditsActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="back">Back</string>
+    <string name="aueb_distributed_systems_project_2020">AUEB Distributed Systems Project 2020</string>
+    <string name="colaborators">Colaborators :</string>
+    <string name="petros_papatheodorou_317xxxx">Petros Papatheodorou - 317xxxx</string>
+    <string name="elena_mina_317xxxx">Elena Mina 317xxxx</string>
+    <string name="eleni_saxoni_3160270">Eleni Saxoni - 3160270</string>
+    <string name="ilias_manginas_3170096">Ilias Manginas - 3170096</string>
 </resources>
