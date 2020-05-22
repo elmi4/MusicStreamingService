@@ -10,14 +10,13 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.Utilities;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
-import com.dsproject.musicstreamingservice.ui.managers.setup.ApplicationSetup;
+import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
+import com.dsproject.musicstreamingservice.ui.managers.notifications.Notifier;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.Objects;
@@ -82,30 +81,25 @@ public class CustomRequestActivity extends AppCompatActivity
     private void createDownloadProgressNotification()
     {
         final int progressMax = 100;
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(CustomRequestActivity.this);
 
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(
-                CustomRequestActivity.this, ApplicationSetup.CHANNEL_1_ID);
+        Notifier myNotificationManager = new MyNotificationManager(CustomRequestActivity.this);
 
-        notificationBuilder.setSmallIcon(R.drawable.ic_file_download_black_24dp)
-                .setContentTitle("Download (test)")
-                .setContentText("Download in progress")
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setOngoing(true)
-                .setOnlyAlertOnce(true)
-                .setProgress(progressMax, 0, false);
+        //create the PROGRESS notification with an empty progress bar.
+        myNotificationManager.makeAndShowProgressNotification(
+                "progress", "Download", "Download in progress", progressMax,
+                false, null);
 
+        //simulating some work, like a download
         new Thread(() -> {
-            SystemClock.sleep(2000);
+            SystemClock.sleep(1000);
             for (int progress = 0; progress <= progressMax; progress += 20) {
-                notificationBuilder.setProgress(progressMax, progress, false);
-                notificationManager.notify(1, notificationBuilder.build());
+                //update the progress bar every one second
+                myNotificationManager.updateProgressNotification("progress",progressMax, progress,false);
                 SystemClock.sleep(1000);
             }
-            notificationBuilder.setContentText("Download finished")
-                    .setProgress(0, 0, false)
-                    .setOngoing(false);
-            notificationManager.notify(1, notificationBuilder.build());
+
+            //when the progress bar is full, replace it with a finish msg
+            myNotificationManager.completeProgressNotification("progress", "Download complete");
         }).start();
     }
 

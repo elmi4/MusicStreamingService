@@ -1,54 +1,46 @@
 package com.dsproject.musicstreamingservice.ui;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
-
-
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.dsproject.musicstreamingservice.R;
-import com.dsproject.musicstreamingservice.ui.managers.setup.ApplicationSetup;
+import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
+import com.dsproject.musicstreamingservice.ui.managers.notifications.Notifier;
 
 public class MainActivity extends AppCompatActivity
 {
-    private NotificationManagerCompat notificationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        notificationManager = NotificationManagerCompat.from(this);
-
         Button customReq = (Button) findViewById(R.id.customReq);
         customReq.setOnClickListener(view -> {
             //go to Activity2
-            Log.i("DEBUG", "here");
             Intent myIntent = new Intent(view.getContext(), CustomRequestActivity.class);
             startActivity(myIntent);
         });
 
         Button btn = (Button)findViewById(R.id.notificationBtn);
         btn.setOnClickListener(v -> sendNotificationOnChannel1());
-
     }
 
     public void sendNotificationOnChannel1()
     {
-         NotificationCompat.Builder notificationBuilder =
-                new NotificationCompat.Builder(MainActivity.this, ApplicationSetup.CHANNEL_1_ID)
-                .setSmallIcon(R.drawable.ic_file_download_black_24dp)
-                .setContentTitle("Aggressive notification")
-                .setContentText("FUCK YOU")
-                .setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 })
-                .setPriority(ApplicationSetup.CHANNEL_1_PRIORITY)
-                ;
+        Notifier myNotificationManager = new MyNotificationManager(MainActivity.this);
 
-        notificationManager.notify(1, notificationBuilder.build());
+        myNotificationManager.makeAndShowPlainNotification(
+                "Aggressive Notification",
+                "FUCK YOU, I WILL VIBRATE ALL I WANT",
+                R.drawable.ic_file_download_black_24dp); //notification icon or null for a default
+
+        //play sound and GET TROLLED BITCH vibrate 15 times
+        myNotificationManager.playNotificationSound(R.raw.notification_sound);
+        myNotificationManager.vibrateRepeating(500, 500, 15);
     }
 
 }
