@@ -3,17 +3,21 @@ package com.dsproject.musicstreamingservice.ui;
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.Utilities;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
+import com.dsproject.musicstreamingservice.ui.managers.setup.ApplicationSetup;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.Objects;
@@ -51,6 +55,7 @@ public class CustomRequestActivity extends AppCompatActivity
         super.onStart();
 
         switch1.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            createDownloadProgressNotification();
             if(isChecked){
                 switch1.setText("Download");
             }
@@ -71,6 +76,37 @@ public class CustomRequestActivity extends AppCompatActivity
             AsyncTaskRunner runner = new AsyncTaskRunner();
             runner.execute(artist, song, request_type);
         });
+    }
+
+    //notifications test
+    private void createDownloadProgressNotification()
+    {
+        final int progressMax = 100;
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(CustomRequestActivity.this);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(
+                CustomRequestActivity.this, ApplicationSetup.CHANNEL_1_ID);
+
+        notificationBuilder.setSmallIcon(R.drawable.ic_file_download_black_24dp)
+                .setContentTitle("Download (test)")
+                .setContentText("Download in progress")
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .setProgress(progressMax, 0, false);
+
+        new Thread(() -> {
+            SystemClock.sleep(2000);
+            for (int progress = 0; progress <= progressMax; progress += 20) {
+                notificationBuilder.setProgress(progressMax, progress, false);
+                notificationManager.notify(1, notificationBuilder.build());
+                SystemClock.sleep(1000);
+            }
+            notificationBuilder.setContentText("Download finished")
+                    .setProgress(0, 0, false)
+                    .setOngoing(false);
+            notificationManager.notify(1, notificationBuilder.build());
+        }).start();
     }
 
     @SuppressLint("StaticFieldLeak")

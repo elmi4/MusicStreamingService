@@ -1,7 +1,6 @@
 package com.dsproject.musicstreamingservice.domain;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.dsproject.musicstreamingservice.domain.assist.Utilities;
 import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
@@ -19,6 +18,7 @@ public final class Consumer extends Node
     private final Map<String, Map<Integer,Byte[]>> songNamesToChunksMap = Collections.synchronizedMap(new HashMap<>());
 
     public Map<ArtistName, ConnectionInfo> artistToBroker;
+
 
     public enum RequestType{
         NONE,
