@@ -1,6 +1,9 @@
 package com.dsproject.musicstreamingservice.domain;
 
 import android.content.Context;
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
 
 import com.dsproject.musicstreamingservice.domain.assist.Utilities;
 import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
@@ -28,9 +31,14 @@ public final class Consumer extends Node
         PLAY_CHUNKS;
     }
 
-    public Consumer(final ConnectionInfo connInfo, final Context context)
+    public Consumer(){
+        super();
+    }
+
+    public Consumer(final ConnectionInfo connInfo,final Context context)
     {
         super(connInfo, context);
+        brokers.add(connInfo);
     }
 
 
@@ -47,6 +55,7 @@ public final class Consumer extends Node
      * Make song requests to appropriate brokers ASYNCHRONOUSLY
      * Define what happens with the received data by specifying the "requestType"
      */
+    @RequiresApi(api = Build.VERSION_CODES.N)
     public void requestSongData(final String artistName, final String songName,
                                 final RequestType requestType) throws IllegalStateException
     {
@@ -147,6 +156,7 @@ public final class Consumer extends Node
     @SuppressWarnings("unchecked")
     private Map<ArtistName, ConnectionInfo> requestState()
     {
+
         Socket requestSocket = connect(getRandomBroker());
 
         Map<ArtistName, ConnectionInfo> outMap = null;

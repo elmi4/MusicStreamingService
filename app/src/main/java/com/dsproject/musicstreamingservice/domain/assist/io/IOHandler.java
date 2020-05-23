@@ -13,7 +13,6 @@ import java.util.Scanner;
 
 public abstract class IOHandler
 {
-    public static final String BROKER_CREDENTIALS_PATH = "BrokerCredentials.txt";
     public static final int STANDARD_CHUNK_SIZE = 512 * 1024; //512KB
 
 
@@ -70,12 +69,12 @@ public abstract class IOHandler
     }
 
 
-    public static List<ConnectionInfo> readBrokerCredentials(Context context)
+    public static List<ConnectionInfo> readBrokerCredentials(String brokerCredentials , Context context)
     {
         List<ConnectionInfo> out = new ArrayList<>();
 
         context.getResources().getIdentifier("BrokerCredentials","raw",context.getPackageName());
-        try (Scanner reader = new Scanner(context.getAssets().open(BROKER_CREDENTIALS_PATH))) {
+        try (Scanner reader = new Scanner(context.getAssets().open(brokerCredentials))) {
             while (reader.hasNextLine()) {
                 String line = reader.nextLine();
                 if(line.isEmpty()) break;

@@ -1,8 +1,21 @@
 package com.dsproject.musicstreamingservice.ui;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+
+
+import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -18,6 +31,10 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+
         Button customReq = (Button) findViewById(R.id.customReq);
         customReq.setOnClickListener(view -> {
             //go to Activity2
@@ -27,6 +44,8 @@ public class MainActivity extends AppCompatActivity
 
         Button btn = (Button)findViewById(R.id.notificationBtn);
         btn.setOnClickListener(v -> sendNotificationOnChannel1());
+
+
     }
 
     public void sendNotificationOnChannel1()
@@ -43,4 +62,28 @@ public class MainActivity extends AppCompatActivity
         myNotificationManager.vibrateRepeating(500, 500, 15);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_screen_menu,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            //go to Activity Connect
+            case R.id.ItemConnect:
+                Intent connectionIntent = new Intent(this, ConnectActivity.class);
+                this.startActivity(connectionIntent);
+                return true;
+            case R.id.ItemCredits:
+                //go to Activity Credits
+                Intent creditsIntent = new Intent(this, CreditsActivity.class);
+                this.startActivity(creditsIntent);
+                return true;
+            default: return super.onOptionsItemSelected(item);
+        }
+
+    }
 }

@@ -2,6 +2,7 @@ package com.dsproject.musicstreamingservice.ui;
 
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -9,6 +10,7 @@ import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dsproject.musicstreamingservice.R;
@@ -19,6 +21,12 @@ import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificat
 import com.dsproject.musicstreamingservice.ui.managers.notifications.Notifier;
 import com.google.android.material.textfield.TextInputLayout;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.Buffer;
 import java.util.Objects;
 
 public class CustomRequestActivity extends AppCompatActivity
@@ -106,9 +114,11 @@ public class CustomRequestActivity extends AppCompatActivity
     @SuppressLint("StaticFieldLeak")
     private class AsyncTaskRunner extends AsyncTask<String, Void, Void>
     {
+        @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         protected Void doInBackground(String... params) {
-            Consumer c1 = new Consumer(ConnectionInfo.of(Utilities.getMachineIP(), 4030), CustomRequestActivity.this);
+
+            Consumer c1 = new Consumer(loadInitialBrokerCredentials(), CustomRequestActivity.this);
             Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
                     Consumer.RequestType.PLAY_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
 
@@ -121,4 +131,31 @@ public class CustomRequestActivity extends AppCompatActivity
             return null;
         }
     }
+
+    public ConnectionInfo loadInitialBrokerCredentials(){
+        ConnectionInfo connectionInfo = null;
+
+        FileInputStream fis = null;
+
+        try {
+            fis = openFileInput("BrokerCredentials.txt");
+            InputStreamReader isr = new InputStreamReader(fis);
+            BufferedReader br = new BufferedReader(isr);
+            StringBuilder sb = new StringBuilder();
+            String credentials;
+            if((credentials = br.readLine())!=null){
+                sb.append(credentials);
+                credentials = sb.toString();
+            }
+            String ip = credentials.substring(0,credentials.indexOf('@'));
+            int port = Integer.parseInt(credentials.substring(credentials.indexOf('@')+1));
+            connectionInfo = new ConnectionInfo(ip,port);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return connectionInfo;
+
+    }
+
 }

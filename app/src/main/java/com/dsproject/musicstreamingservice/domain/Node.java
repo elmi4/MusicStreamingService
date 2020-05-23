@@ -24,6 +24,10 @@ public abstract class Node
         this.context = context;
     }
 
+    public Node() {
+
+    }
+
     protected String getIP()
     {
         return connInfo.getIP();
@@ -41,7 +45,7 @@ public abstract class Node
 
     protected void init()
     {
-        this.brokers = IOHandler.readBrokerCredentials(this.context);
+        //this.brokers = IOHandler.readBrokerCredentials("",this.context);
     }
 
     protected Socket connect(final ConnectionInfo connInfo){
