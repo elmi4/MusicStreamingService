@@ -6,10 +6,27 @@
     android:layout_height="match_parent"
     tools:context="com.dsproject.musicstreamingservice.ui.MainActivity">
 
+    <include
+        android:id= "@+id/toolbar"
+        layout = "@layout/toolbar"/>
+
     <Button
         android:id="@+id/customReq"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="63dp"
         android:text="@string/custom_request" />
+
+    <Button
+        android:id="@+id/notificationBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="122dp"
+        android:layout_marginBottom="28dp"
+        android:text="@string/notifications_test" />
 
 </RelativeLayout>

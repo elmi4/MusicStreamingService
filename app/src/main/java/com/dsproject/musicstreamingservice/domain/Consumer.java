@@ -1,7 +1,9 @@
 package com.dsproject.musicstreamingservice.domain;
 
 import android.content.Context;
-import android.util.Log;
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
 
 import com.dsproject.musicstreamingservice.domain.assist.Utilities;
 import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
@@ -18,7 +20,8 @@ public final class Consumer extends Node
 {
     private final Map<String, Map<Integer,Byte[]>> songNamesToChunksMap = Collections.synchronizedMap(new HashMap<>());
 
-    private Map<ArtistName, ConnectionInfo> artistToBroker;
+    public Map<ArtistName, ConnectionInfo> artistToBroker;
+
 
     public enum RequestType{
         NONE,
@@ -28,9 +31,14 @@ public final class Consumer extends Node
         PLAY_CHUNKS;
     }
 
-    public Consumer(final ConnectionInfo connInfo, final Context context)
+    public Consumer(){
+        super();
+    }
+
+    public Consumer(final ConnectionInfo connInfo,final Context context)
     {
         super(connInfo, context);
+        brokers.add(connInfo);
     }
 
 
@@ -39,8 +47,7 @@ public final class Consumer extends Node
     {
         super.init();
         artistToBroker = requestState();
-        //System.out.println("Requested artists from event delivery");
-        Log.i("DEBUG", "init");
+        System.out.println("Requested artists from event delivery");
     }
 
 
@@ -48,71 +55,69 @@ public final class Consumer extends Node
      * Make song requests to appropriate brokers ASYNCHRONOUSLY
      * Define what happens with the received data by specifying the "requestType"
      */
+    @RequiresApi(api = Build.VERSION_CODES.N)
     public void requestSongData(final String artistName, final String songName,
                                 final RequestType requestType) throws IllegalStateException
     {
-        Log.i("DEBUG", "requestSongData");
         if(artistToBroker == null) throw new IllegalStateException("Consumer was not initialized correctly.");
 
-        //new Thread(() -> {
+        ArtistName artistObj = ArtistName.of(artistName);
 
-            ArtistName artistObj = ArtistName.of(artistName);
-            if(!artistIsServed(artistObj)){
-                System.out.println("The artist '"+artistObj.getArtistName()+"' is not being served.");
+        if(!artistIsServed(artistObj)){
+            System.out.println("The artist '"+artistObj.getArtistName()+"' is not being served.");
+            return;
+        }
+
+        Socket requestSocket = getConnectionWithBrokerOfArtist(artistObj);
+        assert requestSocket != null;
+
+        try(ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(requestSocket.getInputStream()))
+        {
+            //Notify broker that you will make a song request
+            out.writeObject("SongRequest");
+            out.flush();
+            out.writeObject(SongInfo.of(artistObj, songName));
+            out.flush();
+            System.out.println("Asked for song " + songName);
+
+            //If error msg was sent, return. (song doesn't exist)
+            Object ob = in.readObject();
+            if(Utilities.isStringLiteral(ob)){
+                System.out.println(ob);
                 return;
             }
 
-            Socket requestSocket = getConnectionWithBrokerOfArtist(artistObj);
-            assert requestSocket != null;
+            //Accept all the song chunks from broker until null is received (no more chunks)
+            do{
+                MusicFile mf = (MusicFile)ob;
+                System.out.println("Got " + mf + "  Chunk: " +mf.getChunkNumber());
 
-            try(ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
-                ObjectInputStream  in  = new ObjectInputStream(requestSocket.getInputStream()))
-            {
-                //Notify broker that you will make a song request
-                out.writeObject("SongRequest");
-                out.flush();
-                out.writeObject(SongInfo.of(artistObj, songName));
-                out.flush();
-                System.out.println("Asked for song " + songName);
+                Map<Integer, Byte[]> chunkNumToChunkData = new HashMap<>();
+                chunkNumToChunkData.put(mf.getChunkNumber(), Utilities.toByteObjectArray(mf.getMusicFileExtract()));
 
-                //If error msg was sent, return. (song doesn't exist)
-                Object ob = in.readObject();
-                if(Utilities.isStringLiteral(ob)){
-                    System.out.println(ob);
-                    return;
+                //Adding chunk. "songNamesToChunksMap" is synchronized
+                Map<Integer,Byte[]> existing = songNamesToChunksMap.putIfAbsent(mf.getTrackName(), chunkNumToChunkData);
+                if(existing != null){
+                    existing.put(mf.getChunkNumber(), Utilities.toByteObjectArray(mf.getMusicFileExtract()));
                 }
 
-                //Accept all the song chunks from broker until null is received (no more chunks)
-                do{
-                    MusicFile mf = (MusicFile)ob;
-                    System.out.println("Got " + mf + "  Chunk: " +mf.getChunkNumber());
-
-                    Map<Integer, Byte[]> chunkNumToChunkData = new HashMap<>();
-                    chunkNumToChunkData.put(mf.getChunkNumber(), Utilities.toByteObjectArray(mf.getMusicFileExtract()));
-
-                    //Adding chunk. "songNamesToChunksMap" is synchronized
-                    Map<Integer,Byte[]> existing = songNamesToChunksMap.putIfAbsent(mf.getTrackName(), chunkNumToChunkData);
-                    if(existing != null){
-                        existing.put(mf.getChunkNumber(), Utilities.toByteObjectArray(mf.getMusicFileExtract()));
-                    }
-
-                    if(requestType == RequestType.VALIDATE){
-                        validateData(mf.getMusicFileExtract(), mf.getChunkNumber());
-                    }else if(requestType == RequestType.DOWNLOAD_CHUNKS){
-                        System.out.println("Downloading chunk:"+mf.getChunkNumber()+" ...");
-                        IOHandler.writeToFile(mf);
-                    }
-                } while ((ob = in.readObject()) != null);
-
-                if(requestType == RequestType.DOWNLOAD_FULL_SONG){
-                    System.out.println("Downloading the whole song '"+songName+"' ...");
-                    IOHandler.writeToFile(artistObj.getArtistName(), songName, "FULL", reconstructSong(songName));
+                if(requestType == RequestType.VALIDATE){
+                    validateData(mf.getMusicFileExtract(), mf.getChunkNumber());
+                }else if(requestType == RequestType.DOWNLOAD_CHUNKS){
+                    System.out.println("Downloading chunk:"+mf.getChunkNumber()+" ...");
+                    IOHandler.writeFileOnInternalStorage(super.context, mf);
                 }
-            }catch(IOException | ClassNotFoundException e){
-                e.printStackTrace();
+            } while ((ob = in.readObject()) != null);
+
+            if(requestType == RequestType.DOWNLOAD_FULL_SONG){
+                System.out.println("Downloading the whole song '"+songName+"' ...");
+                IOHandler.writeFileOnInternalStorage(super.context, artistObj.getArtistName(),
+                        songName, "FULL", reconstructSong(songName));
             }
-
-        //}).start();
+        }catch(IOException | ClassNotFoundException e){
+            e.printStackTrace();
+        }
     }
 
 
@@ -151,6 +156,7 @@ public final class Consumer extends Node
     @SuppressWarnings("unchecked")
     private Map<ArtistName, ConnectionInfo> requestState()
     {
+
         Socket requestSocket = connect(getRandomBroker());
 
         Map<ArtistName, ConnectionInfo> outMap = null;

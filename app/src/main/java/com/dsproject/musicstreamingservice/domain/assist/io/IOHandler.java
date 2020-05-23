@@ -13,24 +13,30 @@ import java.util.Scanner;
 
 public abstract class IOHandler
 {
-    public static final String DESTINATION_DIR = "saves/";
-    public static final String BROKER_CREDENTIALS_PATH = "BrokerCredentials.txt";
     public static final int STANDARD_CHUNK_SIZE = 512 * 1024; //512KB
 
 
-    public static void writeToFile(final MusicFile mf)
+    public static void writeFileOnInternalStorage(final Context context, final MusicFile mf)
     {
-        writeToFile(mf.getArtistName(), mf.getTrackName(), String.valueOf(mf.getChunkNumber()), mf.getMusicFileExtract());
+        writeFileOnInternalStorage(context, mf.getArtistName(), mf.getTrackName(),
+                String.valueOf(mf.getChunkNumber()), mf.getMusicFileExtract());
     }
 
 
-    public static void writeToFile(final String artistName, final String trackName, final String part, final byte[] data)
+    public static void writeFileOnInternalStorage(final Context context, final String artistName,
+                                           final String trackName, final String part, final byte[] data)
     {
-        String dataFolder = DESTINATION_DIR + artistName + "___" + trackName + "/";
-        createDestinationFolderIfMissing(dataFolder);
+        String dataFolder = artistName + "___" + trackName + "/";
+        File songParentFolder = new File(context.getExternalFilesDir(null), dataFolder);
+        if(!songParentFolder.exists()){
+            songParentFolder.mkdir();
+        }
 
-        String fileName = dataFolder + part + "_" + trackName + "__" + artistName + ".mp3";
-        try (FileOutputStream stream = new FileOutputStream(fileName)) {
+        String fileName = part + "_" + trackName + "__" + artistName + ".mp3";
+        File songFile = new File(songParentFolder, fileName);
+        System.out.println("Song saved at: "+ songFile.getAbsolutePath());
+
+        try (FileOutputStream stream = new FileOutputStream(songFile)) {
             stream.write(data);
         } catch (IOException e) {
             e.printStackTrace();
@@ -63,12 +69,12 @@ public abstract class IOHandler
     }
 
 
-    public static List<ConnectionInfo> readBrokerCredentials(Context context)
+    public static List<ConnectionInfo> readBrokerCredentials(String brokerCredentials , Context context)
     {
         List<ConnectionInfo> out = new ArrayList<>();
 
         context.getResources().getIdentifier("BrokerCredentials","raw",context.getPackageName());
-        try (Scanner reader = new Scanner(context.getAssets().open(BROKER_CREDENTIALS_PATH))) {
+        try (Scanner reader = new Scanner(context.getAssets().open(brokerCredentials))) {
             while (reader.hasNextLine()) {
                 String line = reader.nextLine();
                 if(line.isEmpty()) break;
@@ -82,14 +88,5 @@ public abstract class IOHandler
         }
 
         return out;
-    }
-
-
-    private synchronized static void createDestinationFolderIfMissing(final String dataFolder)
-    {
-        File df = new File(dataFolder);
-        if(!df.isDirectory()){
-            df.mkdirs();
-        }
     }
 }
