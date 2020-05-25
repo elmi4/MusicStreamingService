@@ -11,9 +11,6 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import com.dsproject.musicstreamingservice.domain.Consumer;
-import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
-
 
 /**
  * This class should run before any activity. To do that, add:

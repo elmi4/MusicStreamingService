@@ -14,6 +14,7 @@ public final class MusicFile implements Serializable
     private String albumInfo;
     private String genre;
     private int chunkNumber;
+    private int totalChunks;
     private byte[] musicFileExtract;
     private String tag;
 
@@ -39,13 +40,14 @@ public final class MusicFile implements Serializable
     }
 
     public MusicFile(String trackName, String artistName, String albumInfo, String genre,
-                     int chunkNumber, byte[] musicFileExtract) {
+                     int chunkNumber, int totalChunks, byte[] musicFileExtract) {
         this.trackName = trackName;
         this.artistName = artistName;
         this.albumInfo = albumInfo;
         this.genre = genre;
         this.musicFileExtract = musicFileExtract;
         this.chunkNumber = chunkNumber;
+        this.totalChunks = totalChunks;
     }
 
     public String getTrackName() {
@@ -67,6 +69,11 @@ public final class MusicFile implements Serializable
     public int getChunkNumber() {
         return chunkNumber;
     }
+
+    public int getTotalChunks() {
+        return totalChunks;
+    }
+
 
     public void setMusicFileExtract(byte[] musicFileExtract) {
         this.musicFileExtract = musicFileExtract;

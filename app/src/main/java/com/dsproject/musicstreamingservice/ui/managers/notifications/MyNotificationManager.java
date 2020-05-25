@@ -1,5 +1,6 @@
 package com.dsproject.musicstreamingservice.ui.managers.notifications;
 
+import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.media.Ringtone;
@@ -29,8 +30,6 @@ public class MyNotificationManager implements Notifier
     private final Map<String, NotificationCompat.Builder> progressNotificationsMap = new HashMap<>();
     private final Map<String, Integer> progressNotificationIDsMap = new HashMap<>();
 
-    private int highestID = 0;
-
 
     public MyNotificationManager(final Context context)
     {
@@ -45,18 +44,19 @@ public class MyNotificationManager implements Notifier
      * @param description Specified description that goes under the title.
      * @param drawableIcon Specified icon from the res>drawable folder. Can be retrieved as:
      *                     R.drawable.icon_name
+     * @param contentIntent Intent that specifies what happens on user click. Null for nothing.
      */
     @Override
     public void makeAndShowPlainNotification(final String title, final String description,
-                                             Integer drawableIcon)
+                                             Integer drawableIcon, final PendingIntent contentIntent)
     {
         if(drawableIcon == null){
             drawableIcon = R.drawable.ic_default_notification_black_24dp;
         }
 
         NotificationCompat.Builder builder = makePlainNotification(
-                title, description, drawableIcon);
-        showNotification(builder, ++highestID);
+                title, description, drawableIcon, contentIntent);
+        showNotification(builder, (int)System.currentTimeMillis());
     }
 
 
@@ -76,9 +76,8 @@ public class MyNotificationManager implements Notifier
                                                 final int maxProgress, final boolean indeterminate,
                                                 Integer drawableIcon)
     {
-        if(progressNotificationsMap.get(id) != null){
-            System.err.println("Notification of id: "+id+" already exists.");
-            return;
+        if(progressNotificationsMap.containsKey(id)){
+            throw new IllegalStateException("Notification of id: "+id+" already exists.");
         }
 
         if(drawableIcon == null){
@@ -88,6 +87,7 @@ public class MyNotificationManager implements Notifier
         NotificationCompat.Builder builder = makeOngoingNotification(
                 title,description, maxProgress, indeterminate, drawableIcon);
         addToMaps(id, builder);
+
         showNotification(builder, progressNotificationIDsMap.get(id));
     }
 
@@ -118,7 +118,7 @@ public class MyNotificationManager implements Notifier
      * @param msg The finish text to be displayed instead of the progress bar.
      */
     @Override
-    public void completeProgressNotification(final String id, final String msg)
+    public void completeProgressNotification(final String id, final String msg, final PendingIntent contentIntent)
     {
         NotificationCompat.Builder notification = progressNotificationsMap.get(id);
         Integer notifyID = progressNotificationIDsMap.get(id);
@@ -128,8 +128,12 @@ public class MyNotificationManager implements Notifier
                 .setContentText(msg)
                 .setProgress(0, 0, false)
                 .setOngoing(false);
-        notificationManagerCompat.notify(notifyID, notification.build());
 
+        if(contentIntent != null){
+            notification.setContentIntent(contentIntent);
+        }
+
+        notificationManagerCompat.notify(notifyID, notification.build());
         free(id);
     }
 
@@ -138,6 +142,7 @@ public class MyNotificationManager implements Notifier
      * Create vibration effect.
      * @param duration The time in milliseconds that the phone should vibrate
      */
+    @Override
     public void vibrate(final int duration)
     {
         Vibrator vibrator =  (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
@@ -158,6 +163,7 @@ public class MyNotificationManager implements Notifier
      * @param delay Milliseconds to wait before the next vibration, after the last one has finished.
      * @param repeats The number of vibration repeats.
      */
+    @Override
     public void vibrateRepeating(final int duration, final int delay, final int repeats)
     {
         Vibrator vibrator =  (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
@@ -184,6 +190,7 @@ public class MyNotificationManager implements Notifier
      *                         New>Folder>Raw Resources Folder
      *                         and put in there the custom audio file for the notification.
      */
+    @Override
     public void playNotificationSound(final Integer rawResourceSound)
     {
         Uri alarmSound;
@@ -223,7 +230,7 @@ public class MyNotificationManager implements Notifier
     private void addToMaps(final String id, final NotificationCompat.Builder builder)
     {
         progressNotificationsMap.put(id, builder);
-        progressNotificationIDsMap.put(id, ++highestID);
+        progressNotificationIDsMap.put(id, (int)System.currentTimeMillis());
     }
 
     private void free(final String id)
@@ -245,18 +252,26 @@ public class MyNotificationManager implements Notifier
 
     private NotificationCompat.Builder makePlainNotification(final String title,
                                                              final String description,
-                                                             final int drawableIcon)
+                                                             final int drawableIcon,
+                                                             final PendingIntent contentIntent)
     {
         Bundle extras = new Bundle();
         extras.putBoolean("plain", true);
 
-        return new NotificationCompat.Builder(context, ApplicationSetup.CHANNEL_1_ID)
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(context, ApplicationSetup.CHANNEL_1_ID)
                         .setSmallIcon(drawableIcon)
                         .setContentTitle(title)
                         .setContentText(description)
                         .setPriority(ApplicationSetup.CHANNEL_1_PRIORITY)
                         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                         .setExtras(extras);
+
+        if(contentIntent != null){
+            builder.setContentIntent(contentIntent);
+        }
+
+        return builder;
     }
 
     private NotificationCompat.Builder makeOngoingNotification(final String title,
@@ -269,13 +284,12 @@ public class MyNotificationManager implements Notifier
         extras.putBoolean("plain", false);
 
         return new NotificationCompat.Builder(context, ApplicationSetup.CHANNEL_1_ID)
-                .setSmallIcon(drawableIcon)
-                .setContentTitle(title)
-                .setContentText(description)
-                .setProgress(maxProgress,0, indeterminate)
-                .setOngoing(true)
-                .setOnlyAlertOnce(true)
-                .setExtras(extras);
+                    .setSmallIcon(drawableIcon)
+                    .setContentTitle(title)
+                    .setContentText(description)
+                    .setProgress(maxProgress,0, indeterminate)
+                    .setOngoing(true)
+                    .setOnlyAlertOnce(true)
+                    .setExtras(extras);
     }
-
 }
