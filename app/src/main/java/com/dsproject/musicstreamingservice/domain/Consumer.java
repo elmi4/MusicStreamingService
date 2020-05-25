@@ -1,27 +1,35 @@
 package com.dsproject.musicstreamingservice.domain;
 
+import android.app.PendingIntent;
 import android.content.Context;
-import android.os.Build;
+import android.content.Intent;
+import android.net.Uri;
+import android.widget.Toast;
 
-import androidx.annotation.RequiresApi;
+import androidx.core.content.FileProvider;
 
+import com.dsproject.musicstreamingservice.BuildConfig;
 import com.dsproject.musicstreamingservice.domain.assist.Utilities;
 import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 import com.dsproject.musicstreamingservice.domain.media.ArtistName;
 import com.dsproject.musicstreamingservice.domain.media.MusicFile;
 import com.dsproject.musicstreamingservice.domain.media.SongInfo;
+import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
+import com.dsproject.musicstreamingservice.ui.managers.notifications.Notifier;
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public final class Consumer extends Node
+public final class Consumer
 {
     private final Map<String, Map<Integer,Byte[]>> songNamesToChunksMap = Collections.synchronizedMap(new HashMap<>());
+    private final Context context;
+    private final ConnectionInfo knownBrokerInfo;
+    private final Notifier notificationManager;
 
     public Map<ArtistName, ConnectionInfo> artistToBroker;
-
 
     public enum RequestType{
         NONE,
@@ -31,21 +39,21 @@ public final class Consumer extends Node
         PLAY_CHUNKS;
     }
 
-    public Consumer(){
-        super();
-    }
 
-    public Consumer(final ConnectionInfo connInfo,final Context context)
+    public Consumer(final ConnectionInfo brokerInfo, final Context context)
     {
-        super(connInfo, context);
-        brokers.add(connInfo);
+        this.context = context;
+        this.notificationManager = new MyNotificationManager(context);
+
+        if(brokerInfo == null || brokerInfo.getIP().trim().equals("")){
+            throw new IllegalStateException("No valid broker provided");
+        }
+        this.knownBrokerInfo = brokerInfo;
     }
 
 
-    @Override
     public void init()
     {
-        super.init();
         artistToBroker = requestState();
         System.out.println("Requested artists from event delivery");
     }
@@ -55,7 +63,6 @@ public final class Consumer extends Node
      * Make song requests to appropriate brokers ASYNCHRONOUSLY
      * Define what happens with the received data by specifying the "requestType"
      */
-    @RequiresApi(api = Build.VERSION_CODES.N)
     public void requestSongData(final String artistName, final String songName,
                                 final RequestType requestType) throws IllegalStateException
     {
@@ -64,6 +71,7 @@ public final class Consumer extends Node
         ArtistName artistObj = ArtistName.of(artistName);
 
         if(!artistIsServed(artistObj)){
+            Toast.makeText(this.context,"This artist isn't being served", Toast.LENGTH_SHORT).show();
             System.out.println("The artist '"+artistObj.getArtistName()+"' is not being served.");
             return;
         }
@@ -88,10 +96,24 @@ public final class Consumer extends Node
                 return;
             }
 
+            //Create the ID for the download notification and initialize the notification.
+            MusicFile chunk = (MusicFile)ob;
+            String notificationID = chunk.getTrackName()+"_"+chunk.getArtistName();
+            if(requestType == RequestType.DOWNLOAD_FULL_SONG){
+                notificationManager.makeAndShowProgressNotification(notificationID,
+                        "Download ("+chunk.getTrackName()+")", "Download in progress...",
+                        chunk.getTotalChunks(), false, null);
+            }
+
             //Accept all the song chunks from broker until null is received (no more chunks)
             do{
                 MusicFile mf = (MusicFile)ob;
                 System.out.println("Got " + mf + "  Chunk: " +mf.getChunkNumber());
+
+                if(requestType == RequestType.DOWNLOAD_FULL_SONG) {
+                    notificationManager.updateProgressNotification(notificationID, mf.getTotalChunks(),
+                            mf.getChunkNumber(), false);
+                }
 
                 Map<Integer, Byte[]> chunkNumToChunkData = new HashMap<>();
                 chunkNumToChunkData.put(mf.getChunkNumber(), Utilities.toByteObjectArray(mf.getMusicFileExtract()));
@@ -106,14 +128,18 @@ public final class Consumer extends Node
                     validateData(mf.getMusicFileExtract(), mf.getChunkNumber());
                 }else if(requestType == RequestType.DOWNLOAD_CHUNKS){
                     System.out.println("Downloading chunk:"+mf.getChunkNumber()+" ...");
-                    IOHandler.writeFileOnInternalStorage(super.context, mf);
+                    IOHandler.writeFileInAppStorage(this.context, mf);
                 }
             } while ((ob = in.readObject()) != null);
 
             if(requestType == RequestType.DOWNLOAD_FULL_SONG){
                 System.out.println("Downloading the whole song '"+songName+"' ...");
-                IOHandler.writeFileOnInternalStorage(super.context, artistObj.getArtistName(),
+                String path = IOHandler.writeFileInAppStorage(this.context, artistObj.getArtistName(),
                         songName, "FULL", reconstructSong(songName));
+
+                notificationManager.completeProgressNotification(notificationID, "Download Complete",
+                        makeDownloadPlayable(path));
+                notificationManager.vibrate(600);
             }
         }catch(IOException | ClassNotFoundException e){
             e.printStackTrace();
@@ -121,8 +147,11 @@ public final class Consumer extends Node
     }
 
 
+    /**
+     * Get a list of all the song names of a particular artist from the eventDelivery.
+     */
     @SuppressWarnings("unchecked")
-    public List<String> requestSongsOfArtist(String artistName) throws IllegalStateException
+    public List<String> requestSongsOfArtist(final String artistName) throws IllegalStateException
     {
         if (artistToBroker == null) throw new IllegalStateException("Consumer was not initialized correctly.");
 
@@ -146,8 +175,20 @@ public final class Consumer extends Node
         }
     }
 
+
+
     // ---------------------------------   PRIVATE METHODS    ----------------------------------
 
+    private Socket connect(final ConnectionInfo connInfo)
+    {
+        Socket connection = null;
+        try {
+            connection = new Socket(connInfo.getIP(),connInfo.getPort());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return connection;
+    }
 
 
     /**
@@ -156,8 +197,7 @@ public final class Consumer extends Node
     @SuppressWarnings("unchecked")
     private Map<ArtistName, ConnectionInfo> requestState()
     {
-
-        Socket requestSocket = connect(getRandomBroker());
+        Socket requestSocket = connect(knownBrokerInfo);
 
         Map<ArtistName, ConnectionInfo> outMap = null;
         try(ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
@@ -172,16 +212,6 @@ public final class Consumer extends Node
         }
 
         return (outMap == null) ? null : Collections.unmodifiableMap(outMap);
-    }
-
-
-    private ConnectionInfo getRandomBroker() throws IllegalStateException
-    {
-        if(super.brokers == null || super.brokers.size() == 0){
-            throw new IllegalStateException("Brokers not found");
-        }
-
-        return super.brokers.get(0);
     }
 
 
@@ -246,5 +276,20 @@ public final class Consumer extends Node
     private boolean artistIsServed(final ArtistName artistName)
     {
         return artistToBroker.containsKey(artistName);
+    }
+
+
+    /**
+     * Create a PendingIntent Object that will play the downloaded song when the notification is clicked.
+     */
+    private PendingIntent makeDownloadPlayable(final String path)
+    {
+        final Uri data = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID+".provider", new File(path));
+        context.grantUriPermission(context.getPackageName(), data, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        final Intent intent = new Intent(Intent.ACTION_VIEW)
+                .setDataAndType(data, "audio/*")
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 }

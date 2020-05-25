@@ -2,31 +2,24 @@ package com.dsproject.musicstreamingservice.ui;
 
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
-import com.dsproject.musicstreamingservice.domain.assist.Utilities;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
-import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
-import com.dsproject.musicstreamingservice.ui.managers.notifications.Notifier;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.Buffer;
 import java.util.Objects;
 
 public class CustomRequestActivity extends AppCompatActivity
@@ -61,8 +54,10 @@ public class CustomRequestActivity extends AppCompatActivity
     {
         super.onStart();
 
+        artist_input_field.getEditText().setText("Jason Shaw");
+        song_input_field.getEditText().setText("Landra's Dream");
+
         switch1.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            createDownloadProgressNotification();
             if(isChecked){
                 switch1.setText("Download");
             }
@@ -85,40 +80,23 @@ public class CustomRequestActivity extends AppCompatActivity
         });
     }
 
-    //notifications test
-    private void createDownloadProgressNotification()
-    {
-        final int progressMax = 100;
-
-        Notifier myNotificationManager = new MyNotificationManager(CustomRequestActivity.this);
-
-        //create the PROGRESS notification with an empty progress bar.
-        myNotificationManager.makeAndShowProgressNotification(
-                "progress", "Download", "Download in progress", progressMax,
-                false, null);
-
-        //simulating some work, like a download
-        new Thread(() -> {
-            SystemClock.sleep(1000);
-            for (int progress = 0; progress <= progressMax; progress += 20) {
-                //update the progress bar every one second
-                myNotificationManager.updateProgressNotification("progress",progressMax, progress,false);
-                SystemClock.sleep(1000);
-            }
-
-            //when the progress bar is full, replace it with a finish msg
-            myNotificationManager.completeProgressNotification("progress", "Download complete");
-        }).start();
-    }
-
     @SuppressLint("StaticFieldLeak")
     private class AsyncTaskRunner extends AsyncTask<String, Void, Void>
     {
-        @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         protected Void doInBackground(String... params) {
+            ConnectionInfo brokerInfo = loadInitialBrokerCredentials();
+            if(brokerInfo == null){
+                runOnUiThread(() -> {
+                    final Toast toast = Toast.makeText(CustomRequestActivity.this,
+                            "Please fill in the broker connection info in the settings.", Toast.LENGTH_LONG);
+                    toast.show();
+                });
+                return null;
+            }
 
-            Consumer c1 = new Consumer(loadInitialBrokerCredentials(), CustomRequestActivity.this);
+            Consumer c1 = new Consumer(brokerInfo, CustomRequestActivity.this);
+
             Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
                     Consumer.RequestType.PLAY_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
 
@@ -135,10 +113,7 @@ public class CustomRequestActivity extends AppCompatActivity
     public ConnectionInfo loadInitialBrokerCredentials(){
         ConnectionInfo connectionInfo = null;
 
-        FileInputStream fis = null;
-
-        try {
-            fis = openFileInput("BrokerCredentials.txt");
+        try (FileInputStream fis = openFileInput("BrokerCredentials.txt")){
             InputStreamReader isr = new InputStreamReader(fis);
             BufferedReader br = new BufferedReader(isr);
             StringBuilder sb = new StringBuilder();
@@ -155,7 +130,6 @@ public class CustomRequestActivity extends AppCompatActivity
         }
 
         return connectionInfo;
-
     }
 
 }

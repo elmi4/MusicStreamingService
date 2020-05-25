@@ -1,5 +1,7 @@
 package com.dsproject.musicstreamingservice.ui.managers.notifications;
 
+import android.app.PendingIntent;
+
 public interface Notifier
 {
     enum NotificationType{
@@ -7,12 +9,13 @@ public interface Notifier
         PROGRESS //A notification that displays some progress and needs to be updated (like a download)
     }
 
-    void makeAndShowPlainNotification(String title, String description, Integer rawResourceIcon);
+    void makeAndShowPlainNotification(String title, String description, Integer rawResourceIcon,
+                                      PendingIntent pendingIntent);
 
     void makeAndShowProgressNotification(String id, String title, String description, int maxProgress,
                                          boolean indeterminate, Integer rawResourceIcon);
     void updateProgressNotification(String id, int maxProgress, int progress, boolean indeterminate);
-    void completeProgressNotification(String id, String msg);
+    void completeProgressNotification(String id, String msg, PendingIntent contentIntent);
 
     void vibrate(int duration);
     void vibrateRepeating(int duration, int delay, int repeats);

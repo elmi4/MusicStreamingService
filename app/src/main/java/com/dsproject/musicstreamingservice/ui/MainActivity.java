@@ -55,7 +55,8 @@ public class MainActivity extends AppCompatActivity
         myNotificationManager.makeAndShowPlainNotification(
                 "Aggressive Notification",
                 "FUCK YOU, I WILL VIBRATE ALL I WANT",
-                R.drawable.ic_file_download_black_24dp); //notification icon or null for a default
+                R.drawable.ic_file_download_black_24dp, //notification icon or null for a default
+                null);
 
         //play sound and GET TROLLED BITCH vibrate 15 times
         myNotificationManager.playNotificationSound(R.raw.notification_sound);

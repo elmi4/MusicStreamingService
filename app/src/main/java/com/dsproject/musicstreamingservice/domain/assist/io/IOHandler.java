@@ -16,15 +16,16 @@ public abstract class IOHandler
     public static final int STANDARD_CHUNK_SIZE = 512 * 1024; //512KB
 
 
-    public static void writeFileOnInternalStorage(final Context context, final MusicFile mf)
+    public static String writeFileInAppStorage(final Context context, final MusicFile mf) throws IOException
     {
-        writeFileOnInternalStorage(context, mf.getArtistName(), mf.getTrackName(),
+        return writeFileInAppStorage(context, mf.getArtistName(), mf.getTrackName(),
                 String.valueOf(mf.getChunkNumber()), mf.getMusicFileExtract());
     }
 
 
-    public static void writeFileOnInternalStorage(final Context context, final String artistName,
-                                           final String trackName, final String part, final byte[] data)
+    public static String writeFileInAppStorage(final Context context, final String artistName,
+                                               final String trackName, final String part,
+                                               final byte[] data) throws IOException
     {
         String dataFolder = artistName + "___" + trackName + "/";
         File songParentFolder = new File(context.getExternalFilesDir(null), dataFolder);
@@ -38,8 +39,10 @@ public abstract class IOHandler
 
         try (FileOutputStream stream = new FileOutputStream(songFile)) {
             stream.write(data);
+            return songFile.getAbsolutePath();
         } catch (IOException e) {
             e.printStackTrace();
+            throw e;
         }
     }
 
