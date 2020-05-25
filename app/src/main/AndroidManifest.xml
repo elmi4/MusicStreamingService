@@ -26,6 +26,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.CustomRequestActivity" />
+        <activity android:name=".ui.SongsOfArtist" />
+        <activity android:name=".ui.Artists" />
     </application>
 
 </manifest>

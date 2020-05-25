@@ -3,12 +3,14 @@ package com.dsproject.musicstreamingservice.ui;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+
 import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.ui.managers.setup.ApplicationSetup;
+
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.io.File;
@@ -16,10 +18,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
+
 import java.util.Objects;
 
 public class ConnectActivity extends AppCompatActivity {

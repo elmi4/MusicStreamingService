@@ -75,10 +75,11 @@ public class SongsOfArtist extends AppCompatActivity {
             this.mData = data;
         }
 
+        //!!!!!!!!!!!!!!!!!!!!!
         // inflates the row layout from xml when needed
         @Override
         public SongsOfArtist.MyRecyclerViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = mInflater.inflate(R.layout.recyclerview_row, parent, false);
+            View view = null; //mInflater.inflate(R.layout.recyclerview_row, parent, false);
             return new SongsOfArtist.MyRecyclerViewAdapter.ViewHolder(view);
         }
 
@@ -95,13 +96,14 @@ public class SongsOfArtist extends AppCompatActivity {
             return mData.size();
         }
 
+        //!!!!!!!!!!!!!!!!!!!!!!!
         // stores and recycles views as they are scrolled off screen
         public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
             TextView myTextView;
 
             ViewHolder(View itemView) {
                 super(itemView);
-                myTextView = itemView.findViewById(R.id.tvAnimalName);
+                //myTextView = itemView.findViewById(R.id.tvAnimalName);
                 itemView.setOnClickListener(this);
             }
 

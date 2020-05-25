@@ -5,8 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-
-
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,9 +14,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
 import com.dsproject.musicstreamingservice.ui.managers.notifications.Notifier;
@@ -34,17 +30,20 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
         Button customReq = (Button) findViewById(R.id.customReq);
         customReq.setOnClickListener(view -> {
-            //go to Activity2
-            Intent myIntent = new Intent(view.getContext(), CustomRequestActivity.class);
-            startActivity(myIntent);
+            Intent goToCustomRequest = new Intent(view.getContext(), CustomRequestActivity.class);
+            startActivity(goToCustomRequest);
         });
 
         Button btn = (Button)findViewById(R.id.notificationBtn);
         btn.setOnClickListener(v -> sendNotificationOnChannel1());
 
+        Button artists = (Button) findViewById(R.id.artistsBtn);
+        artists.setOnClickListener(view -> {
+            Intent goToArtists = new Intent(view.getContext(), Artists.class);
+            startActivity(goToArtists);
+        });
 
     }
 

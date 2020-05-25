@@ -50,6 +50,30 @@ public final class Consumer extends Node
         System.out.println("Requested artists from event delivery");
     }
 
+    /**
+     * (Initialization) Ask a random <b>Broker</b> to send you the existing artists and the brokers that serve them
+     * */
+    @SuppressWarnings("unchecked")
+    public Map<ArtistName, ConnectionInfo> requestState()
+    {
+
+        Socket requestSocket = connect(getRandomBroker());
+
+        Map<ArtistName, ConnectionInfo> outMap = null;
+        try(ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(requestSocket.getInputStream()))
+        {
+            //Notify broker that he has to send the available artists and the brokers that serve them
+            out.writeObject("ListArtists");
+            out.flush();
+            outMap = (Map<ArtistName, ConnectionInfo>)in.readObject();
+        }catch(IOException | ClassNotFoundException e){
+            e.printStackTrace();
+        }
+
+        return (outMap == null) ? null : Collections.unmodifiableMap(outMap);
+    }
+
 
     /**
      * Make song requests to appropriate brokers ASYNCHRONOUSLY
@@ -147,32 +171,6 @@ public final class Consumer extends Node
     }
 
     // ---------------------------------   PRIVATE METHODS    ----------------------------------
-
-
-
-    /**
-     * (Initialization) Ask a random <b>Broker</b> to send you the existing artists and the brokers that serve them
-     * */
-    @SuppressWarnings("unchecked")
-    private Map<ArtistName, ConnectionInfo> requestState()
-    {
-
-        Socket requestSocket = connect(getRandomBroker());
-
-        Map<ArtistName, ConnectionInfo> outMap = null;
-        try(ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
-            ObjectInputStream  in  = new ObjectInputStream(requestSocket.getInputStream()))
-        {
-            //Notify broker that he has to send the available artists and the brokers that serve them
-            out.writeObject("ListArtists");
-            out.flush();
-            outMap = (Map<ArtistName, ConnectionInfo>)in.readObject();
-        }catch(IOException | ClassNotFoundException e){
-            e.printStackTrace();
-        }
-
-        return (outMap == null) ? null : Collections.unmodifiableMap(outMap);
-    }
 
 
     private ConnectionInfo getRandomBroker() throws IllegalStateException

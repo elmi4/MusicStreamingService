@@ -18,12 +18,17 @@ import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 import com.dsproject.musicstreamingservice.domain.media.ArtistName;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-public class Artists extends AppCompatActivity  {
+public class Artists extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,11 +47,14 @@ public class Artists extends AppCompatActivity  {
                 artistsNames.add(name.getArtistName());
             }
 
-            MyRecyclerViewAdapter myAdapter;
-            recyclerView.setLayoutManager(new LinearLayoutManager(this));           // test if actually needed
-            myAdapter = new MyRecyclerViewAdapter(this, artistsNames);
-            myAdapter.setClickListener((MyRecyclerViewAdapter.ItemClickListener) Artists.this);
-            recyclerView.setAdapter(myAdapter);
+//            MyRecyclerViewAdapter myAdapter;
+//            //recyclerView.setLayoutManager(new LinearLayoutManager(this));           // test if actually needed
+//            myAdapter = new MyRecyclerViewAdapter(this, artistsNames);
+//            //myAdapter.setClickListener((MyRecyclerViewAdapter.ItemClickListener) Artists.this);
+//            recyclerView.setAdapter(myAdapter);
+
+            RecyclerView.Adapter myAdapter;
+
 
             DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), LinearLayoutManager.VERTICAL);
             recyclerView.addItemDecoration(dividerItemDecoration);
@@ -76,10 +84,11 @@ public class Artists extends AppCompatActivity  {
             this.mData = data;
         }
 
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
         // inflates the row layout from xml when needed
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = mInflater.inflate(R.layout.recyclerview_row, parent, false);
+            View view = null; //mInflater.inflate(R.layout.recyclerview_row, parent, false);
             return new ViewHolder(view);
         }
 
@@ -96,13 +105,14 @@ public class Artists extends AppCompatActivity  {
             return mData.size();
         }
 
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // stores and recycles views as they are scrolled off screen
         public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
             TextView myTextView;
 
             ViewHolder(View itemView) {
                 super(itemView);
-                myTextView = itemView.findViewById(R.id.tvAnimalName);
+                //myTextView = itemView.findViewById(R.id.tvAnimalName);
                 itemView.setOnClickListener(this);
             }
 
@@ -130,7 +140,7 @@ public class Artists extends AppCompatActivity  {
 
         @Override
         protected Map<ArtistName, ConnectionInfo> doInBackground(Object... objects) {
-            Consumer c1 = new Consumer (ConnectionInfo.of("192.168.1.92",  430), Artists.this);
+            Consumer c1 = new Consumer(loadInitialBrokerCredentials(), Artists.this);
 
             c1.init();
             Map<ArtistName, ConnectionInfo> artists = c1.requestState();
@@ -138,4 +148,31 @@ public class Artists extends AppCompatActivity  {
             return artists;
         }
     }
+
+
+    public ConnectionInfo loadInitialBrokerCredentials() {
+        ConnectionInfo connectionInfo = null;
+
+        FileInputStream fis = null;
+
+        try {
+            fis = openFileInput("BrokerCredentials.txt");
+            InputStreamReader isr = new InputStreamReader(fis);
+            BufferedReader br = new BufferedReader(isr);
+            StringBuilder sb = new StringBuilder();
+            String credentials;
+            if ((credentials = br.readLine()) != null) {
+                sb.append(credentials);
+                credentials = sb.toString();
+            }
+            String ip = credentials.substring(0, credentials.indexOf('@'));
+            int port = Integer.parseInt(credentials.substring(credentials.indexOf('@') + 1));
+            connectionInfo = new ConnectionInfo(ip, port);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return connectionInfo;
+    }
+
 }
