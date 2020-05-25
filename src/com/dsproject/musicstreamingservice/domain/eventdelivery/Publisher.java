@@ -299,7 +299,7 @@ public final class Publisher extends Node
             int chunkNum = 1;
             while (!rawAudio.isEmpty()) {
                 byte[] chunk = rawAudio.remove(0);
-                MusicFile mf = new MusicFile(trackName, artistName, albumInfo, genre, chunkNum, chunk);
+                MusicFile mf = new MusicFile(trackName, artistName, albumInfo, genre, chunkNum, rawAudio.size(), chunk);
                 out.writeObject(mf);
                 System.out.println("Sending chunk " + chunkNum + " of song " + trackName);
                 chunkNum++;
