@@ -1,12 +1,9 @@
 package com.dsproject.musicstreamingservice.ui.irrelevantActivities;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.Button;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.dsproject.musicstreamingservice.R;
 
@@ -21,8 +18,8 @@ public class CreditsActivity extends AppCompatActivity {
         credits.setText("\n\nCredits" +
                 "\n\n\nAUEB Distributed Systems Project 2020" +
                 "\n\n\nCollaborators" +
-                "\n\nPetros Papatheodorou 317xxxx" +
-                "\n\nElena Mina 317xxxx" +
+                "\n\nPetros Papatheodorou 3170133" +
+                "\n\nElena Mina 3170108" +
                 "\n\nEleni Saxoni 3160270" +
                 "\n\nIlias Manginas 3170096");
     }
