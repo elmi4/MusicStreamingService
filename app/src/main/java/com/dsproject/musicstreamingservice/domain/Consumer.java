@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.widget.Toast;
-
 import androidx.core.content.FileProvider;
 
 import com.dsproject.musicstreamingservice.BuildConfig;
@@ -40,9 +39,6 @@ public final class Consumer
         PLAY_CHUNKS;
     }
 
-    public Consumer(){
-        super();
-    }
 
     public Consumer(final ConnectionInfo brokerInfo, final Context context)
     {
@@ -56,10 +52,8 @@ public final class Consumer
     }
 
 
-    @Override
     public void init()
     {
-        super.init();
         artistToBroker = requestState();
         System.out.println("Requested artists from event delivery");
     }
@@ -71,7 +65,7 @@ public final class Consumer
     public Map<ArtistName, ConnectionInfo> requestState()
     {
 
-        Socket requestSocket = connect(getRandomBroker());
+        Socket requestSocket = connect(knownBrokerInfo);
 
         Map<ArtistName, ConnectionInfo> outMap = null;
         try(ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
@@ -93,7 +87,6 @@ public final class Consumer
      * Make song requests to appropriate brokers ASYNCHRONOUSLY
      * Define what happens with the received data by specifying the "requestType"
      */
-    @RequiresApi(api = Build.VERSION_CODES.N)
     public void requestSongData(final String artistName, final String songName,
                                 final RequestType requestType) throws IllegalStateException
     {

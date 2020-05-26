@@ -11,9 +11,11 @@ import android.widget.LinearLayout;
 import android.widget.SearchView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
@@ -30,44 +32,70 @@ import java.util.concurrent.ExecutionException;
 
 public class Artists extends AppCompatActivity {
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    listFragment myFragment = new listFragment();
+    myFragment.
 
-        RecyclerView recyclerView = findViewById(R.id.artistsList);
-        SearchView searchBar = findViewById(R.id.searchBar);            //!!!
+    class listFragment extends Fragment {
 
-        AsyncTaskRunner taskRunner = new AsyncTaskRunner();
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
 
-        try {
-            Map<ArtistName, ConnectionInfo> artists = taskRunner.execute().get();
-            ArrayList<String> artistsNames = new ArrayList<>();
+            RecyclerView recyclerView = findViewById(R.id.artistsList);
+            SearchView searchBar = findViewById(R.id.searchBar);            //!!!
+            LinearLayout artistsLayout = findViewById(R.id.Artists);
 
-            for (ArtistName name : artists.keySet()) {
-                artistsNames.add(name.getArtistName());
-            }
+            AsyncTaskRunner taskRunner = new AsyncTaskRunner();
+            MyRecyclerViewAdapter myAdapter;
 
-//            MyRecyclerViewAdapter myAdapter;
-//            //recyclerView.setLayoutManager(new LinearLayoutManager(this));           // test if actually needed
-//            myAdapter = new MyRecyclerViewAdapter(this, artistsNames);
-//            //myAdapter.setClickListener((MyRecyclerViewAdapter.ItemClickListener) Artists.this);
-//            recyclerView.setAdapter(myAdapter);
+            try {
+                Map<ArtistName, ConnectionInfo> artists = taskRunner.execute().get();
+                ArrayList<String> artistsNames = new ArrayList<>();
 
-            RecyclerView.Adapter myAdapter;
-
-
-            DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), LinearLayoutManager.VERTICAL);
-            recyclerView.addItemDecoration(dividerItemDecoration);
-
-            recyclerView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent myIntent = new Intent(v.getContext(), SongsOfArtist.class);
-                    startActivity(myIntent);
+                for (ArtistName name : artists.keySet()) {
+                    artistsNames.add(name.getArtistName());
                 }
-            });
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
+
+                recyclerView.setLayoutManager(new LinearLayoutManager(Artists.this));           // test if actually needed
+                myAdapter = new MyRecyclerViewAdapter(Artists.this, artistsNames);
+                myAdapter.setClickListener((MyRecyclerViewAdapter.ItemClickListener) Artists.this);
+                recyclerView.setAdapter(myAdapter);
+
+                recyclerView.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        Intent myIntent = new Intent(v.getContext(), SongsOfArtist.class);
+                        startActivity(myIntent);
+                    }
+                });
+
+              //To incorporate if needed.
+//            DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(Artists.this, LinearLayoutManager.VERTICAL);
+//            recyclerView.addItemDecoration(dividerItemDecoration);
+
+            } catch (ExecutionException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            return inflater.inflate(R.layout.activity_artists, container, false);
+        }
+
+    }
+
+
+    private class AsyncTaskRunner extends AsyncTask<Object, Void, Map<ArtistName, ConnectionInfo>> {
+
+        @Override
+        protected Map<ArtistName, ConnectionInfo> doInBackground(Object... objects) {
+            Consumer c1 = new Consumer(loadInitialBrokerCredentials(), Artists.this);
+
+            c1.init();
+            Map<ArtistName, ConnectionInfo> artists = c1.requestState();
+
+            return artists;
         }
     }
 
@@ -130,22 +158,6 @@ public class Artists extends AppCompatActivity {
         // parent activity will implement this method to respond to click events
         public interface ItemClickListener {
             void onItemClick(View view, int position);
-        }
-    }
-
-
-    private class AsyncTaskRunner extends AsyncTask<Object, Void, Map<ArtistName, ConnectionInfo>> {
-
-        LinearLayout artistsLayout = findViewById(R.id.Artists);
-
-        @Override
-        protected Map<ArtistName, ConnectionInfo> doInBackground(Object... objects) {
-            Consumer c1 = new Consumer(loadInitialBrokerCredentials(), Artists.this);
-
-            c1.init();
-            Map<ArtistName, ConnectionInfo> artists = c1.requestState();
-
-            return artists;
         }
     }
 
