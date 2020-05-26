@@ -2,8 +2,9 @@
     <string name="app_name">MusicStreamingService</string>
     <string name="artist_name">Artist Name</string>
     <string name="song_title">Song Title</string>
-    <string name="custom_request">CUSTOM REQUEST</string>
+    <string name="custom_request">Custom Request</string>
     <string name="request">REQUEST</string>
+    <string name="artists">Artists</string>
     <string name="instructions">Instructions</string>
     <string name="credits">Credits</string>
     <string name="settings">Settings</string>
@@ -28,4 +29,14 @@
     <string name="connect_to_server">Connect to server</string>
     <string name="notifications_test">Notifications Test</string>
     <string name="artists">Artists</string>
+
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">MusicStreamingService</string>
+    <string name="nav_header_subtitle">Distributed Systems (AUEB) 2020</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="connect_to_broker">Connect to broker</string>
+    <string name="connect">Connect</string>
+    <string name="ip_port">ip@port</string>
 </resources>

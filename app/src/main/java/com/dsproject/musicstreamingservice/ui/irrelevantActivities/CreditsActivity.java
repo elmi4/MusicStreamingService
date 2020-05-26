@@ -1,4 +1,4 @@
-package com.dsproject.musicstreamingservice.ui;
+package com.dsproject.musicstreamingservice.ui.irrelevantActivities;
 
 import androidx.appcompat.app.AppCompatActivity;
 

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_artists"
+            android:icon="@drawable/ic_artists_black_24dp"
+            android:title="@string/artists"/>
+        <item
+            android:id="@+id/nav_custom_request"
+            android:icon="@drawable/ic_custom_request_black_24dp"
+            android:title="@string/custom_request"/>
+    </group>
+
+    <item android:title="Information">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/nav_credits"
+                    android:icon="@drawable/ic_credits_black_24dp"
+                    android:title="@string/credits"/>
+                <item
+                    android:id="@+id/nav_instructions"
+                    android:icon="@drawable/ic_instructions_black_24dp"
+                    android:title="@string/instructions"/>
+            </group>
+        </menu>
+    </item>
+
+    <item android:title="More">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/nav_settings"
+                    android:icon="@drawable/ic_settings_black_24dp"
+                    android:title="@string/settings"/>
+            </group>
+        </menu>
+    </item>
+</menu>
