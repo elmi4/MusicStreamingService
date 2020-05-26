@@ -19,7 +19,7 @@
             android:id="@+id/textInputEditText"
             android:layout_width="357dp"
             android:layout_height="61dp"
-            android:hint="ip@port"
+            android:hint="@string/ip_port"
             android:textAlignment="center" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -28,7 +28,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="52dp"
-        android:text="Connect to broker"
+        android:text="@string/connect_to_broker"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -39,7 +39,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="180dp"
-        android:text="Connect"
+        android:text="@string/connect"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/connectionInputLayout" />

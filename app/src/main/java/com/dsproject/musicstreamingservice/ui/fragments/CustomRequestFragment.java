@@ -1,15 +1,19 @@
-package com.dsproject.musicstreamingservice.ui;
+package com.dsproject.musicstreamingservice.ui.fragments;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
@@ -22,41 +26,61 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Objects;
 
-public class CustomRequestActivity extends AppCompatActivity
+public class CustomRequestFragment extends Fragment
 {
     private static final String PLAY_REQUEST = "play";
     private static final String DOWNLOAD_REQUEST = "download";
+
+    private Context fragContext;
+    private View view;
 
     private TextInputLayout artist_input_field;
     private TextInputLayout song_input_field;
     private Button Req;
     private Switch switch1;
-    private TextView tag;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState)
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
     {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_custom_request);
-
-        artist_input_field = (TextInputLayout) findViewById(R.id.artist_input_field);
-        song_input_field = (TextInputLayout) findViewById(R.id.song_input_field);
-
-        switch1 = (Switch) findViewById(R.id.switch1);
-        switch1.setText("Play Now");
-
-        Req = (Button) findViewById(R.id.Req);
+        return inflater.inflate(R.layout.custom_request_fragment, container, false);
     }
 
-
+    //Do initializations here, because if the activity view hasn't been created yet, they will fail.
     @Override
-    public void onStart()
+    public void onActivityCreated(Bundle savedInstance)
     {
-        super.onStart();
+        super.onActivityCreated(savedInstance);
 
+        getActivityElements();
+
+        artist_input_field = (TextInputLayout) view.findViewById(R.id.artist_input_field);
+        song_input_field = (TextInputLayout) view.findViewById(R.id.song_input_field);
+
+        switch1 = (Switch) view.findViewById(R.id.switch1);
+        switch1.setText("Play Now");
+
+        Req = (Button) view.findViewById(R.id.Req);
+
+        setListeners();
+
+        //for easy testing
         artist_input_field.getEditText().setText("Jason Shaw");
         song_input_field.getEditText().setText("Landra's Dream");
 
+    }
+
+    private void getActivityElements()
+    {
+        fragContext = getActivity().getApplicationContext();
+        view = getView();
+        if(view == null || fragContext == null){
+            throw new IllegalStateException("Couldn't get view or context from fragment.");
+        }
+    }
+
+    private void setListeners()
+    {
         switch1.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if(isChecked){
                 switch1.setText("Download");
@@ -65,6 +89,7 @@ public class CustomRequestActivity extends AppCompatActivity
                 switch1.setText("Play Now");
             }
         });
+
 
         Req.setOnClickListener(view -> {
             String artist = Objects.requireNonNull(artist_input_field.getEditText()).getText().toString().trim();
@@ -87,15 +112,15 @@ public class CustomRequestActivity extends AppCompatActivity
         protected Void doInBackground(String... params) {
             ConnectionInfo brokerInfo = loadInitialBrokerCredentials();
             if(brokerInfo == null){
-                runOnUiThread(() -> {
-                    final Toast toast = Toast.makeText(CustomRequestActivity.this,
+                getActivity().runOnUiThread(() -> {
+                    final Toast toast = Toast.makeText(fragContext,
                             "Please fill in the broker connection info in the settings.", Toast.LENGTH_LONG);
                     toast.show();
                 });
                 return null;
             }
 
-            Consumer c1 = new Consumer(brokerInfo, CustomRequestActivity.this);
+            Consumer c1 = new Consumer(brokerInfo, fragContext);
 
             Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
                     Consumer.RequestType.PLAY_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
@@ -113,7 +138,7 @@ public class CustomRequestActivity extends AppCompatActivity
     public ConnectionInfo loadInitialBrokerCredentials(){
         ConnectionInfo connectionInfo = null;
 
-        try (FileInputStream fis = openFileInput("BrokerCredentials.txt")){
+        try (FileInputStream fis = fragContext.openFileInput("BrokerCredentials.txt")){
             InputStreamReader isr = new InputStreamReader(fis);
             BufferedReader br = new BufferedReader(isr);
             StringBuilder sb = new StringBuilder();
@@ -131,5 +156,4 @@ public class CustomRequestActivity extends AppCompatActivity
 
         return connectionInfo;
     }
-
 }
