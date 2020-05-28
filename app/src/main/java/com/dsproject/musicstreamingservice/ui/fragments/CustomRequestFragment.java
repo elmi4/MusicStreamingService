@@ -46,6 +46,7 @@ public class CustomRequestFragment extends Fragment
         return inflater.inflate(R.layout.custom_request_fragment, container, false);
     }
 
+    //New code: The whole method.
     //Do initializations here, because if the activity view hasn't been created yet, they will fail.
     @Override
     public void onActivityCreated(Bundle savedInstance)
@@ -120,7 +121,7 @@ public class CustomRequestFragment extends Fragment
                 return null;
             }
 
-            Consumer c1 = new Consumer(brokerInfo, fragContext);
+            Consumer c1 = new Consumer(brokerInfo, fragContext);    //Context change!!
 
             Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
                     Consumer.RequestType.PLAY_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;

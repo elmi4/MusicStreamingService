@@ -2,17 +2,14 @@ package com.dsproject.musicstreamingservice.ui.fragments;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.SearchView;
-import android.widget.TextView;
+
 import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -22,26 +19,28 @@ import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 import com.dsproject.musicstreamingservice.domain.media.ArtistName;
+import com.dsproject.musicstreamingservice.ui.extras.MyRecyclerViewAdapter;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.zip.Inflater;
 
-public class ArtistsFragment extends Fragment
+/* To fix:
+* Clickable rows -> to corresponding songs.
+* Searchbar implementation
+* Position of TextView artistsLabel
+ */
+
+public class ArtistsFragment extends Fragment implements MyRecyclerViewAdapter.ItemClickListener
 {
     private Context fragContext;
     private View view;
-    private MyRecyclerViewAdapter.ItemClickListener clickListener;
-
-    private RecyclerView recyclerView;
+    private RecyclerView artistsList;
     private SearchView searchBar;               //Make it usable
-    private ConstraintLayout artistsLayout;     //To delete if not needed
 
 
     @Nullable
@@ -58,11 +57,10 @@ public class ArtistsFragment extends Fragment
 
         getActivityElements();
 
-        recyclerView = (RecyclerView) view.findViewById(R.id.artistsList);
+        artistsList = (RecyclerView) view.findViewById(R.id.artistsList);
         searchBar = (SearchView) view.findViewById(R.id.searchBar);               //Make it usable
-        artistsLayout = (ConstraintLayout) view.findViewById(R.id.Artists);       //To delete if not needed
 
-        setListeners();
+        createArtistsList();
     }
 
 
@@ -76,7 +74,7 @@ public class ArtistsFragment extends Fragment
     }
 
 
-    private void setListeners()
+    private void createArtistsList()
     {
         AsyncTaskRunner taskRunner = new AsyncTaskRunner();
         MyRecyclerViewAdapter myAdapter;
@@ -89,27 +87,25 @@ public class ArtistsFragment extends Fragment
                 artistsNames.add(name.getArtistName());
             }
 
-            recyclerView.setLayoutManager(new LinearLayoutManager(fragContext));
+            artistsList.setLayoutManager(new LinearLayoutManager(fragContext));
 
             myAdapter = new MyRecyclerViewAdapter(fragContext, artistsNames);
-            myAdapter.setClickListener(clickListener);
-            recyclerView.setAdapter(myAdapter);
-
-            recyclerView.setOnClickListener(new View.OnClickListener()
-            {
-                @Override
-                public void onClick(View v) {
-                    Intent myIntent = new Intent(v.getContext(), SongsOfArtistFragment.class);
-                    startActivity(myIntent);
-                }
-            });
+            myAdapter.setClickListener(this);
+            artistsList.setAdapter(myAdapter);
 
             DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(fragContext, LinearLayoutManager.VERTICAL);
-            recyclerView.addItemDecoration(dividerItemDecoration);
+            artistsList.addItemDecoration(dividerItemDecoration);
 
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+
+    public void onItemClick(View view, int position) {
+        assert getFragmentManager() != null;
+        getFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                new SongsOfArtistFragment()).commit();
     }
 
 
@@ -125,67 +121,6 @@ public class ArtistsFragment extends Fragment
             return c1.requestState();
         }
     }
-
-
-    public static class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.ViewHolder> {
-
-        private List<String> mData;
-        private ItemClickListener mClickListener;
-        private LayoutInflater mInflater;
-
-        // data is passed into the constructor
-        MyRecyclerViewAdapter(Context context, List<String> data) {
-            this.mInflater = LayoutInflater.from(context);
-            this.mData = data;
-        }
-
-        // inflates the row layout from xml when needed
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = mInflater.inflate(R.layout.row_of_artists_list, parent, false);
-            return new ViewHolder(view);
-        }
-
-        // binds the data to the TextView in each row
-        @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-            String artist = mData.get(position);
-            holder.myTextView.setText(artist);
-        }
-
-        // total number of rows
-        @Override
-        public int getItemCount() {
-            return mData.size();
-        }
-
-        // stores and recycles views as they are scrolled off screen
-        public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-            TextView myTextView;
-
-            ViewHolder(View itemView) {
-                super(itemView);
-                myTextView = itemView.findViewById(R.id.ArtistName);
-                itemView.setOnClickListener(this);
-            }
-
-            @Override
-            public void onClick(View view) {
-                if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition());
-            }
-        }
-
-        // allows clicks events to be caught
-        void setClickListener(ItemClickListener itemClickListener) {
-            this.mClickListener = itemClickListener;
-        }
-
-        // parent activity will implement this method to respond to click events
-        public interface ItemClickListener {
-            void onItemClick(View view, int position);
-        }
-    }
-
 
     private ConnectionInfo loadInitialBrokerCredentials(){
         ConnectionInfo connectionInfo = null;
