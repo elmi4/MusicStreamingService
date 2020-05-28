@@ -108,7 +108,7 @@ public class CustomRequestFragment extends GenericFragment
                 return null;
             }
 
-            Consumer c1 = new Consumer(brokerInfo, context);
+            Consumer c1 = new Consumer(brokerInfo, getActivity());
 
             Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
                     Consumer.RequestType.PLAY_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
@@ -123,7 +123,8 @@ public class CustomRequestFragment extends GenericFragment
         }
     }
 
-    public ConnectionInfo loadInitialBrokerCredentials(){
+    public ConnectionInfo loadInitialBrokerCredentials()
+    {
         ConnectionInfo connectionInfo = null;
 
         try (FileInputStream fis = context.openFileInput("BrokerCredentials.txt")){

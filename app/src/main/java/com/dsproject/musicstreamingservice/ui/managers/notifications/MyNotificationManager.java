@@ -106,6 +106,22 @@ public class MyNotificationManager implements Notifier
     }
 
     /**
+     * Make the notification dismissible by swiping right or clearing all.
+     * @param id The identifier of the notification.
+     */
+    @Override
+    public void makePersistentNotificationDismissible(final String id)
+    {
+        NotificationCompat.Builder notification = notificationsMap.get(id);
+        Integer notifyID = notificationIDsMap.get(id);
+        if(notification == null || !isPersistent(notification) || notifyID == null) return;
+
+        notification.setOngoing(false);
+
+        notificationManagerCompat.notify(notifyID, notification.build());
+    }
+
+    /**
      * Dismiss programmatically a Notifier.NotificationType.PLAIN notification that cannot be
      * cleared by the user by swiping right or clearing all.
      * @param id The identifier of the notification.
@@ -116,8 +132,6 @@ public class MyNotificationManager implements Notifier
         NotificationCompat.Builder notification = notificationsMap.get(id);
         Integer notifyID = notificationIDsMap.get(id);
         if(notification == null || !isPersistent(notification) || notifyID == null) return;
-
-        notification.setOngoing(false);
 
         notificationManagerCompat.cancel(notifyID);
         free(id);

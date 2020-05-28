@@ -22,20 +22,21 @@ public interface Notifier
         PROGRESS
     }
 
-    //Type == PLAIN
+    //______________________________________ Type == PLAIN _________________________________________
     void makeAndShowPlainNotification(String title, String description,
                                       @Nullable Integer drawableIcon,
                                       @Nullable PendingIntent pendingIntent);
 
 
-    //Type == PERSISTENT
+    //______________________________________ Type == PERSISTENT _________________________________________
     void makeAndShowPersistentNotification(String id, String title, String description,
                                            @Nullable Integer drawableIcon,
                                            @Nullable PendingIntent pendingIntent);
+    void makePersistentNotificationDismissible(String id);
     void dismissPersistentNotification(String id);
 
 
-    //Type == PROGRESS
+    //______________________________________ Type == PROGRESS _________________________________________
     void makeAndShowProgressNotification(String id, String title, String description, int maxProgress,
                                          boolean indeterminate, @Nullable Integer drawableIcon);
     void updateProgressNotification(String id, int maxProgress, int progress, boolean indeterminate);

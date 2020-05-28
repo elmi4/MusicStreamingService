@@ -1,5 +1,7 @@
 package com.dsproject.musicstreamingservice.ui;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 
@@ -18,6 +20,8 @@ import com.dsproject.musicstreamingservice.ui.fragments.CustomRequestFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.GenericFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.SettingsFragment;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
+import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
+import com.dsproject.musicstreamingservice.ui.managers.notifications.Notifier;
 import com.google.android.material.navigation.NavigationView;
 
 
@@ -28,6 +32,8 @@ public class MainActivity extends AppCompatActivity
 
     private DrawerLayout drawer;
     private NavigationView navView;
+    private static Notifier notifManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -37,6 +43,8 @@ public class MainActivity extends AppCompatActivity
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        notifManager = new MyNotificationManager(this);
 
         drawer = findViewById(R.id.drawer_layout);
         navView = findViewById(R.id.nav_view);
@@ -51,42 +59,29 @@ public class MainActivity extends AppCompatActivity
         //This could happen when you go from portrait to landscape mode,
         //so we don't want this code to run and replace our current fragment.
         if(savedInstanceState == null) {
-            getDestinationFragment().commit();
+            getDestinationFragment(getIntent()).commit();
         }
     }
+
 
     /**
-     * Checks whether the Intent of the activity contains a message that specifies what fragment
-     * should be opened when the activity gets created, and if not, open the default one.
-     * @return A FragmentTransaction object containing the correct destination Fragment.
+     * Called instead of onCreate only when the activity is explicitly referenced from another fragment
+     * or activity with an Intent.
+     * @param intent The intent created in the calling class.
      */
-    private FragmentTransaction getDestinationFragment()
-    {
-        //check for msg from another fragment/activity
-        String fragName = getIntent().getStringExtra(REDIRECT_TAG);
-
-        if(fragName == null){
-            navView.setCheckedItem(R.id.nav_artists);
-            return getSupportFragmentManager().beginTransaction().
-                    replace(R.id.fragment_container, new ArtistsFragment());
-        }else{
-            GenericFragment frag = MyFragmentManager.getFragmentByName(fragName);
-            changeMenuCheckedItem(frag);
-            return getSupportFragmentManager().beginTransaction().
-                    replace(R.id.fragment_container, frag);
-        }
-    }
-
     @Override
-    public void onBackPressed()
+    protected void onNewIntent(final Intent intent)
     {
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+        super.onNewIntent(intent);
+        getDestinationFragment(intent).commit();
     }
 
+
+    /**
+     * Called when an item of the sidebar is selected. Goes to the selected fragment and sets the
+     * pressed item as selected.
+     * @param item Selected sidebar item
+     */
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item)
     {
@@ -112,7 +107,49 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    public <F extends Fragment> void changeMenuCheckedItem(final F frag)
+
+    @Override
+    public void onBackPressed()
+    {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+
+    /**
+     * Implementation method of GenericFragment.DataPassListener used from a fragment to communicate
+     * with an activity in order to switch to another fragment and pass data to it.
+     * @param data Bundle passed from the calling fragment.
+     * @param frag Fragment to go to.
+     */
+    @Override
+    public void passData(final Bundle data, final GenericFragment frag)
+    {
+        frag.setArguments(data);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, frag).commit();
+    }
+
+
+    /**
+     * Method to be used by any fragment of the activity that wants to create notifications.
+     * Use this method to get an instance of a Notifier, don't create one inside fragment.
+     * @return The instance of the class' Notifier, like MyNotificationManager.
+     */
+    public static Notifier getNotificationManager()
+    {
+        return notifManager;
+    }
+
+
+    /**
+     * Changes the selected sidebar item.
+     * @param frag The fragment that the sidebar item refers to.
+     */
+    public <F extends GenericFragment> void changeMenuCheckedItem(final F frag)
     {
         Class fragClass = frag.getClass();
         if(fragClass == ArtistsFragment.class){
@@ -129,11 +166,26 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public void passData(final Bundle data, final GenericFragment frag)
+
+    /**
+     * Checks whether the Intent of the activity contains a message that specifies what fragment
+     * should be opened when the activity gets created, and if not, open the default one.
+     * @return A FragmentTransaction object containing the correct destination Fragment.
+     */
+    private FragmentTransaction getDestinationFragment(final Intent intent)
     {
-        frag.setArguments(data);
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, frag).commit();
+        //check for msg from another fragment/activity
+        String fragName = intent.getStringExtra(REDIRECT_TAG);
+
+        if(fragName == null){
+            navView.setCheckedItem(R.id.nav_artists);
+            return getSupportFragmentManager().beginTransaction().
+                    replace(R.id.fragment_container, new ArtistsFragment()); //default starting fragment
+        }else{
+            GenericFragment frag = MyFragmentManager.getFragmentByName(fragName);
+            changeMenuCheckedItem(frag);
+            return getSupportFragmentManager().beginTransaction().
+                    replace(R.id.fragment_container, frag); //custom fragment to open
+        }
     }
 }
