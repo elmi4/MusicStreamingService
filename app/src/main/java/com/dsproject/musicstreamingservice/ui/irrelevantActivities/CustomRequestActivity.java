@@ -31,7 +31,7 @@ public class CustomRequestActivity extends AppCompatActivity
     private TextInputLayout song_input_field;
     private Button Req;
     private Switch switch1;
-    private TextView tag;
+    private TextView tag;       //Delete if not needed
 
     @Override
     protected void onCreate(Bundle savedInstanceState)

@@ -38,17 +38,4 @@
         app:headerLayout="@layout/nav_header"
         app:menu="@menu/drawer_menu" />
 
-    <Button
-        android:id="@+id/artistsBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="53dp"
-        android:text="ARTISTS"
-        app:layout_constraintBottom_toTopOf="@+id/notificationBtn"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:layout_constraintVertical_bias="0.08" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
-
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -4,21 +4,13 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 
 
-import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Button;
-import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -26,6 +18,7 @@ import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.ui.fragments.ArtistsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.CustomRequestFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.SettingsFragment;
+import com.dsproject.musicstreamingservice.ui.irrelevantActivities.ArtistsActivity;
 import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
 import com.dsproject.musicstreamingservice.ui.managers.notifications.Notifier;
 import com.google.android.material.navigation.NavigationView;
@@ -63,12 +56,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     new ArtistsFragment()).commit();
             navView.setCheckedItem(R.id.nav_artists);
         }
-        Button artists = (Button) findViewById(R.id.artistsBtn);
-        artists.setOnClickListener(view -> {
-            Intent goToArtists = new Intent(view.getContext(), Artists.class);
-            startActivity(goToArtists);
-        });
-
     }
 
     public void sendNotificationOnChannel1()

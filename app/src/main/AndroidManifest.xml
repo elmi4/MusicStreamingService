@@ -22,9 +22,9 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ui.CustomRequestActivity" />
-        <activity android:name=".ui.SongsOfArtist" />
-        <activity android:name=".ui.Artists" />
+        <activity android:name=".ui.irrelevantActivities.CustomRequestActivity" />
+        <activity android:name=".ui.irrelevantActivities.SongsOfArtistActivity" />
+        <activity android:name=".ui.irrelevantActivities.ArtistsActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

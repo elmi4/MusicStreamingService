@@ -1,5 +1,6 @@
-package com.dsproject.musicstreamingservice.ui;
+package com.dsproject.musicstreamingservice.ui.irrelevantActivities;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -14,24 +15,34 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 import com.dsproject.musicstreamingservice.domain.media.ArtistName;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-public class SongsOfArtist extends AppCompatActivity {
-
-    protected void onCreate(Bundle savedInstanceState) {
+public class ArtistsActivity extends AppCompatActivity
+{
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         RecyclerView recyclerView = findViewById(R.id.artistsList);
         SearchView searchBar = findViewById(R.id.searchBar);            //!!!
+        LinearLayout artistsLayout = findViewById(R.id.Artists);
 
-        SongsOfArtist.AsyncTaskRunner taskRunner = new SongsOfArtist.AsyncTaskRunner();
+        AsyncTaskRunner taskRunner = new AsyncTaskRunner();
+        MyRecyclerViewAdapter myAdapter;
 
         try {
             Map<ArtistName, ConnectionInfo> artists = taskRunner.execute().get();
@@ -41,33 +52,56 @@ public class SongsOfArtist extends AppCompatActivity {
                 artistsNames.add(name.getArtistName());
             }
 
-            SongsOfArtist.MyRecyclerViewAdapter myAdapter;
-            recyclerView.setLayoutManager(new LinearLayoutManager(this));           // test if actually needed
-            myAdapter = new SongsOfArtist.MyRecyclerViewAdapter(this, artistsNames);
-            myAdapter.setClickListener((MyRecyclerViewAdapter.ItemClickListener) SongsOfArtist.this);
+            recyclerView.setLayoutManager(new LinearLayoutManager(ArtistsActivity.this));           // test if actually needed
+            myAdapter = new MyRecyclerViewAdapter(ArtistsActivity.this, artistsNames);
+            myAdapter.setClickListener((MyRecyclerViewAdapter.ItemClickListener) ArtistsActivity.this);
             recyclerView.setAdapter(myAdapter);
 
-            DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), LinearLayoutManager.VERTICAL);
-            recyclerView.addItemDecoration(dividerItemDecoration);
-
             recyclerView.setOnClickListener(new View.OnClickListener() {
+
                 @Override
                 public void onClick(View v) {
-                    Intent myIntent = new Intent(v.getContext(), SongsOfArtist.class);
+                    Intent myIntent = new Intent(v.getContext(), SongsOfArtistActivity.class);
                     startActivity(myIntent);
                 }
             });
+
+
+            DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(ArtistsActivity.this, LinearLayoutManager.VERTICAL);
+            recyclerView.addItemDecoration(dividerItemDecoration);
+
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
     }
 
 
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            return inflater.inflate(R.layout.activity_artists, container, false);
+        }
+
+
+    @SuppressLint("StaticFieldLeak")
+    private class AsyncTaskRunner extends AsyncTask<Object, Void, Map<ArtistName, ConnectionInfo>>
+    {
+        @Override
+        protected Map<ArtistName, ConnectionInfo> doInBackground(Object... objects) {
+            Consumer c1 = new Consumer(loadInitialBrokerCredentials(), ArtistsActivity.this);
+
+            c1.init();
+            Map<ArtistName, ConnectionInfo> artists = c1.requestState();
+
+            return artists;
+        }
+    }
+
+
+    //To update according to the corresponding Fragment
     public static class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.ViewHolder> {
 
         private List<String> mData;
         private LayoutInflater mInflater;
-        private SongsOfArtist.MyRecyclerViewAdapter.ItemClickListener mClickListener;
+        private ItemClickListener mClickListener;
 
         // data is passed into the constructor
         MyRecyclerViewAdapter(Context context, List<String> data) {
@@ -75,17 +109,17 @@ public class SongsOfArtist extends AppCompatActivity {
             this.mData = data;
         }
 
-        //!!!!!!!!!!!!!!!!!!!!!
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
         // inflates the row layout from xml when needed
         @Override
-        public SongsOfArtist.MyRecyclerViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = null; //mInflater.inflate(R.layout.recyclerview_row, parent, false);
-            return new SongsOfArtist.MyRecyclerViewAdapter.ViewHolder(view);
+            return new ViewHolder(view);
         }
 
         // binds the data to the TextView in each row
         @Override
-        public void onBindViewHolder(MyRecyclerViewAdapter.ViewHolder holder, int position) {
+        public void onBindViewHolder(ViewHolder holder, int position) {
             String animal = mData.get(position);
             holder.myTextView.setText(animal);
         }
@@ -96,7 +130,7 @@ public class SongsOfArtist extends AppCompatActivity {
             return mData.size();
         }
 
-        //!!!!!!!!!!!!!!!!!!!!!!!
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // stores and recycles views as they are scrolled off screen
         public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
             TextView myTextView;
@@ -114,7 +148,7 @@ public class SongsOfArtist extends AppCompatActivity {
         }
 
         // allows clicks events to be caught
-        void setClickListener(MyRecyclerViewAdapter.ItemClickListener itemClickListener) {
+        void setClickListener(ItemClickListener itemClickListener) {
             this.mClickListener = itemClickListener;
         }
 
@@ -125,24 +159,29 @@ public class SongsOfArtist extends AppCompatActivity {
     }
 
 
-    private class AsyncTaskRunner extends AsyncTask<Object, Void, Map<ArtistName, ConnectionInfo>> {
+    public ConnectionInfo loadInitialBrokerCredentials() {
+        ConnectionInfo connectionInfo = null;
 
-        LinearLayout artistsLayout = findViewById(R.id.Artists);
+        FileInputStream fis = null;
 
-        @Override
-        protected Map<ArtistName, ConnectionInfo> doInBackground(Object... objects) {
-            Consumer c1 = new Consumer (ConnectionInfo.of("192.168.1.92",  430), SongsOfArtist.this);
-
-            c1.init();
-            Map<ArtistName, ConnectionInfo> artists = c1.requestState();
-
-            return artists;
+        try {
+            fis = openFileInput("BrokerCredentials.txt");
+            InputStreamReader isr = new InputStreamReader(fis);
+            BufferedReader br = new BufferedReader(isr);
+            StringBuilder sb = new StringBuilder();
+            String credentials;
+            if ((credentials = br.readLine()) != null) {
+                sb.append(credentials);
+                credentials = sb.toString();
+            }
+            String ip = credentials.substring(0, credentials.indexOf('@'));
+            int port = Integer.parseInt(credentials.substring(credentials.indexOf('@') + 1));
+            connectionInfo = new ConnectionInfo(ip, port);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-    }
-}
 
-/*To do:
-  - Find all songs of specific artist
-  - System.out.println for each song
-  - When one is clicked -> Download class.
-*/
+        return connectionInfo;
+    }
+
+}
