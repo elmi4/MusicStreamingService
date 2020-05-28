@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 
+import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -27,16 +28,26 @@ public class MyNotificationManager implements Notifier
     private Context context;
     private NotificationManagerCompat notificationManagerCompat;
 
-    private final Map<String, NotificationCompat.Builder> progressNotificationsMap = new HashMap<>();
-    private final Map<String, Integer> progressNotificationIDsMap = new HashMap<>();
+    private final Map<String, NotificationCompat.Builder> notificationsMap = new HashMap<>();
+    private final Map<String, Integer> notificationIDsMap = new HashMap<>();
+
+    private static final String PLAIN_TYPE = "plain";
+    private static final String PERSISTENT_TYPE = "persistent";
+    private static final String PROGRESS_TYPE = "progress";
 
 
+    /**
+     * The instance reference should be outside of all methods.
+     * @param context The context of the calling activity.
+     */
     public MyNotificationManager(final Context context)
     {
         this.context = context;
         notificationManagerCompat = NotificationManagerCompat.from(context);
     }
 
+
+    //____________________________ Notifier.NotificationType == PLAIN ______________________________
 
     /**
      * Creates and shows a Notifier.NotificationType.PLAIN notification.
@@ -60,6 +71,62 @@ public class MyNotificationManager implements Notifier
     }
 
 
+
+    //____________________________ Notifier.NotificationType == PERSISTENT ______________________________
+
+    /**
+     * Creates and shows a Notifier.NotificationType.PERSISTENT notification.
+     * @param id User given identifier used to access the notification later.
+     * @param title Specified header of the notification.
+     * @param description Specified description that goes under the title.
+     * @param drawableIcon Specified icon from the res>drawable folder. Can be retrieved as:
+     *                     R.drawable.icon_name
+     *
+     * @param contentIntent Used to define an action that should happen when the notification is pressed.
+     */
+    @Override
+    public void makeAndShowPersistentNotification(final String id, final String title,
+                                                  final String description,
+                                                  @Nullable Integer drawableIcon,
+                                                  @Nullable final PendingIntent contentIntent)
+    {
+        if(notificationsMap.containsKey(id)){
+            throw new IllegalStateException("Notification of id: "+id+" already exists.");
+        }
+
+        if(drawableIcon == null){
+            drawableIcon = R.drawable.ic_default_notification_black_24dp;
+        }
+
+        NotificationCompat.Builder builder = makePersistentNotification(
+                title, description, drawableIcon, contentIntent);
+        addToMaps(id, builder);
+
+        showNotification(builder, notificationIDsMap.get(id));
+    }
+
+    /**
+     * Dismiss programmatically a Notifier.NotificationType.PLAIN notification that cannot be
+     * cleared by the user by swiping right or clearing all.
+     * @param id The identifier of the notification.
+     */
+    @Override
+    public void dismissPersistentNotification(final String id)
+    {
+        NotificationCompat.Builder notification = notificationsMap.get(id);
+        Integer notifyID = notificationIDsMap.get(id);
+        if(notification == null || !isPersistent(notification) || notifyID == null) return;
+
+        notification.setOngoing(false);
+
+        notificationManagerCompat.cancel(notifyID);
+        free(id);
+    }
+
+
+
+    //____________________________ Notifier.NotificationType == PROGRESS ______________________________
+
     /**
      * Creates and shows a Notifier.NotificationType.PROGRESS notification
      * @param id User given identifier used to access the notification later.
@@ -74,9 +141,9 @@ public class MyNotificationManager implements Notifier
     @Override @SuppressWarnings("ConstantConditions")
     public void makeAndShowProgressNotification(final String id, final String title, final String description,
                                                 final int maxProgress, final boolean indeterminate,
-                                                Integer drawableIcon)
+                                                @Nullable Integer drawableIcon)
     {
-        if(progressNotificationsMap.containsKey(id)){
+        if(notificationsMap.containsKey(id)){
             throw new IllegalStateException("Notification of id: "+id+" already exists.");
         }
 
@@ -85,10 +152,10 @@ public class MyNotificationManager implements Notifier
         }
 
         NotificationCompat.Builder builder = makeOngoingNotification(
-                title,description, maxProgress, indeterminate, drawableIcon);
+                title, description, maxProgress, indeterminate, drawableIcon);
         addToMaps(id, builder);
 
-        showNotification(builder, progressNotificationIDsMap.get(id));
+        showNotification(builder, notificationIDsMap.get(id));
     }
 
 
@@ -103,9 +170,9 @@ public class MyNotificationManager implements Notifier
     public void updateProgressNotification(final String id, final int maxProgress,
                                            final int progress, final boolean indeterminate)
     {
-        NotificationCompat.Builder notification = progressNotificationsMap.get(id);
-        Integer notifyID = progressNotificationIDsMap.get(id);
-        if(notification == null || isPlain(notification) || notifyID == null) return;
+        NotificationCompat.Builder notification = notificationsMap.get(id);
+        Integer notifyID = notificationIDsMap.get(id);
+        if(notification == null || !isProgress(notification) || notifyID == null) return;
 
         notification.setProgress(maxProgress, progress, indeterminate);
         notificationManagerCompat.notify(notifyID, notification.build());
@@ -114,15 +181,17 @@ public class MyNotificationManager implements Notifier
 
     /**
      * Replace the progress bar of the Notifier.NotificationType.PROGRESS notification with a finish text.
+     * After this function call, the notification cannot be referenced any more.
      * @param id The identifier specified by the user, that refers to the particular notification.
      * @param msg The finish text to be displayed instead of the progress bar.
+     * @param contentIntent Used to define an action that should happen when the notification is pressed.
      */
     @Override
     public void completeProgressNotification(final String id, final String msg, final PendingIntent contentIntent)
     {
-        NotificationCompat.Builder notification = progressNotificationsMap.get(id);
-        Integer notifyID = progressNotificationIDsMap.get(id);
-        if(notification == null || isPlain(notification) || notifyID == null) return;
+        NotificationCompat.Builder notification = notificationsMap.get(id);
+        Integer notifyID = notificationIDsMap.get(id);
+        if(notification == null || !isProgress(notification) || notifyID == null) return;
 
         notification
                 .setContentText(msg)
@@ -198,7 +267,7 @@ public class MyNotificationManager implements Notifier
             alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         }else{
             alarmSound = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE
-                    + "://" + context.getPackageName() + "/" +  R.raw.notification_sound);
+                    + "://" + context.getPackageName() + "/" +  rawResourceSound);
         }
 
         Ringtone r = RingtoneManager.getRingtone(context, alarmSound);
@@ -229,21 +298,31 @@ public class MyNotificationManager implements Notifier
 
     private void addToMaps(final String id, final NotificationCompat.Builder builder)
     {
-        progressNotificationsMap.put(id, builder);
-        progressNotificationIDsMap.put(id, (int)System.currentTimeMillis());
+        notificationsMap.put(id, builder);
+        notificationIDsMap.put(id, (int)System.currentTimeMillis());
     }
 
     private void free(final String id)
     {
-        progressNotificationsMap.remove(id);
-        progressNotificationIDsMap.remove(id);
+        notificationsMap.remove(id);
+        notificationIDsMap.remove(id);
     }
 
     private boolean isPlain(final NotificationCompat.Builder builder)
     {
-        return builder.getExtras().getBoolean("plain");
+        return builder.getExtras().getString("NotificationType").equals(PLAIN_TYPE);
     }
 
+    private boolean isPersistent(final NotificationCompat.Builder builder)
+    {
+        return builder.getExtras().getString("NotificationType").equals(PERSISTENT_TYPE);
+
+    }
+
+    private boolean isProgress(final NotificationCompat.Builder builder)
+    {
+        return builder.getExtras().getString("NotificationType").equals(PROGRESS_TYPE);
+    }
 
     private void showNotification(final NotificationCompat.Builder builder, final int notifyID)
     {
@@ -256,13 +335,38 @@ public class MyNotificationManager implements Notifier
                                                              final PendingIntent contentIntent)
     {
         Bundle extras = new Bundle();
-        extras.putBoolean("plain", true);
+        extras.putString("NotificationType", PLAIN_TYPE);
 
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(context, ApplicationSetup.CHANNEL_1_ID)
                         .setSmallIcon(drawableIcon)
                         .setContentTitle(title)
                         .setContentText(description)
+                        .setPriority(ApplicationSetup.CHANNEL_1_PRIORITY)
+                        .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                        .setExtras(extras);
+
+        if(contentIntent != null){
+            builder.setContentIntent(contentIntent);
+        }
+
+        return builder;
+    }
+
+    private NotificationCompat.Builder makePersistentNotification(final String title,
+                                                             final String description,
+                                                             final int drawableIcon,
+                                                             final PendingIntent contentIntent)
+    {
+        Bundle extras = new Bundle();
+        extras.putString("NotificationType", PERSISTENT_TYPE);
+
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(context, ApplicationSetup.CHANNEL_1_ID)
+                        .setSmallIcon(drawableIcon)
+                        .setContentTitle(title)
+                        .setContentText(description)
+                        .setOngoing(true)
                         .setPriority(ApplicationSetup.CHANNEL_1_PRIORITY)
                         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                         .setExtras(extras);
@@ -281,7 +385,7 @@ public class MyNotificationManager implements Notifier
                                                                final int drawableIcon)
     {
         Bundle extras = new Bundle();
-        extras.putBoolean("plain", false);
+        extras.putString("NotificationType", PROGRESS_TYPE);
 
         return new NotificationCompat.Builder(context, ApplicationSetup.CHANNEL_1_ID)
                     .setSmallIcon(drawableIcon)

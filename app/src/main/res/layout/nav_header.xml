@@ -18,8 +18,8 @@
         android:layout_height="wrap_content"
         android:contentDescription="@string/nav_header_desc"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        android:scaleX="1.22"
-        android:scaleY="1.22"
+        android:scaleX="1"
+        android:scaleY="1.05"
         app:srcCompat="@mipmap/mss_logo_music_note_round" />
 
     <TextView

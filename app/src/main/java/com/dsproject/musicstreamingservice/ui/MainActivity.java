@@ -10,18 +10,22 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.ui.fragments.ArtistsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.CustomRequestFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.GenericFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.SettingsFragment;
+import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 import com.google.android.material.navigation.NavigationView;
 
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GenericFragment.DataPassListener
 {
+    public static final String REDIRECT_TAG = "destinationFragment";
+
     private DrawerLayout drawer;
     private NavigationView navView;
 
@@ -47,10 +51,29 @@ public class MainActivity extends AppCompatActivity
         //This could happen when you go from portrait to landscape mode,
         //so we don't want this code to run and replace our current fragment.
         if(savedInstanceState == null) {
-            //this is the way to change fragments
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                    new ArtistsFragment()).commit();
+            getDestinationFragment().commit();
+        }
+    }
+
+    /**
+     * Checks whether the Intent of the activity contains a message that specifies what fragment
+     * should be opened when the activity gets created, and if not, open the default one.
+     * @return A FragmentTransaction object containing the correct destination Fragment.
+     */
+    private FragmentTransaction getDestinationFragment()
+    {
+        //check for msg from another fragment/activity
+        String fragName = getIntent().getStringExtra(REDIRECT_TAG);
+
+        if(fragName == null){
             navView.setCheckedItem(R.id.nav_artists);
+            return getSupportFragmentManager().beginTransaction().
+                    replace(R.id.fragment_container, new ArtistsFragment());
+        }else{
+            GenericFragment frag = MyFragmentManager.getFragmentByName(fragName);
+            changeMenuCheckedItem(frag);
+            return getSupportFragmentManager().beginTransaction().
+                    replace(R.id.fragment_container, frag);
         }
     }
 
@@ -109,7 +132,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void passData(final Bundle data, final GenericFragment frag)
     {
-        System.out.println(frag.getClass());
         frag.setArguments(data);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, frag).commit();

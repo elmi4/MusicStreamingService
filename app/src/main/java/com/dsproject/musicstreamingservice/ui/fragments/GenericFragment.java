@@ -12,7 +12,7 @@ import androidx.fragment.app.Fragment;
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.ui.MainActivity;
 
-public class GenericFragment extends Fragment
+public abstract class GenericFragment extends Fragment
 {
     protected final int contentLayoutId;
     protected View view;
@@ -45,7 +45,7 @@ public class GenericFragment extends Fragment
         fragInit();
     }
 
-    protected <F extends Fragment> void goToFragment(final F frag)
+    protected <F extends GenericFragment> void goToFragment(final F frag)
     {
         this.getActivity().getSupportFragmentManager().beginTransaction().replace(
                 R.id.fragment_container, frag).commit();
@@ -64,7 +64,7 @@ public class GenericFragment extends Fragment
         ((MainActivity)getActivity()).changeMenuCheckedItem(frag);
     }
 
-    private boolean containerCanReceiveData()
+    protected boolean containerCanReceiveData()
     {
         if(canReceiveData != null){
             return canReceiveData;
