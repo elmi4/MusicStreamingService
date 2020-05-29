@@ -37,7 +37,7 @@ public class SettingsFragment extends GenericFragment
         connect = (Button) view.findViewById(R.id.connectButton);
 
         //test create redirect notification
-//        Notifier notifManager = ((MainActivity)getActivity()).getNotificationManager();
+//        Notifier notifManager = MainActivity.getNotificationManager();
 //
 //        connect.setOnClickListener(view -> {
 //            Intent intent = new Intent(context, MainActivity.class);

@@ -108,7 +108,7 @@ public class CustomRequestFragment extends GenericFragment
                 return null;
             }
 
-            Consumer c1 = new Consumer(brokerInfo, getActivity());
+            Consumer c1 = new Consumer(brokerInfo, context);
 
             Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
                     Consumer.RequestType.PLAY_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
@@ -127,9 +127,9 @@ public class CustomRequestFragment extends GenericFragment
     {
         ConnectionInfo connectionInfo = null;
 
-        try (FileInputStream fis = context.openFileInput("BrokerCredentials.txt")){
-            InputStreamReader isr = new InputStreamReader(fis);
-            BufferedReader br = new BufferedReader(isr);
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                context.openFileInput("BrokerCredentials.txt"))))
+        {
             StringBuilder sb = new StringBuilder();
             String credentials;
             if((credentials = br.readLine())!=null){

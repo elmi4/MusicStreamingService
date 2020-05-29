@@ -45,7 +45,7 @@ public final class Consumer
     public Consumer(final ConnectionInfo brokerInfo, final Context context)
     {
         this.context = context;
-        this.notificationManager = ((MainActivity) this.context).getNotificationManager();
+        this.notificationManager = MainActivity.getNotificationManager();
 
         if(brokerInfo == null || brokerInfo.getIP().trim().equals("")){
             throw new IllegalStateException("No valid broker provided");
