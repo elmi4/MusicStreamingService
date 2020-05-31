@@ -2,8 +2,10 @@ package com.dsproject.musicstreamingservice.ui.managers.fragments;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.ui.fragments.ArtistsFragment;
+import com.dsproject.musicstreamingservice.ui.fragments.CreditsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.CustomRequestFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.GenericFragment;
+import com.dsproject.musicstreamingservice.ui.fragments.InstructionsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.SettingsFragment;
 import com.dsproject.musicstreamingservice.ui.irrelevantActivities.CreditsActivity;
 
@@ -12,9 +14,9 @@ public abstract class MyFragmentManager
     //layouts of fragments
     public static final int ARTISTS_FRAG_LAYOUT = R.layout.artists_fragment,
                             CUSTOM_REQ_FRAG_LAYOUT = R.layout.custom_request_fragment,
-                            SETTINGS_FRAG_LAYOUT = R.layout.settings_fragment;
-//                            CREDITS_FRAG_LAYOUT = R.layout.INSERT_HERE,
-//                            INSTRUCTIONS_FRAG_LAYOUT = R.layout.INSERT_HERE;
+                            SETTINGS_FRAG_LAYOUT = R.layout.settings_fragment,
+                           CREDITS_FRAG_LAYOUT = R.layout.fragment_credits,
+                          INSTRUCTIONS_FRAG_LAYOUT = R.layout.fragment_instructions;
 
     //String names of fragments
     public static final String  ARTISTS_FRAG_NAME = "artists_fragment",
@@ -32,8 +34,12 @@ public abstract class MyFragmentManager
             return ARTISTS_FRAG_LAYOUT;
         }else if(fragClass == CustomRequestFragment.class){
             return CUSTOM_REQ_FRAG_LAYOUT;
-        }else if(fragClass == SettingsFragment.class){
+        }else if(fragClass == SettingsFragment.class) {
             return SETTINGS_FRAG_LAYOUT;
+        } else if(fragClass == CreditsFragment.class){
+                return CREDITS_FRAG_LAYOUT;
+        } else if(fragClass == InstructionsFragment.class){
+            return INSTRUCTIONS_FRAG_LAYOUT;
         }else {
             throw new IllegalArgumentException("Couldn't find layout for "+fragClass);
         }

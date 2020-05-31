@@ -20,12 +20,13 @@
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="back">Back</string>
-    <string name="aueb_distributed_systems_project_2020">AUEB Distributed Systems Project 2020</string>
-    <string name="colaborators">Colaborators :</string>
-    <string name="petros_papatheodorou_317xxxx">Petros Papatheodorou - 317xxxx</string>
-    <string name="elena_mina_317xxxx">Elena Mina 317xxxx</string>
-    <string name="eleni_saxoni_3160270">Eleni Saxoni - 3160270</string>
-    <string name="ilias_manginas_3170096">Ilias Manginas - 3170096</string>
+    <string name="credits_header">Credits</string>
+    <string name="aueb_2020">AUEB Distributed Systems Project 2020</string>
+    <string name="collaborators">Collaborators :</string>
+    <string name="petros_papatheodorou">Petros Papatheodorou - 3170133</string>
+    <string name="elena_mina">Eleni Mina 3170108</string>
+    <string name="eleni_saxoni">Eleni Saxoni - 3160270</string>
+    <string name="ilias_manginas">Ilias Manginas - 3170096</string>
     <string name="connect_to_server">Connect to server</string>
     <string name="notifications_test">Notifications Test</string>
 
@@ -38,4 +39,11 @@
     <string name="connect_to_broker">Connect to broker</string>
     <string name="connect">Connect</string>
     <string name="ip_port">ip@port</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="settings_text">Before operating the application insert the Broker\'s IP address
+        and port number in the field appearing in \"Settings\" screen. </string>
+    <string name="artists_text">Choose an Artist from the list presented to you, then you will see available songs for the selected artist.</string>
+    <string name="custom_req_text">To find quickly a specific song insert the astist\'s name and the song\'s title in the appropriate fields. You can choose to play the song immediately or download it to your device.</string>
 </resources>
