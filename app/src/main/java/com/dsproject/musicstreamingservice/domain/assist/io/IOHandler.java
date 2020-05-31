@@ -2,6 +2,7 @@ package com.dsproject.musicstreamingservice.domain.assist.io;
 
 
 import android.content.Context;
+import android.util.Log;
 
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 import com.dsproject.musicstreamingservice.domain.media.MusicFile;
@@ -27,6 +28,7 @@ public abstract class IOHandler
                                                final String trackName, final String part,
                                                final byte[] data) throws IOException
     {
+        Log.d("DEBUG", "WRITING ON INTERNAL STORAGE");
         String dataFolder = artistName + "___" + trackName + "/";
         File songParentFolder = new File(context.getExternalFilesDir(null), dataFolder);
         if(!songParentFolder.exists()){

@@ -16,8 +16,10 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.ui.fragments.ArtistsFragment;
+import com.dsproject.musicstreamingservice.ui.fragments.CreditsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.CustomRequestFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.GenericFragment;
+import com.dsproject.musicstreamingservice.ui.fragments.InstructionsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.SettingsFragment;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
@@ -101,6 +103,16 @@ public class MainActivity extends AppCompatActivity
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
                         new SettingsFragment()).commit();
                 break;
+
+            case R.id.nav_credits:
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                    new CreditsFragment()).commit();
+                break;
+
+            case R.id.nav_instructions:
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                    new InstructionsFragment()).commit();
+                break;
         }
 
         drawer.closeDrawer(GravityCompat.START);
@@ -158,6 +170,10 @@ public class MainActivity extends AppCompatActivity
             navView.setCheckedItem(R.id.nav_custom_request);
         }else if(fragClass == SettingsFragment.class){
             navView.setCheckedItem(R.id.nav_settings);
+        }else if(fragClass == CreditsFragment.class){
+            navView.setCheckedItem(R.id.nav_credits);
+        }else if(fragClass == InstructionsFragment.class){
+            navView.setCheckedItem(R.id.nav_instructions);
         }else{
             MenuItem menuItem = navView.getCheckedItem();
             if(menuItem != null){
