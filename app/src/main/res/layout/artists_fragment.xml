@@ -18,63 +18,22 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0"
-        />
-
-    <SearchView
-        android:id="@+id/searchBar"
-        android:layout_width="0dp"
-        android:layout_height="60dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0">
-
-    </SearchView>
+        app:layout_constraintTop_toBottomOf="@+id/artistsLabel"
+        app:layout_constraintVertical_bias="1.0" />
 
     <TextView
         android:id="@+id/artistsLabel"
         android:layout_width="0dp"
-        android:layout_height="19dp"
-        android:text="Artists"
+        android:layout_height="60dp"
+        android:text="@string/artists"
+        android:textAlignment="center"
+        android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.101" />
+        app:layout_constraintVertical_bias="0.01999998" />
 
-    <Button
-        android:id="@+id/test_changeFragBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="269dp"
-        android:text="go to" />
-
-    <Button
-        android:id="@+id/test_editTextBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="134dp"
-        android:text="Communicate" />
-
-    <EditText
-        android:id="@+id/test_textField"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="88dp"
-        android:layout_marginEnd="80dp"
-        android:ems="10"
-        android:hint="text to be passed"
-        android:inputType="textPersonName" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

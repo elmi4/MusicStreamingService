@@ -23,8 +23,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.irrelevantActivities.CustomRequestActivity" />
-        <activity android:name=".ui.irrelevantActivities.SongsOfArtistActivity" />
-        <activity android:name=".ui.irrelevantActivities.ArtistsActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

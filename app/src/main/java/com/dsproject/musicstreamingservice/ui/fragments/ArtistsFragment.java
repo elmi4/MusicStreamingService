@@ -7,12 +7,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.SearchView;
 
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,60 +17,40 @@ import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 import com.dsproject.musicstreamingservice.domain.media.ArtistName;
-import com.dsproject.musicstreamingservice.ui.extras.MyRecyclerViewAdapter;
+import com.dsproject.musicstreamingservice.ui.adapters.CustomRVAdapter;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-/* To fix:
-* Clickable rows -> to corresponding songs.
-* Searchbar implementation
-* Position of TextView artistsLabel
- */
 
-//extends GenericFragment??
-public class ArtistsFragment extends Fragment implements MyRecyclerViewAdapter.ItemClickListener
+// To add:
+// Ripple effect on rows when clicked (https://stackoverflow.com/questions/30931889/adding-ripple-effect-to-recyclerview-item/49704439#49704439),
+// Search bar.
+
+public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.ItemClickListener
 {
     private Context fragContext;
     private View view;
     private RecyclerView artistsList;
-    private SearchView searchBar;               //Make it usable
 
 
-    @Nullable
     public ArtistsFragment()
     {
         super(MyFragmentManager.getLayoutOf(ArtistsFragment.class));
     }
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.artists_fragment, container, false);
     }
-
-    /*
-    //example code
-    Button change = view.findViewById(R.id.test_changeFragBtn);
-        change.setOnClickListener(v -> goToFragment(new CustomRequestFragment()));
-
-    Button edit = view.findViewById(R.id.test_editTextBtn);
-    EditText txtArea = view.findViewById(R.id.test_textField);
-
-        edit.setOnClickListener(v -> {
-    //Create container of data (can send many data with different types too")
-    //Here we are taking the input of the editText and passing it as argument with id songName
-    Bundle bundle = new Bundle();
-    bundle.putString("songName", txtArea.getText().toString().trim());
-
-    goToFragmentWithData(bundle, new CustomRequestFragment());
-});
-    */
 
 
     @Override
@@ -85,9 +61,26 @@ public class ArtistsFragment extends Fragment implements MyRecyclerViewAdapter.I
         getActivityElements();
 
         artistsList = (RecyclerView) view.findViewById(R.id.artistsList);
-        searchBar = (SearchView) view.findViewById(R.id.searchBar);               //Make it usable
 
         createArtistsList();
+
+//        //---------------------------------------Petros' example code-----------------------------------------------------------
+//        // (Didn't know whether I could erase this or not)
+//
+//        Button change = view.findViewById(R.id.test_changeFragBtn);
+//        change.setOnClickListener(v -> goToFragment(new CustomRequestFragment()));
+//
+//        Button edit = view.findViewById(R.id.test_editTextBtn);
+//        EditText txtArea = view.findViewById(R.id.test_textField);
+//
+//        edit.setOnClickListener(v -> {
+//            //Create container of data (can send many data with different types too")
+//            //Here we are taking the input of the editText and passing it as argument with id songName
+//            Bundle bundle = new Bundle();
+//            bundle.putString("songName", txtArea.getText().toString().trim());
+//
+//            goToFragmentWithData(bundle, new CustomRequestFragment());
+//        });
     }
 
 
@@ -101,10 +94,14 @@ public class ArtistsFragment extends Fragment implements MyRecyclerViewAdapter.I
     }
 
 
+    /**
+     * Gets the available artists from a Publisher and creates
+     * a clickable RecyclerView (list) containing them.
+     */
     private void createArtistsList()
     {
         AsyncTaskRunner taskRunner = new AsyncTaskRunner();
-        MyRecyclerViewAdapter myAdapter;
+        CustomRVAdapter myAdapter;
 
         try {
             Map<ArtistName, ConnectionInfo> artists = taskRunner.execute().get();
@@ -116,10 +113,11 @@ public class ArtistsFragment extends Fragment implements MyRecyclerViewAdapter.I
 
             artistsList.setLayoutManager(new LinearLayoutManager(fragContext));
 
-            myAdapter = new MyRecyclerViewAdapter(fragContext, artistsNames);
+            myAdapter = new CustomRVAdapter(fragContext, artistsNames);
             myAdapter.setClickListener(this);
             artistsList.setAdapter(myAdapter);
 
+            //Divider item to set the rows apart
             DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(fragContext, LinearLayoutManager.VERTICAL);
             artistsList.addItemDecoration(dividerItemDecoration);
 
@@ -148,6 +146,7 @@ public class ArtistsFragment extends Fragment implements MyRecyclerViewAdapter.I
             return c1.requestState();
         }
     }
+
 
     private ConnectionInfo loadInitialBrokerCredentials(){
         ConnectionInfo connectionInfo = null;
