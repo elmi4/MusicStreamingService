@@ -1,23 +1,17 @@
 package com.dsproject.musicstreamingservice.ui.fragments;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
+import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.io.BufferedReader;
@@ -26,34 +20,27 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Objects;
 
-public class CustomRequestFragment extends Fragment
+public class CustomRequestFragment extends GenericFragment
 {
     private static final String PLAY_REQUEST = "play";
     private static final String DOWNLOAD_REQUEST = "download";
-
-    private Context fragContext;
-    private View view;
 
     private TextInputLayout artist_input_field;
     private TextInputLayout song_input_field;
     private Button Req;
     private Switch switch1;
 
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
+
+    public CustomRequestFragment()
     {
-        return inflater.inflate(R.layout.custom_request_fragment, container, false);
+        super(MyFragmentManager.getLayoutOf(CustomRequestFragment.class));
     }
 
-    //New code: The whole method.
     //Do initializations here, because if the activity view hasn't been created yet, they will fail.
     @Override
     public void onActivityCreated(Bundle savedInstance)
     {
         super.onActivityCreated(savedInstance);
-
-        getActivityElements();
 
         artist_input_field = (TextInputLayout) view.findViewById(R.id.artist_input_field);
         song_input_field = (TextInputLayout) view.findViewById(R.id.song_input_field);
@@ -69,15 +56,7 @@ public class CustomRequestFragment extends Fragment
         artist_input_field.getEditText().setText("Jason Shaw");
         song_input_field.getEditText().setText("Landra's Dream");
 
-    }
-
-    private void getActivityElements()
-    {
-        fragContext = getActivity().getApplicationContext();
-        view = getView();
-        if(view == null || fragContext == null){
-            throw new IllegalStateException("Couldn't get view or context from fragment.");
-        }
+        handleMessages();
     }
 
     private void setListeners()
@@ -106,6 +85,14 @@ public class CustomRequestFragment extends Fragment
         });
     }
 
+    private void handleMessages()
+    {
+        Bundle args = getArguments();
+        if(args != null){
+            song_input_field.getEditText().setText(args.getString("songName"));
+        }
+    }
+
     @SuppressLint("StaticFieldLeak")
     private class AsyncTaskRunner extends AsyncTask<String, Void, Void>
     {
@@ -114,14 +101,14 @@ public class CustomRequestFragment extends Fragment
             ConnectionInfo brokerInfo = loadInitialBrokerCredentials();
             if(brokerInfo == null){
                 getActivity().runOnUiThread(() -> {
-                    final Toast toast = Toast.makeText(fragContext,
+                    final Toast toast = Toast.makeText(context,
                             "Please fill in the broker connection info in the settings.", Toast.LENGTH_LONG);
                     toast.show();
                 });
                 return null;
             }
 
-            Consumer c1 = new Consumer(brokerInfo, fragContext);    //Context change!!
+            Consumer c1 = new Consumer(brokerInfo, context);
 
             Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
                     Consumer.RequestType.PLAY_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
@@ -136,12 +123,13 @@ public class CustomRequestFragment extends Fragment
         }
     }
 
-    public ConnectionInfo loadInitialBrokerCredentials(){
+    public ConnectionInfo loadInitialBrokerCredentials()
+    {
         ConnectionInfo connectionInfo = null;
 
-        try (FileInputStream fis = fragContext.openFileInput("BrokerCredentials.txt")){
-            InputStreamReader isr = new InputStreamReader(fis);
-            BufferedReader br = new BufferedReader(isr);
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                context.openFileInput("BrokerCredentials.txt"))))
+        {
             StringBuilder sb = new StringBuilder();
             String credentials;
             if((credentials = br.readLine())!=null){

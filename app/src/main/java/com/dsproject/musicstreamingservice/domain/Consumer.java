@@ -1,5 +1,6 @@
 package com.dsproject.musicstreamingservice.domain;
 
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -14,12 +15,13 @@ import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 import com.dsproject.musicstreamingservice.domain.media.ArtistName;
 import com.dsproject.musicstreamingservice.domain.media.MusicFile;
 import com.dsproject.musicstreamingservice.domain.media.SongInfo;
-import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
+import com.dsproject.musicstreamingservice.ui.MainActivity;
 import com.dsproject.musicstreamingservice.ui.managers.notifications.Notifier;
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
+
 
 public final class Consumer
 {
@@ -43,7 +45,7 @@ public final class Consumer
     public Consumer(final ConnectionInfo brokerInfo, final Context context)
     {
         this.context = context;
-        this.notificationManager = new MyNotificationManager(context);
+        this.notificationManager = MainActivity.getNotificationManager();
 
         if(brokerInfo == null || brokerInfo.getIP().trim().equals("")){
             throw new IllegalStateException("No valid broker provided");
@@ -55,7 +57,6 @@ public final class Consumer
     public void init()
     {
         artistToBroker = requestState();
-        System.out.println("Requested artists from event delivery");
     }
 
     /**
@@ -95,8 +96,7 @@ public final class Consumer
         ArtistName artistObj = ArtistName.of(artistName);
 
         if(!artistIsServed(artistObj)){
-            Toast.makeText(this.context,"This artist isn't being served", Toast.LENGTH_SHORT).show();
-            System.out.println("The artist '"+artistObj.getArtistName()+"' is not being served.");
+            showToastMsg("This artist isn't being served");
             return;
         }
 
@@ -116,7 +116,7 @@ public final class Consumer
             //If error msg was sent, return. (song doesn't exist)
             Object ob = in.readObject();
             if(Utilities.isStringLiteral(ob)){
-                System.out.println(ob);
+                showToastMsg((String)ob);
                 return;
             }
 
@@ -299,5 +299,13 @@ public final class Consumer
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private void showToastMsg(final String msg)
+    {
+        ((Activity)context).runOnUiThread(() -> {
+            final Toast toast = Toast.makeText(context, msg, Toast.LENGTH_LONG);
+            toast.show();
+        });
     }
 }

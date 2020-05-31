@@ -47,4 +47,34 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.101" />
 
+    <Button
+        android:id="@+id/test_changeFragBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="269dp"
+        android:text="go to" />
+
+    <Button
+        android:id="@+id/test_editTextBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="134dp"
+        android:text="Communicate" />
+
+    <EditText
+        android:id="@+id/test_textField"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="88dp"
+        android:layout_marginEnd="80dp"
+        android:ems="10"
+        android:hint="text to be passed"
+        android:inputType="textPersonName" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

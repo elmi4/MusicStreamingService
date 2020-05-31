@@ -1,33 +1,39 @@
 package com.dsproject.musicstreamingservice.ui;
 
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.MenuItem;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-
-
-import android.content.Intent;
-import android.os.Bundle;
-import android.view.MenuItem;
-import android.widget.Button;
-
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.ui.fragments.ArtistsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.CustomRequestFragment;
+import com.dsproject.musicstreamingservice.ui.fragments.GenericFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.SettingsFragment;
-import com.dsproject.musicstreamingservice.ui.irrelevantActivities.ArtistsActivity;
+import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
 import com.dsproject.musicstreamingservice.ui.managers.notifications.Notifier;
 import com.google.android.material.navigation.NavigationView;
 
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener, GenericFragment.DataPassListener
 {
+    public static final String REDIRECT_TAG = "destinationFragment";
+
     private DrawerLayout drawer;
     private NavigationView navView;
+    private static Notifier notifManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -37,6 +43,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        notifManager = new MyNotificationManager(this);
 
         drawer = findViewById(R.id.drawer_layout);
         navView = findViewById(R.id.nav_view);
@@ -51,38 +59,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //This could happen when you go from portrait to landscape mode,
         //so we don't want this code to run and replace our current fragment.
         if(savedInstanceState == null) {
-            //this is the way to change fragments
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                    new ArtistsFragment()).commit();
-            navView.setCheckedItem(R.id.nav_artists);
+            getDestinationFragment(getIntent()).commit();
         }
     }
 
-    public void sendNotificationOnChannel1()
-    {
-        Notifier myNotificationManager = new MyNotificationManager(MainActivity.this);
 
-        myNotificationManager.makeAndShowPlainNotification(
-                "Aggressive Notification",
-                "FUCK YOU, I WILL VIBRATE ALL I WANT",
-                R.drawable.ic_file_download_black_24dp, //notification icon or null for a default
-                null);
-
-        //play sound and GET TROLLED BITCH vibrate 15 times
-        myNotificationManager.playNotificationSound(R.raw.notification_sound);
-        myNotificationManager.vibrateRepeating(500, 500, 15);
-    }
-
+    /**
+     * Called instead of onCreate only when the activity is explicitly referenced from another fragment
+     * or activity with an Intent.
+     * @param intent The intent created in the calling class.
+     */
     @Override
-    public void onBackPressed()
+    protected void onNewIntent(final Intent intent)
     {
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+        super.onNewIntent(intent);
+        getDestinationFragment(intent).commit();
     }
 
+
+    /**
+     * Called when an item of the sidebar is selected. Goes to the selected fragment and sets the
+     * pressed item as selected.
+     * @param item Selected sidebar item
+     */
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item)
     {
@@ -107,69 +106,86 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-}
 
-//public class MainActivity extends AppCompatActivity
-//{
-//
-//    @Override
-//    protected void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_main);
-//
-//        Toolbar toolbar = findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
-//
-//
-//        Button customReq = (Button) findViewById(R.id.customReq);
-//        customReq.setOnClickListener(view -> {
-//            //go to Activity2
-//            Intent myIntent = new Intent(view.getContext(), CustomRequestActivity.class);
-//            startActivity(myIntent);
-//        });
-//
-//        Button btn = (Button)findViewById(R.id.notificationBtn);
-//        btn.setOnClickListener(v -> sendNotificationOnChannel1());
-//
-//    }
-//
-//    public void sendNotificationOnChannel1()
-//    {
-//        Notifier myNotificationManager = new MyNotificationManager(MainActivity.this);
-//
-//        myNotificationManager.makeAndShowPlainNotification(
-//                "Aggressive Notification",
-//                "FUCK YOU, I WILL VIBRATE ALL I WANT",
-//                R.drawable.ic_file_download_black_24dp, //notification icon or null for a default
-//                null);
-//
-//        //play sound and GET TROLLED BITCH vibrate 15 times
-//        myNotificationManager.playNotificationSound(R.raw.notification_sound);
-//        myNotificationManager.vibrateRepeating(500, 500, 15);
-//    }
-//
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        MenuInflater inflater = getMenuInflater();
-//        inflater.inflate(R.menu.main_screen_menu,menu);
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-//        switch (item.getItemId()){
-//            //go to Activity Connect
-//            case R.id.ItemConnect:
-//                Intent connectionIntent = new Intent(this, ConnectActivity.class);
-//                this.startActivity(connectionIntent);
-//                return true;
-//            case R.id.ItemCredits:
-//                //go to Activity Credits
-//                Intent creditsIntent = new Intent(this, CreditsActivity.class);
-//                this.startActivity(creditsIntent);
-//                return true;
-//            default: return super.onOptionsItemSelected(item);
-//        }
-//
-//    }
-//}
+
+    @Override
+    public void onBackPressed()
+    {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+
+    /**
+     * Implementation method of GenericFragment.DataPassListener used from a fragment to communicate
+     * with an activity in order to switch to another fragment and pass data to it.
+     * @param data Bundle passed from the calling fragment.
+     * @param frag Fragment to go to.
+     */
+    @Override
+    public void passData(final Bundle data, final GenericFragment frag)
+    {
+        frag.setArguments(data);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, frag).commit();
+    }
+
+
+    /**
+     * Method to be used by any fragment of the activity that wants to create notifications.
+     * Use this method to get an instance of a Notifier, don't create one inside fragment.
+     * @return The instance of the class' Notifier, like MyNotificationManager.
+     */
+    public static Notifier getNotificationManager()
+    {
+        return notifManager;
+    }
+
+
+    /**
+     * Changes the selected sidebar item.
+     * @param frag The fragment that the sidebar item refers to.
+     */
+    public <F extends GenericFragment> void changeMenuCheckedItem(final F frag)
+    {
+        Class fragClass = frag.getClass();
+        if(fragClass == ArtistsFragment.class){
+            navView.setCheckedItem(R.id.nav_artists);
+        }else if(fragClass == CustomRequestFragment.class){
+            navView.setCheckedItem(R.id.nav_custom_request);
+        }else if(fragClass == SettingsFragment.class){
+            navView.setCheckedItem(R.id.nav_settings);
+        }else{
+            MenuItem menuItem = navView.getCheckedItem();
+            if(menuItem != null){
+                menuItem.setChecked(false);
+            }
+        }
+    }
+
+
+    /**
+     * Checks whether the Intent of the activity contains a message that specifies what fragment
+     * should be opened when the activity gets created, and if not, open the default one.
+     * @return A FragmentTransaction object containing the correct destination Fragment.
+     */
+    private FragmentTransaction getDestinationFragment(final Intent intent)
+    {
+        //check for msg from another fragment/activity
+        String fragName = intent.getStringExtra(REDIRECT_TAG);
+
+        if(fragName == null){
+            navView.setCheckedItem(R.id.nav_artists);
+            return getSupportFragmentManager().beginTransaction().
+                    replace(R.id.fragment_container, new ArtistsFragment()); //default starting fragment
+        }else{
+            GenericFragment frag = MyFragmentManager.getFragmentByName(fragName);
+            changeMenuCheckedItem(frag);
+            return getSupportFragmentManager().beginTransaction().
+                    replace(R.id.fragment_container, frag); //custom fragment to open
+        }
+    }
+}
