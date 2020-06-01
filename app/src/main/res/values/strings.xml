@@ -46,4 +46,5 @@
         and port number in the field appearing in \"Settings\" screen. </string>
     <string name="artists_text">Choose an Artist from the list presented to you, then you will see available songs for the selected artist.</string>
     <string name="custom_req_text">To find quickly a specific song insert the astist\'s name and the song\'s title in the appropriate fields. You can choose to play the song immediately or download it to your device.</string>
+    <string name="songs">Songs</string>
 </resources>
