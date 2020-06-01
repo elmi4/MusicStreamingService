@@ -18,6 +18,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class CustomRequestFragment extends GenericFragment
@@ -82,6 +83,16 @@ public class CustomRequestFragment extends GenericFragment
 
             AsyncTaskRunner runner = new AsyncTaskRunner();
             runner.execute(artist, song, request_type);
+
+            if(!playNow){   //for some reason playNow = false means play the song now XD
+                Bundle data = new Bundle();
+                ArrayList<String> title = new ArrayList<>();
+                title.add(artist);
+                title.add(song);
+                data.putStringArrayList("songInfo",title);
+                goToFragmentWithData(data,MyFragmentManager.getFragmentByName("player_fragment"));
+            }
+
         });
     }
 
@@ -111,7 +122,7 @@ public class CustomRequestFragment extends GenericFragment
             Consumer c1 = new Consumer(brokerInfo, context);
 
             Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
-                    Consumer.RequestType.PLAY_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
+                    Consumer.RequestType.DOWNLOAD_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
 
             c1.init();
             Log.d("DEBUG", "Got: "+c1.artistToBroker.size()+" artists in eventDelivery.");

@@ -6,6 +6,7 @@ import com.dsproject.musicstreamingservice.ui.fragments.CreditsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.CustomRequestFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.GenericFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.InstructionsFragment;
+import com.dsproject.musicstreamingservice.ui.fragments.PlayerFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.SettingsFragment;
 import com.dsproject.musicstreamingservice.ui.irrelevantActivities.CreditsActivity;
 
@@ -16,10 +17,12 @@ public abstract class MyFragmentManager
                             CUSTOM_REQ_FRAG_LAYOUT = R.layout.custom_request_fragment,
                             SETTINGS_FRAG_LAYOUT = R.layout.settings_fragment,
                            CREDITS_FRAG_LAYOUT = R.layout.fragment_credits,
-                          INSTRUCTIONS_FRAG_LAYOUT = R.layout.fragment_instructions;
+                          INSTRUCTIONS_FRAG_LAYOUT = R.layout.fragment_instructions,
+                            PLAYER_FRAG_LAYOUT = R.layout.fragment_player;
 
     //String names of fragments
     public static final String  ARTISTS_FRAG_NAME = "artists_fragment",
+                                PLAYER_FRAG_NAME = "player_fragment",
                                 CUSTOM_REQ_FRAG_NAME = "custom_request_fragment",
                                 SETTINGS_FRAG_NAME = "settings_fragment",
                                 CREDITS_FRAG_NAME = "credits_fragment",
@@ -32,6 +35,8 @@ public abstract class MyFragmentManager
     {
         if(fragClass == ArtistsFragment.class){
             return ARTISTS_FRAG_LAYOUT;
+        }else if(fragClass == PlayerFragment.class){
+            return PLAYER_FRAG_LAYOUT;
         }else if(fragClass == CustomRequestFragment.class){
             return CUSTOM_REQ_FRAG_LAYOUT;
         }else if(fragClass == SettingsFragment.class) {
@@ -50,6 +55,8 @@ public abstract class MyFragmentManager
         switch (fragName) {
             case ARTISTS_FRAG_NAME:
                 return new ArtistsFragment();
+            case PLAYER_FRAG_NAME:
+                return new PlayerFragment();
             case CUSTOM_REQ_FRAG_NAME:
                 return new CustomRequestFragment();
             case SETTINGS_FRAG_NAME:

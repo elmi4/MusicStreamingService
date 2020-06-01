@@ -91,6 +91,7 @@ public final class Consumer
     public void requestSongData(final String artistName, final String songName,
                                 final RequestType requestType) throws IllegalStateException
     {
+
         if(artistToBroker == null) throw new IllegalStateException("Consumer was not initialized correctly.");
 
         ArtistName artistObj = ArtistName.of(artistName);
@@ -150,7 +151,8 @@ public final class Consumer
 
                 if(requestType == RequestType.VALIDATE){
                     validateData(mf.getMusicFileExtract(), mf.getChunkNumber());
-                }else if(requestType == RequestType.DOWNLOAD_CHUNKS){
+                }
+                if(requestType == RequestType.DOWNLOAD_CHUNKS){
                     System.out.println("Downloading chunk:"+mf.getChunkNumber()+" ...");
                     IOHandler.writeFileInAppStorage(this.context, mf);
                 }
