@@ -1,14 +1,10 @@
 package com.dsproject.musicstreamingservice.ui.fragments;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 
-import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,7 +20,6 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -36,8 +31,6 @@ import java.util.concurrent.ExecutionException;
 
 public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.ItemClickListener
 {
-    private Context fragContext;
-    private View view;
     private RecyclerView artistsList;
 
 
@@ -46,51 +39,13 @@ public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.
         super(MyFragmentManager.getLayoutOf(ArtistsFragment.class));
     }
 
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.artists_fragment, container, false);
-    }
-
-
     @Override
     public void onActivityCreated(Bundle savedInstance)
     {
         super.onActivityCreated(savedInstance);
 
-        getActivityElements();
-
         artistsList = (RecyclerView) view.findViewById(R.id.artistsList);
-
         createArtistsList();
-
-//        //---------------------------------------Petros' example code-----------------------------------------------------------
-//        // (Didn't know whether I could erase this or not)
-//
-//        Button change = view.findViewById(R.id.test_changeFragBtn);
-//        change.setOnClickListener(v -> goToFragment(new CustomRequestFragment()));
-//
-//        Button edit = view.findViewById(R.id.test_editTextBtn);
-//        EditText txtArea = view.findViewById(R.id.test_textField);
-//
-//        edit.setOnClickListener(v -> {
-//            //Create container of data (can send many data with different types too")
-//            //Here we are taking the input of the editText and passing it as argument with id songName
-//            Bundle bundle = new Bundle();
-//            bundle.putString("songName", txtArea.getText().toString().trim());
-//
-//            goToFragmentWithData(bundle, new CustomRequestFragment());
-//        });
-    }
-
-
-    private void getActivityElements()
-    {
-        fragContext = getActivity().getApplicationContext();
-        view = getView();
-        if(view == null || fragContext == null){
-            throw new IllegalStateException("Couldn't get view or context from fragment.");
-        }
     }
 
 
@@ -111,14 +66,14 @@ public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.
                 artistsNames.add(name.getArtistName());
             }
 
-            artistsList.setLayoutManager(new LinearLayoutManager(fragContext));
+            artistsList.setLayoutManager(new LinearLayoutManager(context));
 
-            myAdapter = new CustomRVAdapter(fragContext, artistsNames);
+            myAdapter = new CustomRVAdapter(context, artistsNames);
             myAdapter.setClickListener(this);
             artistsList.setAdapter(myAdapter);
 
             //Divider item to set the rows apart
-            DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(fragContext, LinearLayoutManager.VERTICAL);
+            DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(context, LinearLayoutManager.VERTICAL);
             artistsList.addItemDecoration(dividerItemDecoration);
 
         } catch (ExecutionException | InterruptedException e) {
@@ -127,7 +82,8 @@ public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.
     }
 
 
-    public void onItemClick(View view, int position) {
+    public void onItemClick(View view, int position)
+    {
         assert getFragmentManager() != null;
         getFragmentManager().beginTransaction().replace(R.id.fragment_container,
                 new SongsOfArtistFragment()).commit();
@@ -135,11 +91,11 @@ public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.
 
 
     @SuppressLint("StaticFieldLeak")
-    private class AsyncTaskRunner extends AsyncTask<Object, Void, Map<ArtistName, ConnectionInfo>> {
-
+    private class AsyncTaskRunner extends AsyncTask<Object, Void, Map<ArtistName, ConnectionInfo>>
+    {
         @Override
         protected Map<ArtistName, ConnectionInfo> doInBackground(Object... objects) {
-            Consumer c1 = new Consumer(loadInitialBrokerCredentials(), fragContext);
+            Consumer c1 = new Consumer(loadInitialBrokerCredentials(), context);
 
             c1.init();
 
@@ -148,10 +104,11 @@ public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.
     }
 
 
-    private ConnectionInfo loadInitialBrokerCredentials(){
+    private ConnectionInfo loadInitialBrokerCredentials()
+    {
         ConnectionInfo connectionInfo = null;
 
-        try (FileInputStream fis = fragContext.openFileInput("BrokerCredentials.txt")){
+        try (FileInputStream fis = context.openFileInput("BrokerCredentials.txt")){
             InputStreamReader isr = new InputStreamReader(fis);
             BufferedReader br = new BufferedReader(isr);
             StringBuilder sb = new StringBuilder();
