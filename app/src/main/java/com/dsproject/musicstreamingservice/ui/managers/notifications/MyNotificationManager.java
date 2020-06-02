@@ -3,6 +3,7 @@ package com.dsproject.musicstreamingservice.ui.managers.notifications;
 import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -16,6 +17,8 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.dsproject.musicstreamingservice.R;
+import com.dsproject.musicstreamingservice.ui.MainActivity;
+import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 import com.dsproject.musicstreamingservice.ui.managers.setup.ApplicationSetup;
 
 import java.util.HashMap;
@@ -23,12 +26,14 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MyNotificationManager implements Notifier
+public final class MyNotificationManager implements Notifier
 {
+    public static final String NO_CONNECTION_ID = "no_connection";
+
     private Context context;
     private NotificationManagerCompat notificationManagerCompat;
 
-    private final Map<String, NotificationCompat.Builder> notificationsMap = new HashMap<>();
+    public final Map<String, NotificationCompat.Builder> notificationsMap = new HashMap<>();
     private final Map<String, Integer> notificationIDsMap = new HashMap<>();
 
     private static final String PLAIN_TYPE = "plain";
@@ -36,6 +41,8 @@ public class MyNotificationManager implements Notifier
     private static final String PROGRESS_TYPE = "progress";
 
 
+
+    //--------------------------------||  INTERFACE METHODS  ||-------------------------------------
     /**
      * The instance reference should be outside of all methods.
      * @param context The context of the calling activity.
@@ -72,7 +79,7 @@ public class MyNotificationManager implements Notifier
 
 
 
-    //____________________________ Notifier.NotificationType == PERSISTENT ______________________________
+    //__________________________ Notifier.NotificationType == PERSISTENT ___________________________
 
     /**
      * Creates and shows a Notifier.NotificationType.PERSISTENT notification.
@@ -91,7 +98,7 @@ public class MyNotificationManager implements Notifier
                                                   @Nullable final PendingIntent contentIntent)
     {
         if(notificationsMap.containsKey(id)){
-            throw new IllegalStateException("Notification of id: "+id+" already exists.");
+            dismissPersistentNotification(id);
         }
 
         if(drawableIcon == null){
@@ -101,7 +108,6 @@ public class MyNotificationManager implements Notifier
         NotificationCompat.Builder builder = makePersistentNotification(
                 title, description, drawableIcon, contentIntent);
         addToMaps(id, builder);
-
         showNotification(builder, notificationIDsMap.get(id));
     }
 
@@ -139,7 +145,7 @@ public class MyNotificationManager implements Notifier
 
 
 
-    //____________________________ Notifier.NotificationType == PROGRESS ______________________________
+    //____________________________ Notifier.NotificationType == PROGRESS ___________________________
 
     /**
      * Creates and shows a Notifier.NotificationType.PROGRESS notification
@@ -221,11 +227,28 @@ public class MyNotificationManager implements Notifier
     }
 
 
+
+    //---------------------------------||  CLASS METHODS  ||---------------------------------------
+    /**
+     * Creates a Notifier.NotificationType.PERSISTENT notification about no connection with a broker,
+     * with default attributes, that redirects to the settings fragment and gets dismissed.
+     */
+    public void makeNoConnectionNotification()
+    {
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.putExtra(MainActivity.REDIRECT_TAG, MyFragmentManager.SETTINGS_FRAG_NAME);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP );
+        PendingIntent pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        makeAndShowPersistentNotification(NO_CONNECTION_ID,"Disconnected from broker",
+                "Press for settings menu", R.drawable.ic_error_black_24dp, pi);
+    }
+
+
     /**
      * Create vibration effect.
      * @param duration The time in milliseconds that the phone should vibrate
      */
-    @Override
     public void vibrate(final int duration)
     {
         Vibrator vibrator =  (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
@@ -246,7 +269,6 @@ public class MyNotificationManager implements Notifier
      * @param delay Milliseconds to wait before the next vibration, after the last one has finished.
      * @param repeats The number of vibration repeats.
      */
-    @Override
     public void vibrateRepeating(final int duration, final int delay, final int repeats)
     {
         Vibrator vibrator =  (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
@@ -273,7 +295,6 @@ public class MyNotificationManager implements Notifier
      *                         New>Folder>Raw Resources Folder
      *                         and put in there the custom audio file for the notification.
      */
-    @Override
     public void playNotificationSound(final Integer rawResourceSound)
     {
         Uri alarmSound;
@@ -291,8 +312,7 @@ public class MyNotificationManager implements Notifier
 
 
 
-
-    //_____________________________________ PRIVATE METHODS ________________________________________
+    //---------------------------------||  PRIVATE METHODS  ||--------------------------------------
 
     private void vibrateRecursive(final int duration, final int delay, final int maxRepeats,
                                   final int currentRepeat)

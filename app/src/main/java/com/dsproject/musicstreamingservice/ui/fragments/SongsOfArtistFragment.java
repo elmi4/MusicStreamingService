@@ -16,7 +16,7 @@ public class SongsOfArtistFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.songs_of_artist_fragment, container, false);
+        return inflater.inflate(R.layout.fragment_songs_of_artist, container, false);
     }
 
 }
