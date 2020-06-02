@@ -1,14 +1,16 @@
 package com.dsproject.musicstreamingservice.ui.fragments;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,9 +19,8 @@ import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 import com.dsproject.musicstreamingservice.domain.media.ArtistName;
-import com.dsproject.musicstreamingservice.ui.adapters.CustomRVAdapter;
+import com.dsproject.musicstreamingservice.ui.recyclerViewAdapters.ArtistsAdapter;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
-import com.dsproject.musicstreamingservice.ui.fragments.GenericFragment;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -27,22 +28,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-/*To do:
-  - Pass an artist from the previous fragment
-  - Create RecyclerView of songs
-  - When a song is clicked -> Download class for specific song.
-*/
+// TODO: Test, add download button.
+// Optional: implement a search bar.
 
-public class SongsOfArtistFragment extends GenericFragment implements CustomRVAdapter.ItemClickListener
+public class SongsOfArtistFragment extends GenericFragment implements ArtistsAdapter.ItemClickListener
 {
-    private Context fragContext;
-    private View view;
     private RecyclerView songsList;
-    private ArtistName artist;
-
+    private String artistSelected;
 
     public SongsOfArtistFragment()
     {
@@ -51,31 +45,19 @@ public class SongsOfArtistFragment extends GenericFragment implements CustomRVAd
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.songs_of_artist_fragment, container, false);
-    }
-
-
-    @Override
     public void onActivityCreated(Bundle savedInstance)
     {
         super.onActivityCreated(savedInstance);
 
-        getActivityElements();
+        assert getArguments() != null;
+        artistSelected = getArguments().getString("selectedArtist");
+
+        TextView label = (TextView) view.findViewById(R.id.songsLabel);
+        label.setText("Songs by " + artistSelected + ":");
 
         songsList = (RecyclerView) view.findViewById(R.id.songsList);
 
         createSongsList();
-    }
-
-
-    private void getActivityElements()
-    {
-        fragContext = getActivity().getApplicationContext();
-        view = getView();
-        if(view == null || fragContext == null){
-            throw new IllegalStateException("Couldn't get view or context from fragment.");
-        }
     }
 
 
@@ -86,24 +68,21 @@ public class SongsOfArtistFragment extends GenericFragment implements CustomRVAd
     private void createSongsList()
     {
         AsyncTaskRunner taskRunner = new AsyncTaskRunner();
-        CustomRVAdapter myAdapter;
+        ArtistsAdapter myAdapter;
 
         try {
-            List<String> songs1 = taskRunner.execute().get();
-            ArrayList<String> songs2 = new ArrayList<>();
+            List<String> helper = taskRunner.execute().get();
+            ArrayList<String> finalSongList = new ArrayList<>();
+            finalSongList.addAll(helper);
 
+            songsList.setLayoutManager(new LinearLayoutManager(context));
 
-            //Move every element from songs in songsofartist!!!!!!!!!!!!!!!!!!!
-
-
-            songsList.setLayoutManager(new LinearLayoutManager(fragContext));
-
-            myAdapter = new CustomRVAdapter(fragContext, songs2);
+            myAdapter = new ArtistsAdapter(context, finalSongList);
             myAdapter.setClickListener(this);
             songsList.setAdapter(myAdapter);
 
             //Divider item to set the rows apart
-            DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(fragContext, LinearLayoutManager.VERTICAL);
+            DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(context, LinearLayoutManager.VERTICAL);
             songsList.addItemDecoration(dividerItemDecoration);
 
         } catch (ExecutionException | InterruptedException e) {
@@ -115,7 +94,7 @@ public class SongsOfArtistFragment extends GenericFragment implements CustomRVAd
     public void onItemClick(View view, int position) {
         assert getFragmentManager() != null;
         getFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                new CustomRequestFragment()).commit();
+                new PlayerFragment()).commit();
     }
 
 
@@ -124,11 +103,11 @@ public class SongsOfArtistFragment extends GenericFragment implements CustomRVAd
 
         @Override
         protected List<String> doInBackground(Object... objects) {
-            Consumer c1 = new Consumer(loadInitialBrokerCredentials(), fragContext);
+            Consumer c1 = new Consumer(loadInitialBrokerCredentials(), context);
 
             c1.init();
 
-            return c1.requestSongsOfArtist(artist.getArtistName());
+            return c1.requestSongsOfArtist(artistSelected);
         }
     }
 
@@ -136,7 +115,7 @@ public class SongsOfArtistFragment extends GenericFragment implements CustomRVAd
     private ConnectionInfo loadInitialBrokerCredentials(){
         ConnectionInfo connectionInfo = null;
 
-        try (FileInputStream fis = fragContext.openFileInput("BrokerCredentials.txt")){
+        try (FileInputStream fis = context.openFileInput("BrokerCredentials.txt")){
             InputStreamReader isr = new InputStreamReader(fis);
             BufferedReader br = new BufferedReader(isr);
             StringBuilder sb = new StringBuilder();
@@ -156,3 +135,23 @@ public class SongsOfArtistFragment extends GenericFragment implements CustomRVAd
     }
 
 }
+
+
+//public class SongsOfArtistFragment extends GenericFragment {
+//
+//    private TextView label;
+//
+//    public SongsOfArtistFragment() {
+//        super(MyFragmentManager.getLayoutOf(SongsOfArtistFragment.class));
+//    }
+//
+//    @Override
+//    public void onActivityCreated(Bundle savedInstance) {
+//        super.onActivityCreated(savedInstance);
+//        String artist = getArguments().getString("selectedArtist");
+//
+//        label = (TextView) view.findViewById(R.id.songsLabel);
+//        label.setText("Songs by " + artist);
+//    }
+//
+//}

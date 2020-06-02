@@ -13,7 +13,7 @@ import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 import com.dsproject.musicstreamingservice.domain.media.ArtistName;
-import com.dsproject.musicstreamingservice.ui.adapters.CustomRVAdapter;
+import com.dsproject.musicstreamingservice.ui.recyclerViewAdapters.ArtistsAdapter;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 
 import java.io.BufferedReader;
@@ -24,12 +24,11 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+// TODO: pass the artist onto the next fragment.
+// Optional: Search bar, ripple effect on rows when clicked
+// (https://stackoverflow.com/questions/30931889/adding-ripple-effect-to-recyclerview-item/49704439#49704439).
 
-// To add:
-// Ripple effect on rows when clicked (https://stackoverflow.com/questions/30931889/adding-ripple-effect-to-recyclerview-item/49704439#49704439),
-// Search bar.
-
-public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.ItemClickListener
+public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.ItemClickListener
 {
     private RecyclerView artistsList;
 
@@ -56,7 +55,7 @@ public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.
     private void createArtistsList()
     {
         AsyncTaskRunner taskRunner = new AsyncTaskRunner();
-        CustomRVAdapter myAdapter;
+        ArtistsAdapter myAdapter;
 
         try {
             Map<ArtistName, ConnectionInfo> artists = taskRunner.execute().get();
@@ -68,7 +67,7 @@ public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.
 
             artistsList.setLayoutManager(new LinearLayoutManager(context));
 
-            myAdapter = new CustomRVAdapter(context, artistsNames);
+            myAdapter = new ArtistsAdapter(context, artistsNames);
             myAdapter.setClickListener(this);
             artistsList.setAdapter(myAdapter);
 
@@ -84,9 +83,15 @@ public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.
 
     public void onItemClick(View view, int position)
     {
+        Bundle bundle = new Bundle();
+        bundle.putString("selectedArtist", "Kalomira");
+        //bundle.putString("selectedArtist", selectedArtist);
+
+        SongsOfArtistFragment soaf = new SongsOfArtistFragment();
+        soaf.setArguments(bundle);
+
         assert getFragmentManager() != null;
-        getFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                new SongsOfArtistFragment()).commit();
+        getFragmentManager().beginTransaction().replace(R.id.fragment_container, soaf).commit();
     }
 
 

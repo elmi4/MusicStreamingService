@@ -1,4 +1,4 @@
-package com.dsproject.musicstreamingservice.ui.adapters;
+package com.dsproject.musicstreamingservice.ui.recyclerViewAdapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -12,17 +12,18 @@ import com.dsproject.musicstreamingservice.R;
 
 import java.util.List;
 
+//TODO: turn it into a superclass.
 /**
  * Adapter needed to populate the views in each row of the RecyclerView.
  */
-public class CustomRVAdapter extends RecyclerView.Adapter<CustomRVAdapter.ViewHolder>
-{
+public class CustomViewAdapter extends RecyclerView.Adapter<CustomViewAdapter.ViewHolder>{
+
     private List<String> mData;
-    private ItemClickListener mClickListener;
+    private ArtistsAdapter.ItemClickListener mClickListener;
     private LayoutInflater mInflater;
 
 
-    public CustomRVAdapter(Context context, List<String> data) {
+    public CustomViewAdapter(Context context, List<String> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
     }
@@ -74,7 +75,7 @@ public class CustomRVAdapter extends RecyclerView.Adapter<CustomRVAdapter.ViewHo
     }
 
 
-    public void setClickListener(ItemClickListener itemClickListener) {
+    public void setClickListener(ArtistsAdapter.ItemClickListener itemClickListener) {
         this.mClickListener = itemClickListener;
     }
 
@@ -82,4 +83,5 @@ public class CustomRVAdapter extends RecyclerView.Adapter<CustomRVAdapter.ViewHo
     public interface ItemClickListener {
         void onItemClick(View view, int position);
     }
+
 }
