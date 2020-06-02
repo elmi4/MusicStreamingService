@@ -16,6 +16,11 @@ import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManag
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.net.Socket;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class CustomRequestFragment extends GenericFragment
@@ -80,6 +85,16 @@ public class CustomRequestFragment extends GenericFragment
 
             AsyncTaskRunner runner = new AsyncTaskRunner();
             runner.execute(artist, song, request_type);
+
+            if(!playNow){   //for some reason playNow = false means play the song now XD
+                Bundle data = new Bundle();
+                ArrayList<String> title = new ArrayList<>();
+                title.add(artist);
+                title.add(song);
+                data.putStringArrayList("songInfo",title);
+                goToFragmentWithData(data,MyFragmentManager.getFragmentByName("player_fragment"));
+            }
+
         });
     }
 

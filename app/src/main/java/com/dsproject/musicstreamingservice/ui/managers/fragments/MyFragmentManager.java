@@ -6,6 +6,7 @@ import com.dsproject.musicstreamingservice.ui.fragments.CreditsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.CustomRequestFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.GenericFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.InstructionsFragment;
+import com.dsproject.musicstreamingservice.ui.fragments.PlayerFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.SettingsFragment;
 
 import java.util.Collections;
@@ -19,14 +20,16 @@ public abstract class MyFragmentManager
                             CUSTOM_REQ_FRAG_LAYOUT = R.layout.fragment_custom_request,
                             SETTINGS_FRAG_LAYOUT = R.layout.fragment_settings,
                             CREDITS_FRAG_LAYOUT = R.layout.fragment_credits,
-                            INSTRUCTIONS_FRAG_LAYOUT = R.layout.fragment_instructions;
+                            INSTRUCTIONS_FRAG_LAYOUT = R.layout.fragment_instructions,
+                            PLAYER_FRAG_LAYOUT = R.layout.fragment_player;
 
     //String names of fragments
     public static final String  ARTISTS_FRAG_NAME = "fragment_artists",
                                 CUSTOM_REQ_FRAG_NAME = "fragment_custom_request",
                                 SETTINGS_FRAG_NAME = "fragment_settings",
                                 CREDITS_FRAG_NAME = "fragment_credits",
-                                INSTRUCTIONS_FRAG_NAME = "fragment_instructions";
+                                INSTRUCTIONS_FRAG_NAME = "fragment_instructions",
+                                PLAYER_FRAG_NAME = "player_fragment";
 
     private static final Map<Class, Integer> classToLayout = Collections.unmodifiableMap(
                                                                 populateClassToLayoutMap());
@@ -42,6 +45,7 @@ public abstract class MyFragmentManager
         classToLayout.put(CustomRequestFragment.class, CUSTOM_REQ_FRAG_LAYOUT);
         classToLayout.put(InstructionsFragment.class, INSTRUCTIONS_FRAG_LAYOUT);
         classToLayout.put(CreditsFragment.class, CREDITS_FRAG_LAYOUT);
+        classToLayout.put(PlayerFragment.class, CREDITS_FRAG_LAYOUT);
 
         return classToLayout;
     }
@@ -61,6 +65,8 @@ public abstract class MyFragmentManager
         switch (fragName) {
             case ARTISTS_FRAG_NAME:
                 return new ArtistsFragment();
+            case PLAYER_FRAG_NAME:
+                return new PlayerFragment();
             case CUSTOM_REQ_FRAG_NAME:
                 return new CustomRequestFragment();
             case SETTINGS_FRAG_NAME:

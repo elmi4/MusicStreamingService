@@ -192,9 +192,9 @@ public class MainActivity extends AppCompatActivity
         String fragName = intent.getStringExtra(REDIRECT_TAG);
 
         if(fragName == null){
-            navView.setCheckedItem(R.id.nav_artists);
+            navView.setCheckedItem(R.id.nav_settings);
             return getSupportFragmentManager().beginTransaction().
-                    replace(R.id.fragment_container, new ArtistsFragment()); //default starting fragment
+                    replace(R.id.fragment_container, new SettingsFragment()); //default starting fragment
         }else{
             /*If the redirect routes to the settings fragment, it could be from the "NoConnection"
             notification, so dismiss it if it exists.*/
