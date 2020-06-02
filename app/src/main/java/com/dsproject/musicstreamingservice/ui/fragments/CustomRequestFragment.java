@@ -16,10 +16,6 @@ import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManag
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.net.Socket;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -120,7 +116,7 @@ public class CustomRequestFragment extends GenericFragment
 
             Consumer c1 = new Consumer(brokerConnection, context);
             Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
-                    Consumer.RequestType.PLAY_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
+                    Consumer.RequestType.DOWNLOAD_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
 
             c1.init();
             c1.requestSongData(params[0], params[1], type);
