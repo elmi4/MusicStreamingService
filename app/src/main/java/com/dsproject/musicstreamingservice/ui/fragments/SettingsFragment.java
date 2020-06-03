@@ -41,7 +41,7 @@ public class SettingsFragment extends GenericFragment
             if(credentials.indexOf('@')!=-1 && credentials.indexOf('@')<credentials.length()) {
                 String ip = credentials.substring(0, credentials.indexOf('@'));
                 int port = Integer.parseInt(credentials.substring(credentials.indexOf('@') + 1));
-                MyConnectionsManager.updateAndSaveBrokerCredentials(ConnectionInfo.of(ip,port));
+                MyConnectionsManager.updateBrokerCredentials(ConnectionInfo.of(ip,port));
 
                 try (FileOutputStream fos = context.openFileOutput("BrokerCredentials.txt",MODE_PRIVATE)){
                     fos.write(("").getBytes());

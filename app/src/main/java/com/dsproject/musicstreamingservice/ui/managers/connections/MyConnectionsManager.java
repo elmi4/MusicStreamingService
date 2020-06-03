@@ -35,7 +35,7 @@ public abstract class MyConnectionsManager
         return connectWithBroker();
     }
 
-    public static void updateAndSaveBrokerCredentials(final ConnectionInfo connInfo)
+    public static void updateBrokerCredentials(final ConnectionInfo connInfo)
     {
         readBrokerCredentials = connInfo;
     }
