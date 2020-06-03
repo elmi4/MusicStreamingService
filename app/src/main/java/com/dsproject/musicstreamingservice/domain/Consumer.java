@@ -115,6 +115,11 @@ public final class Consumer
                         chunk.getTotalChunks(), false, null);
             }
 
+            //Delete the previous temporary stream file if it exists
+            if(requestType == RequestType.DOWNLOAD_CHUNKS){
+                IOHandler.deleteFromStorage(this.context,chunk.getArtistName(),chunk.getTrackName(),false);
+            }
+
             //Accept all the song chunks from broker until null is received (no more chunks)
             do{
                 MusicFile mf = (MusicFile)ob;
@@ -139,7 +144,7 @@ public final class Consumer
                 }
                 if(requestType == RequestType.DOWNLOAD_CHUNKS){
                     System.out.println("Downloading chunk:"+mf.getChunkNumber()+" ...");
-                    IOHandler.writeFileInAppStorage(this.context, mf);
+                    IOHandler.appendFileInAppStorage(this.context, mf);
                 }
             } while ((ob = in.readObject()) != null);
 
