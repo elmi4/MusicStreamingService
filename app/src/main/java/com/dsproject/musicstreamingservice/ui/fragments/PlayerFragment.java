@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.dsproject.musicstreamingservice.R;
+import com.dsproject.musicstreamingservice.domain.media.MusicFile;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 
 import java.io.File;
@@ -34,9 +35,6 @@ public class PlayerFragment extends GenericFragment {
     private ProgressBar songProgressBar;
 
     private MediaPlayer musicPlayer = new MediaPlayer();
-    private ArrayList<String> songArray = new ArrayList<>();
-    private boolean isPlaying = false;
-    private int songArrayIndex = 0;
 
     private int progress = 0;
 
@@ -64,55 +62,33 @@ public class PlayerFragment extends GenericFragment {
             String artist = songInfo.get(0);
             String song = songInfo.get(1);
 
+
+
             title.setText(song + " by " + artist);
+
+            String dataFolder = artist + "___" + song + "/";
+            String fileName = song + "__" + artist + ".mp3";
+            File songFile = new File(getActivity().getExternalFilesDir(null),dataFolder + fileName);
+            musicPlayer = MediaPlayer.create(getActivity(),Uri.fromFile(songFile));
+            musicPlayer.start();
 
             pausePlayButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
-                    if(!isPlaying) {
-                        isPlaying = true;
-                        playSong(artist, song);
+                    if (musicPlayer.isPlaying()) {
+                        musicPlayer.pause();
+                        pausePlayButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_play_circle_outline_black_24dp));
+                    } else {
+                        musicPlayer.start();
+                        pausePlayButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_pause_circle));
 
-                    }else {
-                        if(musicPlayer.isPlaying())musicPlayer.pause();
-                        else musicPlayer.start();
                     }
 
 
-
                 }
+
             });
-
-
-            musicPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer player) {
-                    musicPlayer.reset();
-
-                    if (songArrayIndex < songArray.size()) {
-
-                        musicPlayer.setOnCompletionListener(this);
-                        try {
-
-                            System.out.println("Playing Chunk : " + (songArrayIndex+1));
-                            musicPlayer.setDataSource(getActivity() ,Uri.fromFile(new File(songArray.get(songArrayIndex))));
-                            musicPlayer.prepare();
-                            musicPlayer.start();
-                            songArrayIndex++;
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                    }else songArrayIndex = 0;
-                }
-            });
-
-
-
-
-
-
 
 
         }
@@ -121,41 +97,16 @@ public class PlayerFragment extends GenericFragment {
     }
 
 
-   private void playSong(String artist , String song){
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        super.onDetach();
+        musicPlayer.reset();
+        musicPlayer.release();
+        musicPlayer=null;
+    }
 
-       int chunkCounter = 1;
 
-       String songPath = getActivity().getExternalFilesDir(null).getAbsolutePath()+ "/" + artist + "___" + song + "/" + chunkCounter + "_" + song + "__" + artist + ".mp3";
-
-       File songFile = new File(songPath);
-
-
-       while(songFile.exists()){
-
-           songArray.add(songPath);
-
-           System.out.println("Found chunk at : " + songPath);
-
-           chunkCounter++;
-           songPath = getActivity().getExternalFilesDir(null).getAbsolutePath() + "/" + artist + "___" + song + "/" + chunkCounter + "_" + song + "__" + artist + ".mp3";
-           songFile = new File(songPath);
-       }
-
-       if(!songArray.isEmpty()){
-
-           try {
-
-               System.out.println("Playing Chunk : " + 1);
-               musicPlayer.setDataSource(getActivity(), Uri.fromFile(new File(songArray.get(0))));
-               musicPlayer.prepare();
-               musicPlayer.start();
-               songArrayIndex++;
-           } catch (IOException e) {
-               e.printStackTrace();
-           }
-       }else System.out.println("No chunks found");
-
-   }
 
 
 }

@@ -17,6 +17,51 @@ public abstract class IOHandler
     public static final int STANDARD_CHUNK_SIZE = 512 * 1024; //512KB
 
 
+    public static void deleteFromStorage (final Context context, final String artistName,
+                                          final String trackName , boolean downloadVersion) throws IOException
+    {
+        String dataFolder = artistName + "___" + trackName + "/";
+        String fileName = trackName + "__" + artistName + ".mp3";
+        if(downloadVersion)fileName = "FULL_"+trackName + "__" + artistName + ".mp3";
+        String filePath =  dataFolder+fileName;
+        File songFile = new File(context.getExternalFilesDir(null), filePath);
+
+        if(songFile.exists()){
+            songFile.delete();
+        }
+    }
+
+
+    public static String appendFileInAppStorage(final Context context, final MusicFile mf) throws IOException
+    {
+        return appendFileInAppStorage(context, mf.getArtistName(), mf.getTrackName(), mf.getMusicFileExtract());
+    }
+
+    public static String appendFileInAppStorage(final Context context, final String artistName,
+                                                final String trackName,
+                                                final byte[] data) throws IOException
+    {
+        Log.d("DEBUG", "WRITING ON INTERNAL STORAGE");
+        String dataFolder = artistName + "___" + trackName + "/";
+        File songParentFolder = new File(context.getExternalFilesDir(null), dataFolder);
+        if(!songParentFolder.exists()){
+            songParentFolder.mkdir();
+        }
+
+        String fileName = trackName + "__" + artistName + ".mp3";
+        File songFile = new File(songParentFolder, fileName);
+        System.out.println("Song saved at: "+ songFile.getAbsolutePath());
+
+        try (FileOutputStream stream = new FileOutputStream(songFile,true)) {
+            stream.write(data);
+            return songFile.getAbsolutePath();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+    }
+
     public static String writeFileInAppStorage(final Context context, final MusicFile mf) throws IOException
     {
         return writeFileInAppStorage(context, mf.getArtistName(), mf.getTrackName(),
