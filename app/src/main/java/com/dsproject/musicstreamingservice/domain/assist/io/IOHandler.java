@@ -18,8 +18,9 @@ public abstract class IOHandler
 
 
     public static void deleteFromStorage (final Context context, final String artistName,
-                                          final String trackName , boolean downloadVersion) throws IOException
+                                          final String trackName , boolean downloadVersion)
     {
+        Log.d("DEBUG", "DELETING FILE FROM INTERNAL STORAGE");
         String dataFolder = artistName + "___" + trackName + "/";
         String fileName = trackName + "__" + artistName + ".mp3";
         if(downloadVersion)fileName = "FULL_"+trackName + "__" + artistName + ".mp3";

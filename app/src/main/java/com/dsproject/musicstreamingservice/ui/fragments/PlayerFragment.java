@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.dsproject.musicstreamingservice.R;
+import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
 import com.dsproject.musicstreamingservice.domain.media.MusicFile;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 
@@ -33,6 +34,9 @@ public class PlayerFragment extends GenericFragment {
     private ImageView songImage;
     private ImageButton pausePlayButton;
     private ProgressBar songProgressBar;
+
+    String artist;
+    String song;
 
     private MediaPlayer musicPlayer = new MediaPlayer();
 
@@ -59,8 +63,8 @@ public class PlayerFragment extends GenericFragment {
         if(bundle!= null){
 
             ArrayList<String> songInfo = bundle.getStringArrayList("songInfo");
-            String artist = songInfo.get(0);
-            String song = songInfo.get(1);
+            artist = songInfo.get(0);
+            song = songInfo.get(1);
 
 
 
@@ -104,6 +108,7 @@ public class PlayerFragment extends GenericFragment {
         musicPlayer.reset();
         musicPlayer.release();
         musicPlayer=null;
+        IOHandler.deleteFromStorage(getActivity(),artist,song,false);
     }
 
 
