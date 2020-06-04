@@ -45,7 +45,7 @@ public abstract class MyFragmentManager
         classToLayout.put(CustomRequestFragment.class, CUSTOM_REQ_FRAG_LAYOUT);
         classToLayout.put(InstructionsFragment.class, INSTRUCTIONS_FRAG_LAYOUT);
         classToLayout.put(CreditsFragment.class, CREDITS_FRAG_LAYOUT);
-        classToLayout.put(PlayerFragment.class, CREDITS_FRAG_LAYOUT);
+        classToLayout.put(PlayerFragment.class, PLAYER_FRAG_LAYOUT);
 
         return classToLayout;
     }

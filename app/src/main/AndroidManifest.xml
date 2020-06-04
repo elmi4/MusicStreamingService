@@ -16,7 +16,8 @@
         android:roundIcon="@mipmap/mss_logo_music_note_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
-        <activity android:name=".ui.MainActivity" android:launchMode="singleTop">
+        <activity android:name=".ui.MainActivity" >
+<!--            android:launchMode="singleTop"-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
