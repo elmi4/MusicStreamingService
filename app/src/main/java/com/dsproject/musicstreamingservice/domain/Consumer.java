@@ -25,6 +25,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -161,6 +162,53 @@ public final class Consumer
             e.printStackTrace();
         }
     }
+
+
+    public void requestAndAppendSongDataToByteArray(final String artistName, final String songName,
+                                final List<Byte> mp3Bits) throws IllegalStateException
+    {
+
+        if(artistToBroker == null) throw new IllegalStateException("Consumer was not initialized correctly.");
+
+        ArtistName artistObj = ArtistName.of(artistName);
+
+        if(!artistIsServed(artistObj)){
+            showToastMsg("This artist isn't being served");
+            return;
+        }
+
+        Socket requestSocket = getConnectionWithBrokerOfArtist(artistObj);
+        assert requestSocket != null;
+
+        try(ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(requestSocket.getInputStream()))
+        {
+            //Notify broker that you will make a song request
+            out.writeObject("SongRequest");
+            out.flush();
+            out.writeObject(SongInfo.of(artistObj, songName));
+            out.flush();
+            System.out.println("Asked for song " + songName);
+
+            //If error msg was sent, return. (song doesn't exist)
+            Object ob = in.readObject();
+            if(Utilities.isStringLiteral(ob)){
+                showToastMsg((String)ob);
+                return;
+            }
+
+            //Accept all the song chunks from broker until null is received (no more chunks)
+            do{
+                MusicFile mf = (MusicFile)ob;
+                byte[] currentChunk = mf.getMusicFileExtract();
+                List<Byte> aList = new ArrayList<>(Arrays.asList(Utilities.toByteObjectArray(currentChunk)));
+                mp3Bits.addAll(aList);
+            } while ((ob = in.readObject()) != null);
+        }catch(IOException | ClassNotFoundException e){
+            e.printStackTrace();
+        }
+    }
+
 
 
     /**

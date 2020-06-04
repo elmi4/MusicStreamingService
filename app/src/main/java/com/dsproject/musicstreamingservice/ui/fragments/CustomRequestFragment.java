@@ -3,7 +3,6 @@ package com.dsproject.musicstreamingservice.ui.fragments;
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.Switch;
 
@@ -74,21 +73,19 @@ public class CustomRequestFragment extends GenericFragment
             String artist = Objects.requireNonNull(artist_input_field.getEditText()).getText().toString().trim();
             String song = Objects.requireNonNull(song_input_field.getEditText()).getText().toString().trim();
 
-            boolean playNow = switch1.isChecked();
-            String request_type = (playNow) ? DOWNLOAD_REQUEST : PLAY_REQUEST;
-
-            Log.d("DEBUG", artist +" , "+ song);
+            boolean playNow = !switch1.isChecked();
+            String request_type = (playNow) ? PLAY_REQUEST : DOWNLOAD_REQUEST;
 
             AsyncTaskRunner runner = new AsyncTaskRunner();
             runner.execute(artist, song, request_type);
 
-            if(!playNow){   //for some reason playNow = false means play the song now XD
+            if(playNow){
                 Bundle data = new Bundle();
                 ArrayList<String> title = new ArrayList<>();
                 title.add(artist);
                 title.add(song);
                 data.putStringArrayList("songInfo",title);
-                goToFragmentWithData(data,MyFragmentManager.getFragmentByName("player_fragment"));
+                goToFragmentWithData(data, new PlayerFragment());
             }
 
         });
