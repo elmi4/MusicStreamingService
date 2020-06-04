@@ -6,24 +6,24 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dsproject.musicstreamingservice.R;
 
 import java.util.List;
 
-//TODO: turn it into a superclass.
 /**
- * Adapter needed to populate the views in each row of the RecyclerView.
+ * Adapter to populate each row with its respective artist name.
  */
-public class CustomViewAdapter extends RecyclerView.Adapter<CustomViewAdapter.ViewHolder>{
-
+public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.ViewHolder>
+{
     private List<String> mData;
-    private ArtistsAdapter.ItemClickListener mClickListener;
+    private ItemClickListener mClickListener;
     private LayoutInflater mInflater;
 
 
-    public CustomViewAdapter(Context context, List<String> data) {
+    public ArtistsAdapter(Context context, List<String> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
     }
@@ -32,6 +32,7 @@ public class CustomViewAdapter extends RecyclerView.Adapter<CustomViewAdapter.Vi
     /**
      * Inflates (builds) the row layout from its corresponding xml file.
      */
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = mInflater.inflate(R.layout.row_of_artists_list, parent, false);
@@ -70,18 +71,17 @@ public class CustomViewAdapter extends RecyclerView.Adapter<CustomViewAdapter.Vi
 
         @Override
         public void onClick(View view) {
-            if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition());
+           if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition(), myTextView);
         }
     }
 
 
-    public void setClickListener(ArtistsAdapter.ItemClickListener itemClickListener) {
+    public void setClickListener(ItemClickListener itemClickListener) {
         this.mClickListener = itemClickListener;
     }
 
 
     public interface ItemClickListener {
-        void onItemClick(View view, int position);
+        void onItemClick(View view, int position, TextView nameTextView) ;
     }
-
 }

@@ -7,10 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,22 +16,25 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
-import com.dsproject.musicstreamingservice.domain.media.ArtistName;
+import com.dsproject.musicstreamingservice.ui.MainActivity;
+import com.dsproject.musicstreamingservice.ui.UtilitiesUI;
+import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
 import com.dsproject.musicstreamingservice.ui.recyclerViewAdapters.ArtistsAdapter;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
+import com.dsproject.musicstreamingservice.ui.recyclerViewAdapters.SongsAdapter;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-// TODO: Test, add download button.
-// Optional: implement a search bar.
-
-public class SongsOfArtistFragment extends GenericFragment implements ArtistsAdapter.ItemClickListener
+// TODO: display songs in alphabetical order,
+//       add download button.
+public class SongsOfArtistFragment extends GenericFragment implements SongsAdapter.ItemClickListener
 {
     private RecyclerView songsList;
     private String artistSelected;
@@ -43,11 +44,6 @@ public class SongsOfArtistFragment extends GenericFragment implements ArtistsAda
         super(MyFragmentManager.getLayoutOf(SongsOfArtistFragment.class));
     }
 
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_songs_of_artist, container, false);
-    }
 
     @Override
     public void onActivityCreated(Bundle savedInstance)
@@ -55,14 +51,14 @@ public class SongsOfArtistFragment extends GenericFragment implements ArtistsAda
         super.onActivityCreated(savedInstance);
 
         assert getArguments() != null;
-        artistSelected = getArguments().getString("selectedArtist");
+        artistSelected = getArguments().getString("artistSelected");
 
         TextView label = (TextView) view.findViewById(R.id.songsLabel);
-        label.setText("Songs by " + artistSelected + ":");
+        label.setText("Songs by " + artistSelected);
 
         songsList = (RecyclerView) view.findViewById(R.id.songsList);
 
-        createSongsList();
+        //createSongsList();
     }
 
 
@@ -73,16 +69,16 @@ public class SongsOfArtistFragment extends GenericFragment implements ArtistsAda
     private void createSongsList()
     {
         AsyncTaskRunner taskRunner = new AsyncTaskRunner();
-        ArtistsAdapter myAdapter;
+        SongsAdapter myAdapter;
 
         try {
-            List<String> helper = taskRunner.execute().get();
-            ArrayList<String> finalSongList = new ArrayList<>();
-            finalSongList.addAll(helper);
+            ArrayList<String> songsNames = taskRunner.execute().get();
 
             songsList.setLayoutManager(new LinearLayoutManager(context));
 
-            myAdapter = new ArtistsAdapter(context, finalSongList);
+            //sort songsList
+
+            myAdapter = new SongsAdapter(context, songsNames);
             myAdapter.setClickListener(this);
             songsList.setAdapter(myAdapter);
 
@@ -104,59 +100,24 @@ public class SongsOfArtistFragment extends GenericFragment implements ArtistsAda
 
 
     @SuppressLint("StaticFieldLeak")
-    private class AsyncTaskRunner extends AsyncTask<Object, Void, List<String>> {
-
+    private class AsyncTaskRunner extends AsyncTask<Object, Void, ArrayList<String>>
+    {
         @Override
-        protected List<String> doInBackground(Object... objects) {
-            Consumer c1 = new Consumer(loadInitialBrokerCredentials(), context);
+        protected ArrayList<String> doInBackground(Object... objects) {
+
+            Socket brokerConnection = MyConnectionsManager.getConnectionWithABroker(context);
+
+            if(brokerConnection == null){
+                UtilitiesUI.showToast(getActivity(), MyConnectionsManager.CANNOT_CONNECT_MSG);
+                MainActivity.getNotificationManager().makeNoConnectionNotification();
+                return null;
+            }
+
+            Consumer c1 = new Consumer(brokerConnection, context);
 
             c1.init();
 
-            return c1.requestSongsOfArtist(artistSelected);
+           return c1.requestSongsOfArtist(artistSelected);
         }
     }
-
-
-    private ConnectionInfo loadInitialBrokerCredentials(){
-        ConnectionInfo connectionInfo = null;
-
-        try (FileInputStream fis = context.openFileInput("BrokerCredentials.txt")){
-            InputStreamReader isr = new InputStreamReader(fis);
-            BufferedReader br = new BufferedReader(isr);
-            StringBuilder sb = new StringBuilder();
-            String credentials;
-            if((credentials = br.readLine())!=null){
-                sb.append(credentials);
-                credentials = sb.toString();
-            }
-            String ip = credentials.substring(0,credentials.indexOf('@'));
-            int port = Integer.parseInt(credentials.substring(credentials.indexOf('@')+1));
-            connectionInfo = new ConnectionInfo(ip,port);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return connectionInfo;
-    }
-
 }
-
-
-//public class SongsOfArtistFragment extends GenericFragment {
-//
-//    private TextView label;
-//
-//    public SongsOfArtistFragment() {
-//        super(MyFragmentManager.getLayoutOf(SongsOfArtistFragment.class));
-//    }
-//
-//    @Override
-//    public void onActivityCreated(Bundle savedInstance) {
-//        super.onActivityCreated(savedInstance);
-//        String artist = getArguments().getString("selectedArtist");
-//
-//        label = (TextView) view.findViewById(R.id.songsLabel);
-//        label.setText("Songs by " + artist);
-//    }
-//
-//}

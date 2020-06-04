@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -16,7 +17,6 @@ import com.dsproject.musicstreamingservice.domain.media.ArtistName;
 import com.dsproject.musicstreamingservice.ui.recyclerViewAdapters.ArtistsAdapter;
 import com.dsproject.musicstreamingservice.ui.MainActivity;
 import com.dsproject.musicstreamingservice.ui.UtilitiesUI;
-import com.dsproject.musicstreamingservice.ui.adapters.CustomRVAdapter;
 import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 
@@ -25,19 +25,17 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-// TODO: pass the artist onto the next fragment.
-// Optional: Search bar, ripple effect on rows when clicked
-// (https://stackoverflow.com/questions/30931889/adding-ripple-effect-to-recyclerview-item/49704439#49704439).
-
+// TODO: display artists in alphabetical order,
+//       ripple effect on rows
 public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.ItemClickListener
 {
     private RecyclerView artistsList;
-
 
     public ArtistsFragment()
     {
         super(MyFragmentManager.getLayoutOf(ArtistsFragment.class));
     }
+
 
     @Override
     public void onActivityCreated(Bundle savedInstance)
@@ -46,6 +44,7 @@ public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.I
 
         artistsList = (RecyclerView) view.findViewById(R.id.artistsList);
         artistsList.setLayoutManager(new LinearLayoutManager(context));
+
         createArtistsList();
     }
 
@@ -71,7 +70,7 @@ public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.I
                 artistsNames.add(name.getArtistName());
             }
 
-           // artistsList.setLayoutManager(new LinearLayoutManager(context));
+            //sort artistsNames
 
             myAdapter = new ArtistsAdapter(context, artistsNames);
             myAdapter.setClickListener(this);
@@ -87,11 +86,12 @@ public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.I
     }
 
 
-    public void onItemClick(View view, int position)
+    public void onItemClick(View view, int position, TextView nameTextView)
     {
+       String artistSelected = nameTextView.getText().toString();
+
         Bundle bundle = new Bundle();
-        bundle.putString("selectedArtist", "Kalomira");
-        //bundle.putString("selectedArtist", selectedArtist);
+        bundle.putString("artistSelected", artistSelected);
 
         SongsOfArtistFragment soaf = new SongsOfArtistFragment();
         soaf.setArguments(bundle);
@@ -106,7 +106,9 @@ public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.I
     {
         @Override
         protected Map<ArtistName, ConnectionInfo> doInBackground(Object... objects) {
+
             Socket brokerConnection = MyConnectionsManager.getConnectionWithABroker(context);
+
             if(brokerConnection == null){
                 UtilitiesUI.showToast(getActivity(), MyConnectionsManager.CANNOT_CONNECT_MSG);
                 MainActivity.getNotificationManager().makeNoConnectionNotification();
@@ -114,11 +116,11 @@ public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.I
             }
 
             Consumer c1 = new Consumer(brokerConnection, context);
+
             c1.init();
 
             return c1.getArtistToBroker();
         }
     }
-
 }
 
