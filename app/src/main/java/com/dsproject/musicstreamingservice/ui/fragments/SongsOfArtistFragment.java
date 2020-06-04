@@ -57,8 +57,9 @@ public class SongsOfArtistFragment extends GenericFragment implements SongsAdapt
         label.setText("Songs by " + artistSelected);
 
         songsList = (RecyclerView) view.findViewById(R.id.songsList);
+        songsList.setLayoutManager(new LinearLayoutManager(context));
 
-        //createSongsList();
+        createSongsList();
     }
 
 
@@ -74,9 +75,7 @@ public class SongsOfArtistFragment extends GenericFragment implements SongsAdapt
         try {
             ArrayList<String> songsNames = taskRunner.execute().get();
 
-            songsList.setLayoutManager(new LinearLayoutManager(context));
-
-            //sort songsList
+            //sort songsNames
 
             myAdapter = new SongsAdapter(context, songsNames);
             myAdapter.setClickListener(this);
@@ -93,9 +92,9 @@ public class SongsOfArtistFragment extends GenericFragment implements SongsAdapt
 
 
     public void onItemClick(View view, int position) {
-        assert getFragmentManager() != null;
-        getFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                new PlayerFragment()).commit();
+//        assert getFragmentManager() != null;
+//        getFragmentManager().beginTransaction().replace(R.id.fragment_container,
+//                new PlayerFragment()).commit();
     }
 
 
