@@ -41,9 +41,4 @@ public interface Notifier
                                          boolean indeterminate, @Nullable Integer drawableIcon);
     void updateProgressNotification(String id, int maxProgress, int progress, boolean indeterminate);
     void completeProgressNotification(String id, String msg, @Nullable PendingIntent contentIntent);
-
-
-    void vibrate(int duration);
-    void vibrateRepeating(int duration, int delay, int repeats);
-    void playNotificationSound(@Nullable Integer rawResourceSound);
 }

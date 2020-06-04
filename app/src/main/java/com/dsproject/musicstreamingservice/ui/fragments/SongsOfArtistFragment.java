@@ -43,6 +43,11 @@ public class SongsOfArtistFragment extends GenericFragment implements ArtistsAda
         super(MyFragmentManager.getLayoutOf(SongsOfArtistFragment.class));
     }
 
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_songs_of_artist, container, false);
+    }
 
     @Override
     public void onActivityCreated(Bundle savedInstance)

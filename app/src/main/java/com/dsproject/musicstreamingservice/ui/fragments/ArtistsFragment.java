@@ -14,12 +14,13 @@ import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 import com.dsproject.musicstreamingservice.domain.media.ArtistName;
 import com.dsproject.musicstreamingservice.ui.recyclerViewAdapters.ArtistsAdapter;
+import com.dsproject.musicstreamingservice.ui.MainActivity;
+import com.dsproject.musicstreamingservice.ui.UtilitiesUI;
+import com.dsproject.musicstreamingservice.ui.adapters.CustomRVAdapter;
+import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -44,6 +45,7 @@ public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.I
         super.onActivityCreated(savedInstance);
 
         artistsList = (RecyclerView) view.findViewById(R.id.artistsList);
+        artistsList.setLayoutManager(new LinearLayoutManager(context));
         createArtistsList();
     }
 
@@ -59,13 +61,17 @@ public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.I
 
         try {
             Map<ArtistName, ConnectionInfo> artists = taskRunner.execute().get();
+            if(artists == null){
+                return;
+            }
+
             ArrayList<String> artistsNames = new ArrayList<>();
 
             for (ArtistName name : artists.keySet()) {
                 artistsNames.add(name.getArtistName());
             }
 
-            artistsList.setLayoutManager(new LinearLayoutManager(context));
+           // artistsList.setLayoutManager(new LinearLayoutManager(context));
 
             myAdapter = new ArtistsAdapter(context, artistsNames);
             myAdapter.setClickListener(this);
@@ -100,36 +106,18 @@ public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.I
     {
         @Override
         protected Map<ArtistName, ConnectionInfo> doInBackground(Object... objects) {
-            Consumer c1 = new Consumer(loadInitialBrokerCredentials(), context);
+            Socket brokerConnection = MyConnectionsManager.getConnectionWithABroker(context);
+            if(brokerConnection == null){
+                UtilitiesUI.showToast(getActivity(), MyConnectionsManager.CANNOT_CONNECT_MSG);
+                MainActivity.getNotificationManager().makeNoConnectionNotification();
+                return null;
+            }
 
+            Consumer c1 = new Consumer(brokerConnection, context);
             c1.init();
 
-            return c1.requestState();
+            return c1.getArtistToBroker();
         }
-    }
-
-
-    private ConnectionInfo loadInitialBrokerCredentials()
-    {
-        ConnectionInfo connectionInfo = null;
-
-        try (FileInputStream fis = context.openFileInput("BrokerCredentials.txt")){
-            InputStreamReader isr = new InputStreamReader(fis);
-            BufferedReader br = new BufferedReader(isr);
-            StringBuilder sb = new StringBuilder();
-            String credentials;
-            if((credentials = br.readLine())!=null){
-                sb.append(credentials);
-                credentials = sb.toString();
-            }
-            String ip = credentials.substring(0,credentials.indexOf('@'));
-            int port = Integer.parseInt(credentials.substring(credentials.indexOf('@')+1));
-            connectionInfo = new ConnectionInfo(ip,port);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return connectionInfo;
     }
 
 }

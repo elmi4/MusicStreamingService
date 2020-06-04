@@ -1,6 +1,5 @@
 package com.dsproject.musicstreamingservice.ui;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -11,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.dsproject.musicstreamingservice.R;
@@ -23,7 +21,6 @@ import com.dsproject.musicstreamingservice.ui.fragments.InstructionsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.SettingsFragment;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
-import com.dsproject.musicstreamingservice.ui.managers.notifications.Notifier;
 import com.google.android.material.navigation.NavigationView;
 
 
@@ -31,10 +28,11 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GenericFragment.DataPassListener
 {
     public static final String REDIRECT_TAG = "destinationFragment";
+    public static final String NOTIFICATION_ID_TAG = "notificationID";
 
     private DrawerLayout drawer;
     private NavigationView navView;
-    private static Notifier notifManager;
+    private static MyNotificationManager notifManager;
 
 
     @Override
@@ -91,27 +89,27 @@ public class MainActivity extends AppCompatActivity
         {
             case R.id.nav_artists:
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                        new ArtistsFragment()).commit();
+                        new ArtistsFragment()).addToBackStack(null).commit();
                 break;
 
             case R.id.nav_custom_request:
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                        new CustomRequestFragment()).commit();
+                        new CustomRequestFragment()).addToBackStack(null).commit();
                 break;
 
             case R.id.nav_settings:
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                        new SettingsFragment()).commit();
+                        new SettingsFragment()).addToBackStack(null).commit();
                 break;
 
             case R.id.nav_credits:
                     getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                    new CreditsFragment()).commit();
+                    new CreditsFragment()).addToBackStack(null).commit();
                 break;
 
             case R.id.nav_instructions:
                     getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                    new InstructionsFragment()).commit();
+                    new InstructionsFragment()).addToBackStack(null).commit();
                 break;
         }
 
@@ -125,7 +123,9 @@ public class MainActivity extends AppCompatActivity
     {
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else {
+        } else if(getSupportFragmentManager().getBackStackEntryCount() > 0){
+            getSupportFragmentManager().popBackStackImmediate();
+        }else {
             super.onBackPressed();
         }
     }
@@ -151,7 +151,7 @@ public class MainActivity extends AppCompatActivity
      * Use this method to get an instance of a Notifier, don't create one inside fragment.
      * @return The instance of the class' Notifier, like MyNotificationManager.
      */
-    public static Notifier getNotificationManager()
+    public static MyNotificationManager getNotificationManager()
     {
         return notifManager;
     }
@@ -194,14 +194,20 @@ public class MainActivity extends AppCompatActivity
         String fragName = intent.getStringExtra(REDIRECT_TAG);
 
         if(fragName == null){
-            navView.setCheckedItem(R.id.nav_settings);
+            navView.setCheckedItem(R.id.nav_artists);
             return getSupportFragmentManager().beginTransaction().
-                    replace(R.id.fragment_container, new SettingsFragment()); //default starting fragment
+                    replace(R.id.fragment_container, new ArtistsFragment()); //default starting fragment
         }else{
+            /*If the redirect routes to the settings fragment, it could be from the "NoConnection"
+            notification, so dismiss it if it exists.*/
+            if(fragName.equals(MyFragmentManager.SETTINGS_FRAG_NAME)){
+                notifManager.dismissPersistentNotification(MyNotificationManager.NO_CONNECTION_ID);
+            }
+
             GenericFragment frag = MyFragmentManager.getFragmentByName(fragName);
             changeMenuCheckedItem(frag);
             return getSupportFragmentManager().beginTransaction().
-                    replace(R.id.fragment_container, frag); //custom fragment to open
+                    replace(R.id.fragment_container, frag).addToBackStack(null); //custom fragment to open
         }
     }
 }

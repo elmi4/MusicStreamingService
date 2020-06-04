@@ -8,46 +8,56 @@ import com.dsproject.musicstreamingservice.ui.fragments.GenericFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.InstructionsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.PlayerFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.SettingsFragment;
-import com.dsproject.musicstreamingservice.ui.irrelevantActivities.CreditsActivity;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class MyFragmentManager
 {
     //layouts of fragments
-    public static final int ARTISTS_FRAG_LAYOUT = R.layout.artists_fragment,
-                            CUSTOM_REQ_FRAG_LAYOUT = R.layout.custom_request_fragment,
-                            SETTINGS_FRAG_LAYOUT = R.layout.settings_fragment,
-                           CREDITS_FRAG_LAYOUT = R.layout.fragment_credits,
-                          INSTRUCTIONS_FRAG_LAYOUT = R.layout.fragment_instructions,
+    public static final int ARTISTS_FRAG_LAYOUT = R.layout.fragment_artists,
+                            CUSTOM_REQ_FRAG_LAYOUT = R.layout.fragment_custom_request,
+                            SETTINGS_FRAG_LAYOUT = R.layout.fragment_settings,
+                            CREDITS_FRAG_LAYOUT = R.layout.fragment_credits,
+                            INSTRUCTIONS_FRAG_LAYOUT = R.layout.fragment_instructions,
                             PLAYER_FRAG_LAYOUT = R.layout.fragment_player;
 
     //String names of fragments
-    public static final String  ARTISTS_FRAG_NAME = "artists_fragment",
-                                PLAYER_FRAG_NAME = "player_fragment",
-                                CUSTOM_REQ_FRAG_NAME = "custom_request_fragment",
-                                SETTINGS_FRAG_NAME = "settings_fragment",
-                                CREDITS_FRAG_NAME = "credits_fragment",
-                                INSTRUCTIONS_FRAG_NAME = "instructions_fragment";
+    public static final String  ARTISTS_FRAG_NAME = "fragment_artists",
+                                CUSTOM_REQ_FRAG_NAME = "fragment_custom_request",
+                                SETTINGS_FRAG_NAME = "fragment_settings",
+                                CREDITS_FRAG_NAME = "fragment_credits",
+                                INSTRUCTIONS_FRAG_NAME = "fragment_instructions",
+                                PLAYER_FRAG_NAME = "player_fragment";
+
+    private static final Map<Class, Integer> classToLayout = Collections.unmodifiableMap(
+                                                                populateClassToLayoutMap());
 
 
+    private MyFragmentManager(){}
+
+    private static Map<Class, Integer> populateClassToLayoutMap()
+    {
+        Map<Class, Integer> classToLayout = new HashMap<>();
+        classToLayout.put(ArtistsFragment.class, ARTISTS_FRAG_LAYOUT);
+        classToLayout.put(SettingsFragment.class, SETTINGS_FRAG_LAYOUT);
+        classToLayout.put(CustomRequestFragment.class, CUSTOM_REQ_FRAG_LAYOUT);
+        classToLayout.put(InstructionsFragment.class, INSTRUCTIONS_FRAG_LAYOUT);
+        classToLayout.put(CreditsFragment.class, CREDITS_FRAG_LAYOUT);
+        classToLayout.put(PlayerFragment.class, PLAYER_FRAG_LAYOUT);
+
+        return classToLayout;
+    }
 
     //TODO: More cases to be added for each fragment class implemented
-    public static <T extends GenericFragment> int getLayoutOf(final Class<T> fragClass)
+    public static <T extends GenericFragment> Integer getLayoutOf(final Class<T> fragClass)
     {
-        if(fragClass == ArtistsFragment.class){
-            return ARTISTS_FRAG_LAYOUT;
-        }else if(fragClass == PlayerFragment.class){
-            return PLAYER_FRAG_LAYOUT;
-        }else if(fragClass == CustomRequestFragment.class){
-            return CUSTOM_REQ_FRAG_LAYOUT;
-        }else if(fragClass == SettingsFragment.class) {
-            return SETTINGS_FRAG_LAYOUT;
-        } else if(fragClass == CreditsFragment.class){
-                return CREDITS_FRAG_LAYOUT;
-        } else if(fragClass == InstructionsFragment.class){
-            return INSTRUCTIONS_FRAG_LAYOUT;
-        }else {
-            throw new IllegalArgumentException("Couldn't find layout for "+fragClass);
+        if(!classToLayout.containsKey(fragClass)){
+            throw new IllegalArgumentException("No layout found for the provided class.");
         }
+
+        return classToLayout.get(fragClass);
     }
 
     public static GenericFragment getFragmentByName(final String fragName)
@@ -61,6 +71,10 @@ public abstract class MyFragmentManager
                 return new CustomRequestFragment();
             case SETTINGS_FRAG_NAME:
                 return new SettingsFragment();
+            case CREDITS_FRAG_NAME:
+                return new CreditsFragment();
+            case INSTRUCTIONS_FRAG_NAME:
+                return new InstructionsFragment();
             default:
                 throw new IllegalArgumentException("Couldn't find class of " + fragName);
         }

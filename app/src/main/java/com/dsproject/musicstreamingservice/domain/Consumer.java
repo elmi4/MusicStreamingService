@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.widget.Toast;
+
 import androidx.core.content.FileProvider;
 
 import com.dsproject.musicstreamingservice.BuildConfig;
@@ -16,21 +17,28 @@ import com.dsproject.musicstreamingservice.domain.media.ArtistName;
 import com.dsproject.musicstreamingservice.domain.media.MusicFile;
 import com.dsproject.musicstreamingservice.domain.media.SongInfo;
 import com.dsproject.musicstreamingservice.ui.MainActivity;
-import com.dsproject.musicstreamingservice.ui.managers.notifications.Notifier;
+import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public final class Consumer
 {
     private final Map<String, Map<Integer,Byte[]>> songNamesToChunksMap = Collections.synchronizedMap(new HashMap<>());
     private final Context context;
-    private final ConnectionInfo knownBrokerInfo;
-    private final Notifier notificationManager;
+    private final Socket randomBrokerSocket;
+    private final MyNotificationManager notificationManager;
 
-    public Map<ArtistName, ConnectionInfo> artistToBroker;
+    private Map<ArtistName, ConnectionInfo> artistToBroker;
 
 
     public enum RequestType{
@@ -42,45 +50,22 @@ public final class Consumer
     }
 
 
-    public Consumer(final ConnectionInfo brokerInfo, final Context context)
+    public Consumer(final Socket randomBrokerSocket, final Context context)
     {
         this.context = context;
         this.notificationManager = MainActivity.getNotificationManager();
 
-        if(brokerInfo == null || brokerInfo.getIP().trim().equals("")){
-            throw new IllegalStateException("No valid broker provided");
+        if(randomBrokerSocket == null || randomBrokerSocket.isClosed()){
+            throw new IllegalStateException("No valid connection provided");
         }
-        this.knownBrokerInfo = brokerInfo;
+        this.randomBrokerSocket = randomBrokerSocket;
     }
 
 
     public void init()
     {
         artistToBroker = requestState();
-    }
-
-    /**
-     * (Initialization) Ask a random <b>Broker</b> to send you the existing artists and the brokers that serve them
-     * */
-    @SuppressWarnings("unchecked")
-    public Map<ArtistName, ConnectionInfo> requestState()
-    {
-
-        Socket requestSocket = connect(knownBrokerInfo);
-
-        Map<ArtistName, ConnectionInfo> outMap = null;
-        try(ObjectOutputStream out = new ObjectOutputStream(requestSocket.getOutputStream());
-            ObjectInputStream  in  = new ObjectInputStream(requestSocket.getInputStream()))
-        {
-            //Notify broker that he has to send the available artists and the brokers that serve them
-            out.writeObject("ListArtists");
-            out.flush();
-            outMap = (Map<ArtistName, ConnectionInfo>)in.readObject();
-        }catch(IOException | ClassNotFoundException e){
-            e.printStackTrace();
-        }
-
-        return (outMap == null) ? null : Collections.unmodifiableMap(outMap);
+        closeConnectionWithRandomBroker();
     }
 
 
@@ -130,6 +115,11 @@ public final class Consumer
                         chunk.getTotalChunks(), false, null);
             }
 
+            //Delete the previous temporary stream file if it exists
+            if(requestType == RequestType.DOWNLOAD_CHUNKS){
+                IOHandler.deleteFromStorage(this.context,chunk.getArtistName(),chunk.getTrackName(),false);
+            }
+
             //Accept all the song chunks from broker until null is received (no more chunks)
             do{
                 MusicFile mf = (MusicFile)ob;
@@ -154,7 +144,7 @@ public final class Consumer
                 }
                 if(requestType == RequestType.DOWNLOAD_CHUNKS){
                     System.out.println("Downloading chunk:"+mf.getChunkNumber()+" ...");
-                    IOHandler.writeFileInAppStorage(this.context, mf);
+                    IOHandler.appendFileInAppStorage(this.context, mf);
                 }
             } while ((ob = in.readObject()) != null);
 
@@ -201,7 +191,34 @@ public final class Consumer
         }
     }
 
+    public Map<ArtistName, ConnectionInfo> getArtistToBroker()
+    {
+        return artistToBroker;
+    }
+
     // ---------------------------------   PRIVATE METHODS    ----------------------------------
+
+    /**
+     * (Initialization) Ask a random <b>Broker</b> to send you the existing artists and the brokers that serve them
+     * */
+    @SuppressWarnings("unchecked")
+    private Map<ArtistName, ConnectionInfo> requestState()
+    {
+        Map<ArtistName, ConnectionInfo> outMap = null;
+        try(ObjectOutputStream out = new ObjectOutputStream(randomBrokerSocket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(randomBrokerSocket.getInputStream()))
+        {
+            //Notify broker that he has to send the available artists and the brokers that serve them
+            out.writeObject("ListArtists");
+            out.flush();
+            outMap = (Map<ArtistName, ConnectionInfo>)in.readObject();
+
+        }catch(IOException | ClassNotFoundException e){
+            e.printStackTrace();
+        }
+
+        return (outMap == null) ? null : Collections.unmodifiableMap(outMap);
+    }
 
     private Socket connect(final ConnectionInfo connInfo)
     {
@@ -214,15 +231,14 @@ public final class Consumer
         return connection;
     }
 
-
-//    private ConnectionInfo getRandomBroker() throws IllegalStateException
-//    {
-//        if(super.brokers == null || super.brokers.size() == 0){
-//            throw new IllegalStateException("Brokers not found");
-//        }
-//
-//        return super.brokers.get(0);
-//    }
+    private void closeConnectionWithRandomBroker()
+    {
+        try{
+            randomBrokerSocket.close();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
 
 
     /**
