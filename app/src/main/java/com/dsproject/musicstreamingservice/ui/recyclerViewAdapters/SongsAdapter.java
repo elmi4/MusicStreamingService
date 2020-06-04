@@ -5,8 +5,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dsproject.musicstreamingservice.R;
@@ -22,7 +22,6 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder>
     private ItemClickListener mClickListener;
     private LayoutInflater mInflater;
 
-
     public SongsAdapter(Context context, List<String> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
@@ -32,6 +31,7 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder>
     /**
      * Inflates (builds) the row layout from its corresponding xml file.
      */
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = mInflater.inflate(R.layout.row_of_songs_list, parent, false);
@@ -40,7 +40,7 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder>
 
 
     /**
-     * Binds the strings to their respective TextViews in each row.
+     * Binds the string to its respective TextView in each row.
      */
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {

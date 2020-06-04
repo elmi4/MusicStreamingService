@@ -21,12 +21,13 @@ import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnections
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 
 import java.net.Socket;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-// TODO: display artists in alphabetical order,
-//       ripple effect on rows
+// TODO: ripple effect on rows
 public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.ItemClickListener
 {
     private RecyclerView artistsList;
@@ -70,7 +71,7 @@ public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.I
                 artistsNames.add(name.getArtistName());
             }
 
-            //sort artistsNames
+            Collections.sort(artistsNames);
 
             myAdapter = new ArtistsAdapter(context, artistsNames);
             myAdapter.setClickListener(this);
@@ -90,14 +91,15 @@ public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.I
     {
        String artistSelected = nameTextView.getText().toString();
 
+       //Send the data to the SongsOfArtist fragment.
         Bundle bundle = new Bundle();
         bundle.putString("artistSelected", artistSelected);
 
-        SongsOfArtistFragment soaf = new SongsOfArtistFragment();
-        soaf.setArguments(bundle);
+        SongsOfArtistFragment songs = new SongsOfArtistFragment();
+        songs.setArguments(bundle);
 
         assert getFragmentManager() != null;
-        getFragmentManager().beginTransaction().replace(R.id.fragment_container, soaf).commit();
+        getFragmentManager().beginTransaction().replace(R.id.fragment_container, songs).commit();
     }
 
 

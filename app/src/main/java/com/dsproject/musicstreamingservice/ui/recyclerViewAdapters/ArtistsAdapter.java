@@ -22,7 +22,6 @@ public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.ViewHold
     private ItemClickListener mClickListener;
     private LayoutInflater mInflater;
 
-
     public ArtistsAdapter(Context context, List<String> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
@@ -41,7 +40,7 @@ public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.ViewHold
 
 
     /**
-     * Binds the strings to their respective TextViews in each row.
+     * Binds the string to its respective TextView in each row.
      */
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
