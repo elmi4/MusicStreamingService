@@ -4,11 +4,17 @@ package com.dsproject.musicstreamingservice.domain.assist.io;
 import android.content.Context;
 import android.util.Log;
 
+import com.dsproject.musicstreamingservice.domain.assist.Utilities;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 import com.dsproject.musicstreamingservice.domain.media.MusicFile;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -117,6 +123,30 @@ public abstract class IOHandler
         }
 
         return chunks;
+    }
+
+    public static List<Byte> readMp31(Context context)
+    {
+        String trackName = "Landra's Dream";
+        String artistName = "Jason Shaw";
+        String dataFolder = artistName + "___" + trackName + "/";
+        File songParentFolder = new File(context.getExternalFilesDir(null), dataFolder);
+        if (!songParentFolder.exists()) {
+            songParentFolder.mkdir();
+        }
+
+        String fileName = "FULL_" + trackName + "__" + artistName + ".mp3";
+        File mp3File = new File(songParentFolder, fileName);
+        int remainingSize = (int) mp3File.length();
+
+        byte[] bytes = new byte[remainingSize];
+        try (BufferedInputStream buf = new BufferedInputStream(new FileInputStream(mp3File))) {
+            buf.read(bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return new ArrayList<>(Arrays.asList(Utilities.toByteObjectArray(bytes)));
     }
 
 
