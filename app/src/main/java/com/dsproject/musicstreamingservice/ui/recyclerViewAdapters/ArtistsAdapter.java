@@ -1,4 +1,4 @@
-package com.dsproject.musicstreamingservice.ui.adapters;
+package com.dsproject.musicstreamingservice.ui.recyclerViewAdapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dsproject.musicstreamingservice.R;
@@ -13,16 +14,15 @@ import com.dsproject.musicstreamingservice.R;
 import java.util.List;
 
 /**
- * Adapter needed to populate the views in each row of the RecyclerView.
+ * Adapter to populate each row with its respective artist name.
  */
-public class CustomRVAdapter extends RecyclerView.Adapter<CustomRVAdapter.ViewHolder>
+public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.ViewHolder>
 {
     private List<String> mData;
     private ItemClickListener mClickListener;
     private LayoutInflater mInflater;
 
-
-    public CustomRVAdapter(Context context, List<String> data) {
+    public ArtistsAdapter(Context context, List<String> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
     }
@@ -31,6 +31,7 @@ public class CustomRVAdapter extends RecyclerView.Adapter<CustomRVAdapter.ViewHo
     /**
      * Inflates (builds) the row layout from its corresponding xml file.
      */
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = mInflater.inflate(R.layout.row_of_artists_list, parent, false);
@@ -39,7 +40,7 @@ public class CustomRVAdapter extends RecyclerView.Adapter<CustomRVAdapter.ViewHo
 
 
     /**
-     * Binds the strings to their respective TextViews in each row.
+     * Binds the string to its respective TextView in each row.
      */
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
@@ -69,7 +70,7 @@ public class CustomRVAdapter extends RecyclerView.Adapter<CustomRVAdapter.ViewHo
 
         @Override
         public void onClick(View view) {
-            if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition());
+           if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition(), myTextView);
         }
     }
 
@@ -80,6 +81,6 @@ public class CustomRVAdapter extends RecyclerView.Adapter<CustomRVAdapter.ViewHo
 
 
     public interface ItemClickListener {
-        void onItemClick(View view, int position);
+        void onItemClick(View view, int position, TextView nameTextView) ;
     }
 }

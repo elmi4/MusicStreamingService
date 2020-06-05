@@ -224,7 +224,7 @@ public final class Consumer
      * Get a list of all the song names of a particular artist from the eventDelivery.
      */
     @SuppressWarnings("unchecked")
-    public List<String> requestSongsOfArtist(final String artistName) throws IllegalStateException
+    public  ArrayList<String> requestSongsOfArtist(final String artistName) throws IllegalStateException
     {
         if (artistToBroker == null) throw new IllegalStateException("Consumer was not initialized correctly.");
 

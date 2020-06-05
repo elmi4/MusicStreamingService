@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -13,6 +14,7 @@ import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 import com.dsproject.musicstreamingservice.domain.media.ArtistName;
+import com.dsproject.musicstreamingservice.ui.recyclerViewAdapters.ArtistsAdapter;
 import com.dsproject.musicstreamingservice.ui.MainActivity;
 import com.dsproject.musicstreamingservice.ui.adapters.CustomRVAdapter;
 import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
@@ -21,23 +23,20 @@ import com.dsproject.musicstreamingservice.ui.util.UtilitiesUI;
 
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-
-// To add:
-// Ripple effect on rows when clicked (https://stackoverflow.com/questions/30931889/adding-ripple-effect-to-recyclerview-item/49704439#49704439),
-// Search bar.
-
-public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.ItemClickListener
+// TODO: ripple effect on rows
+public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.ItemClickListener
 {
     private RecyclerView artistsList;
-
 
     public ArtistsFragment()
     {
         super(MyFragmentManager.getLayoutOf(ArtistsFragment.class));
     }
+
 
     @Override
     public void onActivityCreated(Bundle savedInstance)
@@ -57,7 +56,8 @@ public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.
     private void createArtistsList()
     {
         AsyncTaskRunner taskRunner = new AsyncTaskRunner();
-        CustomRVAdapter myAdapter;
+        ArtistsAdapter myAdapter;
+
         try {
             Map<ArtistName, ConnectionInfo> artists = taskRunner.execute().get();
             if(artists == null){
@@ -70,7 +70,9 @@ public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.
                 artistsNames.add(name.getArtistName());
             }
 
-            myAdapter = new CustomRVAdapter(context, artistsNames);
+            Collections.sort(artistsNames);
+
+            myAdapter = new ArtistsAdapter(context, artistsNames);
             myAdapter.setClickListener(this);
             artistsList.setAdapter(myAdapter);
 
@@ -84,12 +86,21 @@ public class ArtistsFragment extends GenericFragment implements CustomRVAdapter.
     }
 
 
-    public void onItemClick(View view, int position)
+    public void onItemClick(View view, int position, TextView nameTextView)
     {
+       String artistSelected = nameTextView.getText().toString();
+
+       //Send the data to the SongsOfArtist fragment.
+        Bundle bundle = new Bundle();
+        bundle.putString("artistSelected", artistSelected);
+
+        SongsOfArtistFragment songs = new SongsOfArtistFragment();
+        songs.setArguments(bundle);
+
         assert getFragmentManager() != null;
-        getFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                new SongsOfArtistFragment()).commit();
+        getFragmentManager().beginTransaction().replace(R.id.fragment_container, songs).commit();
     }
+
 
     @SuppressLint("StaticFieldLeak")
     private class AsyncTaskRunner extends AsyncTask<Object, Void, Map<ArtistName, ConnectionInfo>>
