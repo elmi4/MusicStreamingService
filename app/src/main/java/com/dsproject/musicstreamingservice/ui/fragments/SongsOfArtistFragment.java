@@ -13,13 +13,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.ui.MainActivity;
-import com.dsproject.musicstreamingservice.ui.UtilitiesUI;
 import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 import com.dsproject.musicstreamingservice.ui.recyclerViewAdapters.SongsAdapter;
+import com.dsproject.musicstreamingservice.ui.util.UtilitiesUI;
 
 import java.net.Socket;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;

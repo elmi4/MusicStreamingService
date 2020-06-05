@@ -14,11 +14,10 @@ import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.network.ConnectionInfo;
 import com.dsproject.musicstreamingservice.domain.media.ArtistName;
-import com.dsproject.musicstreamingservice.ui.recyclerViewAdapters.ArtistsAdapter;
 import com.dsproject.musicstreamingservice.ui.MainActivity;
-import com.dsproject.musicstreamingservice.ui.adapters.CustomRVAdapter;
 import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
+import com.dsproject.musicstreamingservice.ui.recyclerViewAdapters.ArtistsAdapter;
 import com.dsproject.musicstreamingservice.ui.util.UtilitiesUI;
 
 import java.net.Socket;
