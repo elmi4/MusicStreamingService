@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -21,14 +22,20 @@ import com.dsproject.musicstreamingservice.ui.util.UtilitiesUI;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-// TODO: add download button.
+// TODO: download button (see CustomRequest),
 public class SongsOfArtistFragment extends GenericFragment implements SongsAdapter.ItemClickListener
 {
     private RecyclerView songsList;
     private String artistSelected;
+    private Button download;
+
+    private PetrosPlayerFragment playerFragment;
+    private List<Byte> dataBuffer;
+
 
     public SongsOfArtistFragment()
     {
@@ -41,6 +48,8 @@ public class SongsOfArtistFragment extends GenericFragment implements SongsAdapt
     {
         super.onActivityCreated(savedInstance);
 
+        //download = (Button) view.findViewById(R.id.downloadBtn);
+
         //Get the selected artist from the Artist fragment
         assert getArguments() != null;
         artistSelected = getArguments().getString("artistSelected");
@@ -50,6 +59,8 @@ public class SongsOfArtistFragment extends GenericFragment implements SongsAdapt
 
         songsList = (RecyclerView) view.findViewById(R.id.songsList);
         songsList.setLayoutManager(new LinearLayoutManager(context));
+
+        setListener();
 
         createSongsList();
     }
@@ -82,10 +93,31 @@ public class SongsOfArtistFragment extends GenericFragment implements SongsAdapt
         }
     }
 
-    public void onItemClick(View view, int position) {
-        assert getFragmentManager() != null;
-        getFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                new PlayerFragment()).commit();
+
+    private void setListener()
+    {
+        download.setOnClickListener(view -> {
+
+    });
+
+    }
+
+
+    public void onItemClick(View view, int position, TextView songName)
+    {
+        String songSelected = songName.getText().toString();
+
+        dataBuffer = new ArrayList<>(3000000);
+        playerFragment = new PetrosPlayerFragment(dataBuffer);
+
+        Bundle data = new Bundle();
+
+        ArrayList<String> titleOfPlayer = new ArrayList<>();
+        titleOfPlayer.add(artistSelected);
+        titleOfPlayer.add(songSelected);
+
+        data.putStringArrayList("songInfo", titleOfPlayer);
+        goToFragmentWithData(data, playerFragment);
     }
 
 

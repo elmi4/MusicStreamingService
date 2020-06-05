@@ -24,6 +24,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 // TODO: ripple effect on rows
@@ -85,19 +86,15 @@ public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.I
     }
 
 
-    public void onItemClick(View view, int position, TextView nameTextView)
+    public void onItemClick(View view, int position, TextView artistName)
     {
-       String artistSelected = nameTextView.getText().toString();
+       String artistSelected = artistName.getText().toString();
 
-       //Send the data to the SongsOfArtist fragment.
-        Bundle bundle = new Bundle();
-        bundle.putString("artistSelected", artistSelected);
+        Bundle dataToSend = new Bundle();
+        dataToSend.putString("artistSelected", artistSelected);
 
         SongsOfArtistFragment songs = new SongsOfArtistFragment();
-        songs.setArguments(bundle);
-
-        assert getFragmentManager() != null;
-        getFragmentManager().beginTransaction().replace(R.id.fragment_container, songs).commit();
+        goToFragmentWithData(dataToSend, songs);
     }
 
 
@@ -108,7 +105,7 @@ public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.I
         protected Map<ArtistName, ConnectionInfo> doInBackground(Object... objects) {
             Socket brokerConnection = MyConnectionsManager.getConnectionWithABroker(context);
             if(brokerConnection == null){
-                UtilitiesUI.showToast(getActivity(), MyConnectionsManager.CANNOT_CONNECT_MSG);
+                UtilitiesUI.showToast(Objects.requireNonNull(getActivity()), MyConnectionsManager.CANNOT_CONNECT_MSG);
                 MainActivity.getNotificationManager().makeNoConnectionNotification();
                 return null;
             }

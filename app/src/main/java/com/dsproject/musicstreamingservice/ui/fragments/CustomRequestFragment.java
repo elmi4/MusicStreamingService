@@ -92,7 +92,7 @@ public class CustomRequestFragment extends GenericFragment
                 ArrayList<String> title = new ArrayList<>();
                 title.add(artist);
                 title.add(song);
-                data.putStringArrayList("songInfo",title);
+                data.putStringArrayList("songInfo", title);
                 goToFragmentWithData(data, playerFragment);
             }
 
@@ -106,6 +106,7 @@ public class CustomRequestFragment extends GenericFragment
             song_input_field.getEditText().setText(args.getString("songName"));
         }
     }
+
 
     @SuppressLint("StaticFieldLeak")
     private class AsyncTaskRunner extends AsyncTask<String, Void, Void>
