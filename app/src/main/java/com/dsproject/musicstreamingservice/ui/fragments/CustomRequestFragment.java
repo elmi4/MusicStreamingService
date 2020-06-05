@@ -9,13 +9,14 @@ import android.widget.Switch;
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.ui.MainActivity;
-import com.dsproject.musicstreamingservice.ui.UtilitiesUI;
 import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
+import com.dsproject.musicstreamingservice.ui.util.UtilitiesUI;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class CustomRequestFragment extends GenericFragment
@@ -27,6 +28,9 @@ public class CustomRequestFragment extends GenericFragment
     private TextInputLayout song_input_field;
     private Button Req;
     private Switch switch1;
+
+    private PetrosPlayerFragment playerFragment;
+    private List<Byte> dataBuffer;
 
 
     public CustomRequestFragment()
@@ -76,8 +80,12 @@ public class CustomRequestFragment extends GenericFragment
             boolean playNow = !switch1.isChecked();
             String request_type = (playNow) ? PLAY_REQUEST : DOWNLOAD_REQUEST;
 
-            AsyncTaskRunner runner = new AsyncTaskRunner();
-            runner.execute(artist, song, request_type);
+            if(playNow){
+                dataBuffer = new ArrayList<>(3000000);
+            }
+            playerFragment = new PetrosPlayerFragment(dataBuffer);
+
+            new AsyncTaskRunner().execute(artist, song, request_type);
 
             if(playNow){
                 Bundle data = new Bundle();
@@ -85,7 +93,7 @@ public class CustomRequestFragment extends GenericFragment
                 title.add(artist);
                 title.add(song);
                 data.putStringArrayList("songInfo",title);
-                goToFragmentWithData(data, new PlayerFragment());
+                goToFragmentWithData(data, playerFragment);
             }
 
         });
@@ -103,7 +111,7 @@ public class CustomRequestFragment extends GenericFragment
     private class AsyncTaskRunner extends AsyncTask<String, Void, Void>
     {
         @Override
-        protected Void doInBackground(String... params) {
+        protected Void doInBackground(final String... params) {
             Socket brokerConnection = MyConnectionsManager.getConnectionWithABroker(context);
             if(brokerConnection == null){
                 UtilitiesUI.showToast(getActivity(), MyConnectionsManager.CANNOT_CONNECT_MSG);
@@ -111,15 +119,19 @@ public class CustomRequestFragment extends GenericFragment
                 return null;
             }
 
-            Consumer c1 = new Consumer(brokerConnection, context);
             Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
                     Consumer.RequestType.DOWNLOAD_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
 
+            Consumer c1 = new Consumer(brokerConnection, context);
             c1.init();
-            c1.requestSongData(params[0], params[1], type);
+
+            if(dataBuffer == null){
+                c1.requestSongData(params[0], params[1], type);
+            }else{
+                c1.requestAndAppendSongDataToByteArray(params[0], params[1], dataBuffer, playerFragment);
+            }
 
             return null;
         }
     }
-
 }

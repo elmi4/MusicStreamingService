@@ -17,14 +17,16 @@ import androidx.annotation.Nullable;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
-import com.dsproject.musicstreamingservice.ui.ByteListMediaDataSource;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
+import com.dsproject.musicstreamingservice.ui.util.ByteListMediaDataSource;
+import com.dsproject.musicstreamingservice.ui.util.OnBufferInitializedEvent;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PetrosPlayerFragment extends GenericFragment implements MediaPlayer.OnErrorListener
+public class PetrosPlayerFragment extends GenericFragment
+        implements MediaPlayer.OnErrorListener, OnBufferInitializedEvent
 {
     private TextView title;
     private ImageView songImage;
@@ -33,12 +35,15 @@ public class PetrosPlayerFragment extends GenericFragment implements MediaPlayer
     private String artist, song;
     private int progress = 0;
 
-    private static List<Byte> sourceBuffer = new ArrayList<>();//CopyOnWriteArrayList
-    private static MediaPlayer musicPlayer;
+    private List<Byte> sourceBuffer;//CopyOnWriteArrayList
+    private MediaPlayer musicPlayer;
 
 
-    public PetrosPlayerFragment() {
+
+
+    public PetrosPlayerFragment(List<Byte> buffer) {
         super(MyFragmentManager.getLayoutOf(PlayerFragment.class));
+        sourceBuffer = buffer;
     }
 
 
@@ -67,18 +72,20 @@ public class PetrosPlayerFragment extends GenericFragment implements MediaPlayer
 //            instead of ArrayList, the List could be a CopyOnWriteArrayList
 
             //test method to get the mp3 bytes into memory
-            sourceBuffer = IOHandler.readMp31(getActivity());
+           // sourceBuffer = IOHandler.readMp31(getActivity());
             MediaDataSource dataSource = new ByteListMediaDataSource(sourceBuffer);
 
             musicPlayer = new MediaPlayer();
             musicPlayer.setOnCompletionListener(MediaPlayer::release);
             musicPlayer.setDataSource(dataSource);
-            try {
-                musicPlayer.prepare();
-            } catch (IOException e) {
-                title.setText("Error playing file");
-            }
-            musicPlayer.start();
+//            try {
+//                musicPlayer.prepare();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//                title.setText("Error playing file");
+//            }
+//            System.out.println("PAAAASEEED PREPAAAREEEEEEEEEEEEEEEEEEEEE");
+//            musicPlayer.start();
 
             pausePlayButton.setOnClickListener(v1 -> {
                 if (musicPlayer.isPlaying()) {
@@ -134,4 +141,11 @@ public class PetrosPlayerFragment extends GenericFragment implements MediaPlayer
         return true;
     }
 
+
+    public void prepareAndStartSong() throws IOException
+    {
+        System.out.println("PLAYER LISTENEEEEEEEEEEEEEEEEED");
+        musicPlayer.prepare();
+        musicPlayer.start();
+    }
 }

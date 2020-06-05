@@ -1,4 +1,4 @@
-package com.dsproject.musicstreamingservice.ui;
+package com.dsproject.musicstreamingservice.ui.util;
 
 import android.app.Activity;
 import android.widget.Toast;

@@ -1,4 +1,4 @@
-package com.dsproject.musicstreamingservice.ui;
+package com.dsproject.musicstreamingservice.ui.util;
 
 import android.media.MediaDataSource;
 
@@ -19,12 +19,19 @@ public class ByteListMediaDataSource extends MediaDataSource
     @Override
     public int readAt(final long pos, final byte[] buffer, final int offset, final int size)
     {
-        int count = 0;
-        for (int i = (int)pos; i < pos+size; i++) {
-            buffer[offset + count++] = data.get(i);
-        }
+        System.out.println("Size of internal: "+getSize()+"  ,  Requested position of internal: "+pos+"  ,  Offset: "+offset);
+        System.out.println("Wanted buffer size: "+ size);
 
-        return size;
+        int count = 0;
+        int sizeToBeRead = (int)Math.min(getSize(), pos+size);
+        int counter = 0;
+        for (int i = (int)pos; i < sizeToBeRead; i++) {
+            buffer[offset + count++] = data.get(i);
+            ++counter;
+        }
+        System.out.println("Gave  :"+counter+"  bytes");
+
+        return count;
     }
 
     @Override

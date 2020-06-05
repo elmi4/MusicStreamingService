@@ -18,6 +18,7 @@ import com.dsproject.musicstreamingservice.domain.media.MusicFile;
 import com.dsproject.musicstreamingservice.domain.media.SongInfo;
 import com.dsproject.musicstreamingservice.ui.MainActivity;
 import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
+import com.dsproject.musicstreamingservice.ui.util.OnBufferInitializedEvent;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +41,6 @@ public final class Consumer
     private final MyNotificationManager notificationManager;
 
     private Map<ArtistName, ConnectionInfo> artistToBroker;
-
 
     public enum RequestType{
         NONE,
@@ -165,7 +165,9 @@ public final class Consumer
 
 
     public void requestAndAppendSongDataToByteArray(final String artistName, final String songName,
-                                final List<Byte> mp3Bits) throws IllegalStateException
+                                                    final List<Byte> mp3Bits,
+                                                    final OnBufferInitializedEvent callback)
+            throws IllegalStateException
     {
 
         if(artistToBroker == null) throw new IllegalStateException("Consumer was not initialized correctly.");
@@ -197,12 +199,19 @@ public final class Consumer
                 return;
             }
 
+            boolean callbackCalled = false;
             //Accept all the song chunks from broker until null is received (no more chunks)
+            int counter = 1;
             do{
                 MusicFile mf = (MusicFile)ob;
                 byte[] currentChunk = mf.getMusicFileExtract();
                 List<Byte> aList = new ArrayList<>(Arrays.asList(Utilities.toByteObjectArray(currentChunk)));
                 mp3Bits.addAll(aList);
+                System.out.println("CONSUMER ADDED BYTES: "+counter++);
+                if(!callbackCalled){
+                    callback.prepareAndStartSong();
+                    callbackCalled = true;
+                }
             } while ((ob = in.readObject()) != null);
         }catch(IOException | ClassNotFoundException e){
             e.printStackTrace();
