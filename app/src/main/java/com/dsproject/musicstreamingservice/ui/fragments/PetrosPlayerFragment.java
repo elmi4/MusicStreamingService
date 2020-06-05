@@ -39,8 +39,6 @@ public class PetrosPlayerFragment extends GenericFragment
     private MediaPlayer musicPlayer;
 
 
-
-
     public PetrosPlayerFragment(List<Byte> buffer) {
         super(MyFragmentManager.getLayoutOf(PlayerFragment.class));
         sourceBuffer = buffer;
