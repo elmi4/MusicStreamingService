@@ -17,8 +17,10 @@ import com.dsproject.musicstreamingservice.domain.media.ArtistName;
 import com.dsproject.musicstreamingservice.domain.media.MusicFile;
 import com.dsproject.musicstreamingservice.domain.media.SongInfo;
 import com.dsproject.musicstreamingservice.ui.MainActivity;
+import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
 import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
 import com.dsproject.musicstreamingservice.ui.util.OnBufferInitializedEvent;
+import com.dsproject.musicstreamingservice.ui.util.UtilitiesUI;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,7 +76,7 @@ public final class Consumer
      * Make song requests to appropriate brokers ASYNCHRONOUSLY
      * Define what happens with the received data by specifying the "requestType"
      */
-    public void requestSongData(final String artistName, final String songName,
+    public boolean requestSongData(final String artistName, final String songName,
                                 final RequestType requestType) throws IllegalStateException
     {
 
@@ -83,8 +85,8 @@ public final class Consumer
         ArtistName artistObj = ArtistName.of(artistName);
 
         if(!artistIsServed(artistObj)){
-            showToastMsg("This artist isn't being served");
-            return;
+            UtilitiesUI.showToast((Activity)context, "This artist isn't being served");
+            return false;
         }
 
         Socket requestSocket = getConnectionWithBrokerOfArtist(artistObj);
@@ -103,8 +105,8 @@ public final class Consumer
             //If error msg was sent, return. (song doesn't exist)
             Object ob = in.readObject();
             if(Utilities.isStringLiteral(ob)){
-                showToastMsg((String)ob);
-                return;
+                UtilitiesUI.showToast((Activity)context, (String)ob);
+                return false;
             }
 
             //Create the ID for the download notification and initialize the notification.
@@ -161,10 +163,11 @@ public final class Consumer
         }catch(IOException | ClassNotFoundException e){
             e.printStackTrace();
         }
+        return true;
     }
 
 
-    public void requestAndAppendSongDataToByteArray(final String artistName, final String songName,
+    public Boolean requestAndAppendSongDataToByteArray(final String artistName, final String songName,
                                                     final List<Byte> mp3Bits,
                                                     final OnBufferInitializedEvent callback)
             throws IllegalStateException
@@ -175,8 +178,8 @@ public final class Consumer
         ArtistName artistObj = ArtistName.of(artistName);
 
         if(!artistIsServed(artistObj)){
-            showToastMsg("This artist isn't being served");
-            return;
+            UtilitiesUI.showToast((Activity)context, "This artist isn't being served");
+            return false;
         }
 
         Socket requestSocket = getConnectionWithBrokerOfArtist(artistObj);
@@ -195,8 +198,8 @@ public final class Consumer
             //If error msg was sent, return. (song doesn't exist)
             Object ob = in.readObject();
             if(Utilities.isStringLiteral(ob)){
-                showToastMsg((String)ob);
-                return;
+                UtilitiesUI.showToast((Activity)context, (String)ob);
+                return false;
             }
 
             boolean callbackCalled = false;
@@ -216,6 +219,7 @@ public final class Consumer
         }catch(IOException | ClassNotFoundException e){
             e.printStackTrace();
         }
+        return true;
     }
 
 
@@ -374,13 +378,5 @@ public final class Consumer
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-    private void showToastMsg(final String msg)
-    {
-        ((Activity)context).runOnUiThread(() -> {
-            final Toast toast = Toast.makeText(context, msg, Toast.LENGTH_LONG);
-            toast.show();
-        });
     }
 }

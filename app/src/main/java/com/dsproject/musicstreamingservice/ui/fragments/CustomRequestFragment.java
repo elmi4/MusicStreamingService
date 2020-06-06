@@ -118,30 +118,37 @@ public class CustomRequestFragment extends GenericFragment
     }
 
     @SuppressLint("StaticFieldLeak")
-    private class AsyncTaskRunner extends AsyncTask<String, Void, Void>
+    private class AsyncTaskRunner extends AsyncTask<String, Void, Boolean>
     {
         @Override
-        protected Void doInBackground(final String... params) {
+        protected Boolean doInBackground(final String... params) {
             Socket brokerConnection = MyConnectionsManager.getConnectionWithABroker(context);
             if(brokerConnection == null){
                 UtilitiesUI.showToast(getActivity(), MyConnectionsManager.CANNOT_CONNECT_MSG);
                 MainActivity.getNotificationManager().makeNoConnectionNotification();
-                return null;
+                return false;
             }
 
             Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
                     Consumer.RequestType.DOWNLOAD_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
 
-            Consumer c1 = new Consumer(brokerConnection, context);
+            Consumer c1 = new Consumer(brokerConnection, getActivity());
             c1.init();
 
             if(dataBuffer == null){
-                c1.requestSongData(params[0], params[1], type);
+                return c1.requestSongData(params[0], params[1], type);
             }else{
-                c1.requestAndAppendSongDataToByteArray(params[0], params[1], dataBuffer, playerFragment);
+                return c1.requestAndAppendSongDataToByteArray(params[0], params[1], dataBuffer, playerFragment);
             }
+        }
 
-            return null;
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
+            if(!aBoolean) {
+                getActivity().getSupportFragmentManager().beginTransaction().remove(playerFragment).commit();
+                getActivity().getSupportFragmentManager().popBackStackImmediate();
+            }
         }
     }
 }
