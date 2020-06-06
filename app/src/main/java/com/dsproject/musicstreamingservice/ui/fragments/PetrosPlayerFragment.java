@@ -31,6 +31,7 @@
         import java.io.File;
         import java.io.FileNotFoundException;
         import java.io.IOException;
+        import java.lang.ref.WeakReference;
         import java.util.ArrayList;
         import java.util.List;
         import java.util.Scanner;
@@ -105,30 +106,9 @@
 //            System.out.println("PAAAASEEED PREPAAAREEEEEEEEEEEEEEEEEEEEE");
 //            musicPlayer.start();
 
-            while(!imageSet) {
-                try {
-                    if(dataSource.getSize() > 1 && metadataRetriever != null && musicPlayer !=null && musicPlayer.isPlaying()) {
-
-                        metadataRetriever.setDataSource(dataSource);
-
-                        byte [] imageData = metadataRetriever.getEmbeddedPicture();
-
-                        // convert the byte array to a bitmap
-                        if(imageData != null)
-                        {
-                            Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
-                            songImage.setImageBitmap(bitmap); //associated cover art in bitmap
-                            imageSet = true;
-                            System.out.println("Cover art set");
-                        }
-
-                    }
-                } catch (IOException e) {
-
-                }
-            }
 
 
+            // Change the progress of the progress bar
             new Thread((Runnable) () -> {
                 while(!stop){
                     try {
@@ -143,6 +123,10 @@
                     }
                 }
             }).start();
+
+            //Change the Cover art
+            BitmapWorkerTask runner = new BitmapWorkerTask(songImage);
+            runner.execute();
 
 
 
@@ -209,6 +193,54 @@
 
     }
 
+
+    class BitmapWorkerTask extends AsyncTask<Integer, Void, Bitmap> {
+        private final WeakReference<ImageView> imageViewReference;
+        private int data = 0;
+
+        public BitmapWorkerTask(ImageView imageView) {
+            // Use a WeakReference to ensure the ImageView can be garbage collected
+            imageViewReference = new WeakReference<ImageView>(imageView);
+        }
+
+        // Decode image in background.
+        @Override
+        protected Bitmap doInBackground(Integer... params) {
+            Bitmap bitmap = null;
+            while(!imageSet && bitmap == null) {
+                try {
+                    if(dataSource.getSize() > 1 && metadataRetriever != null && musicPlayer !=null && musicPlayer.isPlaying()) {
+
+                        byte [] imageData = metadataRetriever.getEmbeddedPicture();
+
+                        // convert the byte array to a bitmap
+                        if(imageData != null)
+                        {
+                            bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
+                            return bitmap;
+                        }
+
+                    }
+                } catch (IOException e) {
+
+                }
+            }
+            return null;
+        }
+
+        // Once complete, see if ImageView is still around and set bitmap.
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            if (imageViewReference != null && bitmap != null) {
+                final ImageView imageView = imageViewReference.get();
+                if (imageView != null) {
+                    System.out.println("IMAGE SET !!!!!!!!!");
+                    imageView.setImageBitmap(bitmap);
+                    imageSet = true;
+                }
+            }
+        }
+    }
 
 }
 
