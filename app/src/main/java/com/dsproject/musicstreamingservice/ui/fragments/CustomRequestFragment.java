@@ -3,12 +3,14 @@ package com.dsproject.musicstreamingservice.ui.fragments;
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.widget.Button;
 import android.widget.Switch;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
+import com.dsproject.musicstreamingservice.domain.media.MusicFile;
 import com.dsproject.musicstreamingservice.ui.MainActivity;
 import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
@@ -46,19 +48,19 @@ public class CustomRequestFragment extends GenericFragment
     {
         super.onActivityCreated(savedInstance);
 
-        artist_input_field = view.findViewById(R.id.artist_input_field);
-        song_input_field = view.findViewById(R.id.song_input_field);
+        artist_input_field = (TextInputLayout) view.findViewById(R.id.artist_input_field);
+        song_input_field = (TextInputLayout) view.findViewById(R.id.song_input_field);
 
-        switch1 = view.findViewById(R.id.switch1);
+        switch1 = (Switch) view.findViewById(R.id.switch1);
         switch1.setText("Play Now");
 
-        Req = view.findViewById(R.id.Req);
+        Req = (Button) view.findViewById(R.id.Req);
 
         setListeners();
 
         //for easy testing
-        Objects.requireNonNull(artist_input_field.getEditText()).setText("Jason Shaw");
-        Objects.requireNonNull(song_input_field.getEditText()).setText("Landra's Dream");
+        artist_input_field.getEditText().setText("Jason Shaw");
+        song_input_field.getEditText().setText("Landra's Dream");
 
         handleMessages();
     }
@@ -91,7 +93,7 @@ public class CustomRequestFragment extends GenericFragment
 
             if(playNow){
                 try {
-                    IOHandler.createBlankFile(Objects.requireNonNull(getActivity()),artist,song,false);     //creates an empty file so that the player fragment has something to open
+                    IOHandler.createBlankFile(getActivity(),artist,song,false);     //creates an empty file so that the player fragment has something to open
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -100,7 +102,7 @@ public class CustomRequestFragment extends GenericFragment
                 ArrayList<String> title = new ArrayList<>();
                 title.add(artist);
                 title.add(song);
-                data.putStringArrayList("songInfo", title);
+                data.putStringArrayList("songInfo",title);
                 goToFragmentWithData(data, playerFragment);
             }
 
@@ -111,36 +113,42 @@ public class CustomRequestFragment extends GenericFragment
     {
         Bundle args = getArguments();
         if(args != null){
-            Objects.requireNonNull(song_input_field.getEditText()).setText(args.getString("songName"));
+            song_input_field.getEditText().setText(args.getString("songName"));
         }
     }
 
-
     @SuppressLint("StaticFieldLeak")
-    class AsyncTaskRunner extends AsyncTask<String, Void, Void>
+    private class AsyncTaskRunner extends AsyncTask<String, Void, Boolean>
     {
         @Override
-        protected Void doInBackground(final String... params) {
+        protected Boolean doInBackground(final String... params) {
             Socket brokerConnection = MyConnectionsManager.getConnectionWithABroker(context);
             if(brokerConnection == null){
-                UtilitiesUI.showToast(Objects.requireNonNull(getActivity()), MyConnectionsManager.CANNOT_CONNECT_MSG);
+                UtilitiesUI.showToast(getActivity(), MyConnectionsManager.CANNOT_CONNECT_MSG);
                 MainActivity.getNotificationManager().makeNoConnectionNotification();
-                return null;
+                return false;
             }
 
             Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
                     Consumer.RequestType.DOWNLOAD_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
 
-            Consumer c1 = new Consumer(brokerConnection, context);
+            Consumer c1 = new Consumer(brokerConnection, getActivity());
             c1.init();
 
             if(dataBuffer == null){
-                c1.requestSongData(params[0], params[1], type);
+                return c1.requestSongData(params[0], params[1], type);
             }else{
-                c1.requestAndAppendSongDataToByteArray(params[0], params[1], dataBuffer, playerFragment);
+                return c1.requestAndAppendSongDataToByteArray(params[0], params[1], dataBuffer, playerFragment);
             }
+        }
 
-            return null;
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
+            if(!aBoolean) {
+                getActivity().getSupportFragmentManager().beginTransaction().remove(playerFragment).commit();
+                getActivity().getSupportFragmentManager().popBackStackImmediate();
+            }
         }
     }
 }
