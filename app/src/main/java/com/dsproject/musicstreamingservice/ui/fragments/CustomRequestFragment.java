@@ -3,14 +3,12 @@ package com.dsproject.musicstreamingservice.ui.fragments;
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.widget.Button;
 import android.widget.Switch;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
-import com.dsproject.musicstreamingservice.domain.media.MusicFile;
 import com.dsproject.musicstreamingservice.ui.MainActivity;
 import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
@@ -48,19 +46,19 @@ public class CustomRequestFragment extends GenericFragment
     {
         super.onActivityCreated(savedInstance);
 
-        artist_input_field = (TextInputLayout) view.findViewById(R.id.artist_input_field);
-        song_input_field = (TextInputLayout) view.findViewById(R.id.song_input_field);
+        artist_input_field = view.findViewById(R.id.artist_input_field);
+        song_input_field = view.findViewById(R.id.song_input_field);
 
-        switch1 = (Switch) view.findViewById(R.id.switch1);
+        switch1 = view.findViewById(R.id.switch1);
         switch1.setText("Play Now");
 
-        Req = (Button) view.findViewById(R.id.Req);
+        Req = view.findViewById(R.id.Req);
 
         setListeners();
 
         //for easy testing
-        artist_input_field.getEditText().setText("Jason Shaw");
-        song_input_field.getEditText().setText("Landra's Dream");
+        Objects.requireNonNull(artist_input_field.getEditText()).setText("Jason Shaw");
+        Objects.requireNonNull(song_input_field.getEditText()).setText("Landra's Dream");
 
         handleMessages();
     }
@@ -93,7 +91,7 @@ public class CustomRequestFragment extends GenericFragment
 
             if(playNow){
                 try {
-                    IOHandler.createBlankFile(getActivity(),artist,song,false);     //creates an empty file so that the player fragment has something to open
+                    IOHandler.createBlankFile(Objects.requireNonNull(getActivity()),artist,song,false);     //creates an empty file so that the player fragment has something to open
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -113,19 +111,19 @@ public class CustomRequestFragment extends GenericFragment
     {
         Bundle args = getArguments();
         if(args != null){
-            song_input_field.getEditText().setText(args.getString("songName"));
+            Objects.requireNonNull(song_input_field.getEditText()).setText(args.getString("songName"));
         }
     }
 
 
     @SuppressLint("StaticFieldLeak")
-    private class AsyncTaskRunner extends AsyncTask<String, Void, Void>
+    class AsyncTaskRunner extends AsyncTask<String, Void, Void>
     {
         @Override
         protected Void doInBackground(final String... params) {
             Socket brokerConnection = MyConnectionsManager.getConnectionWithABroker(context);
             if(brokerConnection == null){
-                UtilitiesUI.showToast(getActivity(), MyConnectionsManager.CANNOT_CONNECT_MSG);
+                UtilitiesUI.showToast(Objects.requireNonNull(getActivity()), MyConnectionsManager.CANNOT_CONNECT_MSG);
                 MainActivity.getNotificationManager().makeNoConnectionNotification();
                 return null;
             }

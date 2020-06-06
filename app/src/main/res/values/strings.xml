@@ -11,6 +11,7 @@
     <string name="play_now">Play Now</string>
     <string name="download">Download</string>
     <string name="title_activity_credits">CreditsActivity</string>
+
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>
@@ -47,4 +48,5 @@
     <string name="artists_text">Choose an Artist from the list presented to you, then you will see available songs for the selected artist.</string>
     <string name="custom_req_text">To find quickly a specific song insert the astist\'s name and the song\'s title in the appropriate fields. You can choose to play the song immediately or download it to your device.</string>
     <string name="songs">Songs</string>
+    <string name="button">Button</string>
 </resources>

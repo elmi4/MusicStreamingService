@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-// TODO: ripple effect on rows
+
 public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.ItemClickListener
 {
     private RecyclerView artistsList;
@@ -43,7 +43,7 @@ public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.I
     {
         super.onActivityCreated(savedInstance);
 
-        artistsList = (RecyclerView) view.findViewById(R.id.artistsList);
+        artistsList = view.findViewById(R.id.artistsList);
         artistsList.setLayoutManager(new LinearLayoutManager(context));
         createArtistsList();
     }
