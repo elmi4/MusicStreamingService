@@ -1,31 +1,41 @@
-package com.dsproject.musicstreamingservice.ui.fragments;
 
-import android.media.MediaDataSource;
-import android.media.MediaPlayer;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+        package com.dsproject.musicstreamingservice.ui.fragments;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+        import android.graphics.Bitmap;
+        import android.graphics.BitmapFactory;
+        import android.media.MediaDataSource;
+        import android.media.MediaMetadataRetriever;
+        import android.media.MediaPlayer;
+        import android.net.Uri;
+        import android.os.AsyncTask;
+        import android.os.Bundle;
+        import android.os.SystemClock;
+        import android.util.Log;
+        import android.view.LayoutInflater;
+        import android.view.View;
+        import android.view.ViewGroup;
+        import android.widget.ImageButton;
+        import android.widget.ImageView;
+        import android.widget.ProgressBar;
+        import android.widget.TextView;
 
-import com.dsproject.musicstreamingservice.R;
-import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
-import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
-import com.dsproject.musicstreamingservice.ui.util.ByteListMediaDataSource;
-import com.dsproject.musicstreamingservice.ui.util.OnBufferInitializedEvent;
+        import androidx.annotation.NonNull;
+        import androidx.annotation.Nullable;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+        import com.dsproject.musicstreamingservice.R;
+        import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
+        import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
+        import com.dsproject.musicstreamingservice.ui.util.ByteListMediaDataSource;
+        import com.dsproject.musicstreamingservice.ui.util.OnBufferInitializedEvent;
 
-public class PetrosPlayerFragment extends GenericFragment
+        import java.io.File;
+        import java.io.FileNotFoundException;
+        import java.io.IOException;
+        import java.util.ArrayList;
+        import java.util.List;
+        import java.util.Scanner;
+
+        public class PetrosPlayerFragment extends GenericFragment
         implements MediaPlayer.OnErrorListener, OnBufferInitializedEvent
 {
     private TextView title;
@@ -37,6 +47,12 @@ public class PetrosPlayerFragment extends GenericFragment
 
     private List<Byte> sourceBuffer;//CopyOnWriteArrayList
     private MediaPlayer musicPlayer;
+    MediaDataSource dataSource;
+
+
+    private MediaMetadataRetriever metadataRetriever;
+    private boolean stop = false;
+    private boolean imageSet = false;
 
 
     public PetrosPlayerFragment(List<Byte> buffer) {
@@ -70,12 +86,16 @@ public class PetrosPlayerFragment extends GenericFragment
 //            instead of ArrayList, the List could be a CopyOnWriteArrayList
 
             //test method to get the mp3 bytes into memory
-           // sourceBuffer = IOHandler.readMp31(getActivity());
-            MediaDataSource dataSource = new ByteListMediaDataSource(sourceBuffer);
+            // sourceBuffer = IOHandler.readMp31(getActivity());
+            dataSource = new ByteListMediaDataSource(sourceBuffer);
 
             musicPlayer = new MediaPlayer();
             musicPlayer.setOnCompletionListener(MediaPlayer::release);
             musicPlayer.setDataSource(dataSource);
+
+            metadataRetriever = new MediaMetadataRetriever();
+
+
 //            try {
 //                musicPlayer.prepare();
 //            } catch (IOException e) {
@@ -84,6 +104,47 @@ public class PetrosPlayerFragment extends GenericFragment
 //            }
 //            System.out.println("PAAAASEEED PREPAAAREEEEEEEEEEEEEEEEEEEEE");
 //            musicPlayer.start();
+
+            while(!imageSet) {
+                try {
+                    if(dataSource.getSize() > 1 && metadataRetriever != null && musicPlayer !=null && musicPlayer.isPlaying()) {
+
+                        metadataRetriever.setDataSource(dataSource);
+
+                        byte [] imageData = metadataRetriever.getEmbeddedPicture();
+
+                        // convert the byte array to a bitmap
+                        if(imageData != null)
+                        {
+                            Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
+                            songImage.setImageBitmap(bitmap); //associated cover art in bitmap
+                            imageSet = true;
+                            System.out.println("Cover art set");
+                        }
+
+                    }
+                } catch (IOException e) {
+
+                }
+            }
+
+
+            new Thread((Runnable) () -> {
+                while(!stop){
+                    try {
+                        if(dataSource.getSize() > 1 && metadataRetriever != null && musicPlayer!=null && musicPlayer.isPlaying() ) {
+                            metadataRetriever.setDataSource(dataSource);
+                            float percentage = (float)( (float)musicPlayer.getCurrentPosition() / Float.parseFloat(metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)));
+                            songProgressBar.setProgress((int)(percentage * (float)100));
+                            SystemClock.sleep(100);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+
+
 
             pausePlayButton.setOnClickListener(v1 -> {
                 if (musicPlayer.isPlaying()) {
@@ -106,7 +167,7 @@ public class PetrosPlayerFragment extends GenericFragment
         super.onDetach(); //isn't this supposed to be called after onDestroy by itself?
         System.out.println("FRAGMENT ONDESTROY");
         IOHandler.deleteFromStorage(getActivity(),artist,song,false);
-
+        stop = true;
         if(musicPlayer != null){
             musicPlayer.reset();
             musicPlayer.release();
@@ -145,5 +206,9 @@ public class PetrosPlayerFragment extends GenericFragment
         System.out.println("PLAYER LISTENEEEEEEEEEEEEEEEEED");
         musicPlayer.prepare();
         musicPlayer.start();
+
     }
+
+
 }
+
