@@ -22,6 +22,32 @@ public abstract class IOHandler
 {
     public static final int STANDARD_CHUNK_SIZE = 512 * 1024; //512KB
 
+    public static void createBlankFile (final Context context, final String artistName,
+                                        final String trackName , boolean downloadVersion) throws IOException
+    {
+        Log.d("DEBUG", "WRITING ON INTERNAL STORAGE");
+        String dataFolder = artistName + "___" + trackName + "/";
+        File songParentFolder = new File(context.getExternalFilesDir(null), dataFolder);
+        if(!songParentFolder.exists()){
+            songParentFolder.mkdir();
+        }
+
+        String fileName = trackName + "__" + artistName + ".mp3";
+        if(downloadVersion)fileName = "FULL_"+fileName;
+        File songFile = new File(songParentFolder, fileName);
+
+        try (FileOutputStream stream = new FileOutputStream(songFile)) {
+            stream.write("".getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+        long fileSizeInBytes = songFile.length();
+
+        System.out.println("blank file has a size of : " + fileSizeInBytes);
+
+    }
 
     public static void deleteFromStorage (final Context context, final String artistName,
                                           final String trackName , boolean downloadVersion)
@@ -41,11 +67,11 @@ public abstract class IOHandler
 
     public static String appendFileInAppStorage(final Context context, final MusicFile mf) throws IOException
     {
-        return appendFileInAppStorage(context, mf.getArtistName(), mf.getTrackName(), mf.getMusicFileExtract());
+        return appendFileInAppStorage(context, mf.getArtistName(), mf.getTrackName(), mf.getChunkNumber(), mf.getMusicFileExtract());
     }
 
     public static String appendFileInAppStorage(final Context context, final String artistName,
-                                                final String trackName,
+                                                final String trackName, final int part,
                                                 final byte[] data) throws IOException
     {
         Log.d("DEBUG", "WRITING ON INTERNAL STORAGE");
@@ -59,6 +85,19 @@ public abstract class IOHandler
         File songFile = new File(songParentFolder, fileName);
         System.out.println("Song saved at: "+ songFile.getAbsolutePath());
 
+        File songInfo = new File(songParentFolder, "tmp.txt");
+
+        if(!songFile.exists()) {
+
+            try (FileOutputStream tmpstream = new FileOutputStream(songInfo)) {
+                tmpstream.write(Integer.toString(part).getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw e;
+            }
+        }
+
+
         try (FileOutputStream stream = new FileOutputStream(songFile,true)) {
             stream.write(data);
             return songFile.getAbsolutePath();
@@ -66,6 +105,10 @@ public abstract class IOHandler
             e.printStackTrace();
             throw e;
         }
+
+
+
+
 
     }
 

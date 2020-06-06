@@ -30,14 +30,14 @@
             android:src="@mipmap/mss_logo_music_note"/>
 
 
-
         <ImageButton
             android:id="@+id/playerPlayPauseButton"
-            android:layout_marginTop="40dp"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_gravity="center"
-            android:src="@drawable/ic_pause_circle"/>
+            android:layout_marginTop="40dp"
+            android:background="@color/design_default_color_background"
+            android:src="@drawable/ic_pause_circle" />
 
         <ProgressBar
             android:layout_marginTop="16dp"

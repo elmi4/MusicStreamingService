@@ -118,7 +118,7 @@ public final class Consumer
 
             //Delete the previous temporary stream file if it exists
             if(requestType == RequestType.DOWNLOAD_CHUNKS){
-                IOHandler.deleteFromStorage(this.context,chunk.getArtistName(),chunk.getTrackName(),false);
+                //IOHandler.deleteFromStorage(this.context,chunk.getArtistName(),chunk.getTrackName(),false);
             }
 
             //Accept all the song chunks from broker until null is received (no more chunks)
