@@ -83,7 +83,7 @@ public class CustomRequestFragment extends GenericFragment
             if(playNow){
                 dataBuffer = new ArrayList<>(3000000);
             }
-            playerFragment = new PetrosPlayerFragment(dataBuffer);
+            playerFragment = PetrosPlayerFragment.getInstance(dataBuffer);
 
             new AsyncTaskRunner().execute(artist, song, request_type);
 
@@ -122,7 +122,7 @@ public class CustomRequestFragment extends GenericFragment
             Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
                     Consumer.RequestType.DOWNLOAD_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
 
-            Consumer c1 = new Consumer(brokerConnection, context);
+            Consumer c1 = new Consumer(brokerConnection, getActivity());
             c1.init();
 
             if(dataBuffer == null){

@@ -48,7 +48,7 @@ public abstract class GenericFragment extends Fragment
     protected <F extends GenericFragment> void goToFragment(final F frag)
     {
         this.getActivity().getSupportFragmentManager().beginTransaction().replace(
-                R.id.fragment_container, frag).commit();
+                R.id.fragment_container, frag).addToBackStack(null).commit();
 
         ((MainActivity)getActivity()).changeMenuCheckedItem(frag);
     }

@@ -6,6 +6,7 @@ import com.dsproject.musicstreamingservice.ui.fragments.CreditsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.CustomRequestFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.GenericFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.InstructionsFragment;
+import com.dsproject.musicstreamingservice.ui.fragments.PetrosPlayerFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.PlayerFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.SettingsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.SongsOfArtistFragment;
@@ -70,7 +71,7 @@ public abstract class MyFragmentManager
             case ARTISTS_FRAG_NAME:
                 return new ArtistsFragment();
             case PLAYER_FRAG_NAME:
-                return new PlayerFragment();
+                return PetrosPlayerFragment.getInstance(null);
             case CUSTOM_REQ_FRAG_NAME:
                 return new CustomRequestFragment();
             case SETTINGS_FRAG_NAME:

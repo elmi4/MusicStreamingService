@@ -1,23 +1,21 @@
 package com.dsproject.musicstreamingservice.ui.fragments;
 
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.media.MediaDataSource;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
+import com.dsproject.musicstreamingservice.ui.MainActivity;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
+import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
 import com.dsproject.musicstreamingservice.ui.util.ByteListMediaDataSource;
 import com.dsproject.musicstreamingservice.ui.util.OnBufferInitializedEvent;
 
@@ -32,28 +30,57 @@ public class PetrosPlayerFragment extends GenericFragment
     private ImageView songImage;
     private ImageButton pausePlayButton;
     private ProgressBar songProgressBar;
-    private String artist, song;
+    private  String artist, song;
     private int progress = 0;
 
-    private List<Byte> sourceBuffer;//CopyOnWriteArrayList
-    private MediaPlayer musicPlayer;
+    private static MediaPlayer musicPlayer;
+
+    private static List<Byte> sourceBuffer;
+    private boolean playerInitialized;
+    private static PetrosPlayerFragment instance;
+
+    private enum PlayerRequestState
+    {
+        ERROR,
+        FIRST_REQUEST,
+        SAME_REQUEST,
+        NEW_REQUEST
+    }
+    private PlayerRequestState state;
 
 
-    public PetrosPlayerFragment(List<Byte> buffer) {
+    private PetrosPlayerFragment(List<Byte> buffer) {
         super(MyFragmentManager.getLayoutOf(PlayerFragment.class));
         sourceBuffer = buffer;
+        state = PlayerRequestState.FIRST_REQUEST;
     }
 
+    public static PetrosPlayerFragment getInstance(List<Byte> buffer)
+    {
+        if(instance == null){
+            instance = new PetrosPlayerFragment(buffer);
+            return instance;
+        }
 
-    @Nullable
+        if(buffer != null && !buffer.equals(sourceBuffer)){
+            sourceBuffer = buffer;
+            instance.state = PlayerRequestState.NEW_REQUEST;
+        }else{
+            instance.state = PlayerRequestState.SAME_REQUEST;
+        }
+
+        return instance;
+    }
+
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_player,container,false);
+    public void onActivityCreated(Bundle savedInstance)
+    {
+        super.onActivityCreated(savedInstance);
 
-        title = v.findViewById(R.id.playerSongTitle);
-        songImage = v.findViewById(R.id.playerImageSong);
-        pausePlayButton = v.findViewById(R.id.playerPlayPauseButton);
-        songProgressBar = v.findViewById(R.id.playerProgressBar);
+        title = view.findViewById(R.id.playerSongTitle);
+        songImage = view.findViewById(R.id.playerImageSong);
+        pausePlayButton = view.findViewById(R.id.playerPlayPauseButton);
+        songProgressBar = view.findViewById(R.id.playerProgressBar);
 
         Bundle bundle = getArguments();
         if(bundle!= null){
@@ -63,27 +90,12 @@ public class PetrosPlayerFragment extends GenericFragment
 
             title.setText(song + " by " + artist);
 
-//            creating a custom MediaDataSource from where the media player will load the data. It contains
-//            a List<Byte> and needs to be updated inside the consumer while he receives the chunks
-//            method "requestAndAppendSongDataToByteArray" is supposed to do that. Takes as parameter
-//            the same List<Byte> as the ByteListMediaDataSource. If synchronization is needed,
-//            instead of ArrayList, the List could be a CopyOnWriteArrayList
-
-            //test method to get the mp3 bytes into memory
-           // sourceBuffer = IOHandler.readMp31(getActivity());
-            MediaDataSource dataSource = new ByteListMediaDataSource(sourceBuffer);
-
-            musicPlayer = new MediaPlayer();
-            musicPlayer.setOnCompletionListener(MediaPlayer::release);
-            musicPlayer.setDataSource(dataSource);
-//            try {
-//                musicPlayer.prepare();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//                title.setText("Error playing file");
-//            }
-//            System.out.println("PAAAASEEED PREPAAAREEEEEEEEEEEEEEEEEEEEE");
-//            musicPlayer.start();
+            if(state != PlayerRequestState.SAME_REQUEST) {
+                MediaDataSource dataSource = new ByteListMediaDataSource(sourceBuffer);
+                musicPlayer = new MediaPlayer();
+                musicPlayer.setOnCompletionListener(onPlayerCompleted());
+                musicPlayer.setDataSource(dataSource);
+            }
 
             pausePlayButton.setOnClickListener(v1 -> {
                 if (musicPlayer.isPlaying()) {
@@ -94,9 +106,18 @@ public class PetrosPlayerFragment extends GenericFragment
                     pausePlayButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_pause_circle));
                 }
             });
-
         }
-        return v;
+
+        state = PlayerRequestState.SAME_REQUEST;
+    }
+
+
+    private MediaPlayer.OnCompletionListener onPlayerCompleted()
+    {
+        return mp -> {
+            musicPlayer.release();
+            MainActivity.getNotificationManager().dismissPersistentNotification("player");
+        };
     }
 
 
@@ -142,8 +163,16 @@ public class PetrosPlayerFragment extends GenericFragment
 
     public void prepareAndStartSong() throws IOException
     {
-        System.out.println("PLAYER LISTENEEEEEEEEEEEEEEEEED");
         musicPlayer.prepare();
         musicPlayer.start();
+
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.putExtra(MainActivity.REDIRECT_TAG, MyFragmentManager.PLAYER_FRAG_NAME);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP );
+        PendingIntent pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        MyNotificationManager notificationManager = MainActivity.getNotificationManager();
+        notificationManager.makeAndShowPersistentNotification("player", song+" by "+artist,
+                "Click to open player", null, pi);
     }
 }

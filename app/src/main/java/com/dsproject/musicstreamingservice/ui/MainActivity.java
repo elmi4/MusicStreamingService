@@ -206,7 +206,7 @@ public class MainActivity extends AppCompatActivity
 
             GenericFragment frag = MyFragmentManager.getFragmentByName(fragName);
             changeMenuCheckedItem(frag);
-            return getSupportFragmentManager().beginTransaction().
+            return getSupportFragmentManager().beginTransaction().addToBackStack(null).
                     replace(R.id.fragment_container, frag); //custom fragment to open
         }
     }

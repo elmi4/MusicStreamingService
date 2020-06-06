@@ -9,7 +9,7 @@ import java.util.List;
 
 public class ByteListMediaDataSource extends MediaDataSource
 {
-    private final List<Byte> data;
+    private List<Byte> data;
 
     public ByteListMediaDataSource(@NonNull final List<Byte> data)
     {
@@ -19,8 +19,8 @@ public class ByteListMediaDataSource extends MediaDataSource
     @Override
     public int readAt(final long pos, final byte[] buffer, final int offset, final int size)
     {
-        System.out.println("Size of internal: "+getSize()+"  ,  Requested position of internal: "+pos+"  ,  Offset: "+offset);
-        System.out.println("Wanted buffer size: "+ size);
+        //System.out.println("Size of internal: "+getSize()+"  ,  Requested position of internal: "+pos+"  ,  Offset: "+offset);
+        //System.out.println("Wanted buffer size: "+ size);
 
         int count = 0;
         int sizeToBeRead = (int)Math.min(getSize(), pos+size);
@@ -29,7 +29,7 @@ public class ByteListMediaDataSource extends MediaDataSource
             buffer[offset + count++] = data.get(i);
             ++counter;
         }
-        System.out.println("Gave  :"+counter+"  bytes");
+        //System.out.println("Gave  :"+counter+"  bytes");
 
         return count;
     }
@@ -43,6 +43,6 @@ public class ByteListMediaDataSource extends MediaDataSource
     @Override
     public void close()
     {
-        //nothing to do
+        data = null;
     }
 }

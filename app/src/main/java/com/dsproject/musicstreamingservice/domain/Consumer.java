@@ -201,13 +201,11 @@ public final class Consumer
 
             boolean callbackCalled = false;
             //Accept all the song chunks from broker until null is received (no more chunks)
-            int counter = 1;
             do{
                 MusicFile mf = (MusicFile)ob;
                 byte[] currentChunk = mf.getMusicFileExtract();
                 List<Byte> aList = new ArrayList<>(Arrays.asList(Utilities.toByteObjectArray(currentChunk)));
                 mp3Bits.addAll(aList);
-                System.out.println("CONSUMER ADDED BYTES: "+counter++);
                 if(!callbackCalled){
                     callback.prepareAndStartSong();
                     callbackCalled = true;
