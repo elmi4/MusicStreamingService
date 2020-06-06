@@ -31,7 +31,6 @@
     <string name="connect_to_server">Connect to server</string>
     <string name="notifications_test">Notifications Test</string>
 
-
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">MusicStreamingService</string>
@@ -41,7 +40,6 @@
     <string name="connect">Connect</string>
     <string name="ip_port">ip@port</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="settings_text">Before operating the application insert the Broker\'s IP address
         and port number in the field appearing in \"Settings\" screen. </string>
@@ -49,4 +47,7 @@
     <string name="custom_req_text">To find quickly a specific song insert the astist\'s name and the song\'s title in the appropriate fields. You can choose to play the song immediately or download it to your device.</string>
     <string name="songs">Songs</string>
     <string name="button">Button</string>
+    <string name="downloadIcon">downloadIcon</string>
+    <string name="SongsMsg">Click on a title to listen to a song, or click on the icon to the right to download it.</string>
+    <string name="ArtistMsg">Pick an artist to see their available songs.</string>
 </resources>

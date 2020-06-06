@@ -27,7 +27,6 @@ public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.ViewHold
         this.mData = data;
     }
 
-
     /**
      * Inflates (builds) the row layout from its corresponding xml file.
      */

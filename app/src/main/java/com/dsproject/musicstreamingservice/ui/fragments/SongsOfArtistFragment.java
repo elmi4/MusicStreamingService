@@ -4,7 +4,7 @@ import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -29,22 +29,16 @@ import java.util.concurrent.ExecutionException;
 
 import static com.dsproject.musicstreamingservice.ui.util.UtilitiesUI.showToast;
 
-// TODO: image instead of button,
-//       layout,
-//       make an adapter superclass,
-//       check every file for imports/warnings/cleanup,
 public class SongsOfArtistFragment extends GenericFragment implements SongsAdapter.ItemClickListener
 {
     private RecyclerView songsList;
     private String artistSelected;
-
     private static final String DOWNLOAD_REQUEST = "download";
 
     public SongsOfArtistFragment()
     {
         super(MyFragmentManager.getLayoutOf(SongsOfArtistFragment.class));
     }
-
 
     @Override
     public void onActivityCreated(Bundle savedInstance)
@@ -93,7 +87,7 @@ public class SongsOfArtistFragment extends GenericFragment implements SongsAdapt
     }
 
 
-    public void onItemClick(View view, int position, TextView songName, Button download)
+    public void onItemClick(View view, int position, TextView songName, ImageView download)
     {
         String songSelected = songName.getText().toString();
 
@@ -140,6 +134,7 @@ public class SongsOfArtistFragment extends GenericFragment implements SongsAdapt
     }
 
 
+    //!!!!!!!!!!!!!!!!Identical code to CustomRequest.AsyncTaskRunner!!!!!!!!!!!!!!!!
     @SuppressLint("StaticFieldLeak")
     class AsyncTaskRunner2 extends AsyncTask<String, Void, Void>
     {

@@ -21,12 +21,12 @@ import com.dsproject.musicstreamingservice.ui.recyclerViewAdapters.ArtistsAdapte
 import com.dsproject.musicstreamingservice.ui.util.UtilitiesUI;
 
 import java.net.Socket;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-
 
 public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.ItemClickListener
 {
@@ -36,7 +36,6 @@ public class ArtistsFragment extends GenericFragment implements ArtistsAdapter.I
     {
         super(MyFragmentManager.getLayoutOf(ArtistsFragment.class));
     }
-
 
     @Override
     public void onActivityCreated(Bundle savedInstance)

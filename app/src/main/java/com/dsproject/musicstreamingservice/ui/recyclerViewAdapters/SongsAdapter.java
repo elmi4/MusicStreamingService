@@ -4,7 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -28,7 +28,6 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder>
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
     }
-
 
     /**
      * Inflates (builds) the row layout from its corresponding xml file.
@@ -64,13 +63,13 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder>
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
     {
         private TextView songName;
-        private Button download;
+        private ImageView download;
 
         ViewHolder(View itemView) {
             super(itemView);
 
             songName = itemView.findViewById(R.id.songNameTV);
-            download = itemView.findViewById(R.id.downloadBtn);
+            download = itemView.findViewById(R.id.downloadIcon);
 
             songName.setOnClickListener(this);
             download.setOnClickListener(this);
@@ -89,7 +88,7 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder>
 
 
     public interface ItemClickListener {
-        void onItemClick(View view, int position, TextView textView, Button btn);
+        void onItemClick(View view, int position, TextView textView, ImageView image);
     }
 
 }
