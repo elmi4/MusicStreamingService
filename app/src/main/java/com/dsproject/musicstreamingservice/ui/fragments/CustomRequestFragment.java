@@ -3,21 +3,17 @@ package com.dsproject.musicstreamingservice.ui.fragments;
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.widget.Button;
 import android.widget.Switch;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
-import com.dsproject.musicstreamingservice.domain.assist.io.IOHandler;
-import com.dsproject.musicstreamingservice.domain.media.MusicFile;
 import com.dsproject.musicstreamingservice.ui.MainActivity;
 import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 import com.dsproject.musicstreamingservice.ui.util.UtilitiesUI;
 import com.google.android.material.textfield.TextInputLayout;
 
-import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,12 +88,6 @@ public class CustomRequestFragment extends GenericFragment
             new AsyncTaskRunner().execute(artist, song, request_type);
 
             if(playNow){
-                try {
-                    IOHandler.createBlankFile(getActivity(),artist,song,false);     //creates an empty file so that the player fragment has something to open
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
                 Bundle data = new Bundle();
                 ArrayList<String> title = new ArrayList<>();
                 title.add(artist);
@@ -138,16 +128,7 @@ public class CustomRequestFragment extends GenericFragment
             if(dataBuffer == null){
                 return c1.requestSongData(params[0], params[1], type);
             }else{
-                return c1.requestAndAppendSongDataToByteArray(params[0], params[1], dataBuffer, playerFragment);
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            super.onPostExecute(aBoolean);
-            if(!aBoolean) {
-                getActivity().getSupportFragmentManager().beginTransaction().remove(playerFragment).commit();
-                getActivity().getSupportFragmentManager().popBackStackImmediate();
+                return c1.requestAndAppendSongDataToBuffer(params[0], params[1], dataBuffer, playerFragment);
             }
         }
     }

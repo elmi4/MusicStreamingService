@@ -5,7 +5,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.widget.Toast;
 
 import androidx.core.content.FileProvider;
 
@@ -17,7 +16,6 @@ import com.dsproject.musicstreamingservice.domain.media.ArtistName;
 import com.dsproject.musicstreamingservice.domain.media.MusicFile;
 import com.dsproject.musicstreamingservice.domain.media.SongInfo;
 import com.dsproject.musicstreamingservice.ui.MainActivity;
-import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
 import com.dsproject.musicstreamingservice.ui.managers.notifications.MyNotificationManager;
 import com.dsproject.musicstreamingservice.ui.util.OnBufferInitializedEvent;
 import com.dsproject.musicstreamingservice.ui.util.UtilitiesUI;
@@ -167,7 +165,7 @@ public final class Consumer
     }
 
 
-    public Boolean requestAndAppendSongDataToByteArray(final String artistName, final String songName,
+    public Boolean requestAndAppendSongDataToBuffer(final String artistName, final String songName,
                                                     final List<Byte> mp3Bits,
                                                     final OnBufferInitializedEvent callback)
             throws IllegalStateException
@@ -178,6 +176,7 @@ public final class Consumer
         ArtistName artistObj = ArtistName.of(artistName);
 
         if(!artistIsServed(artistObj)){
+            callback.notifyMediaPlayer(false);
             UtilitiesUI.showToast((Activity)context, "This artist isn't being served");
             return false;
         }
@@ -198,6 +197,7 @@ public final class Consumer
             //If error msg was sent, return. (song doesn't exist)
             Object ob = in.readObject();
             if(Utilities.isStringLiteral(ob)){
+                callback.notifyMediaPlayer(false);
                 UtilitiesUI.showToast((Activity)context, (String)ob);
                 return false;
             }
@@ -210,7 +210,7 @@ public final class Consumer
                 List<Byte> aList = new ArrayList<>(Arrays.asList(Utilities.toByteObjectArray(currentChunk)));
                 mp3Bits.addAll(aList);
                 if(!callbackCalled){
-                    callback.prepareAndStartSong();
+                    callback.notifyMediaPlayer(true);
                     callbackCalled = true;
                 }
             } while ((ob = in.readObject()) != null);

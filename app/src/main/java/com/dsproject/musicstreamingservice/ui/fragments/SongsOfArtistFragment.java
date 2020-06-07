@@ -20,7 +20,6 @@ import com.dsproject.musicstreamingservice.ui.recyclerViewAdapters.SongsAdapter;
 import com.dsproject.musicstreamingservice.ui.util.UtilitiesUI;
 
 import java.net.Socket;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -93,7 +92,7 @@ public class SongsOfArtistFragment extends GenericFragment implements SongsAdapt
 
         if(songName.isPressed()) {
             List<Byte> dataBuffer = new ArrayList<>(3000000);
-            PetrosPlayerFragment playerFragment = new PetrosPlayerFragment(dataBuffer);
+            PetrosPlayerFragment playerFragment = PetrosPlayerFragment.getInstance(dataBuffer);
 
             Bundle data = new Bundle();
 
