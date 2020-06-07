@@ -17,7 +17,8 @@ import com.dsproject.musicstreamingservice.ui.MainActivity;
 import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
 import com.dsproject.musicstreamingservice.ui.recyclerViewAdapters.SongsAdapter;
-import com.dsproject.musicstreamingservice.ui.util.UtilitiesUI;
+import com.dsproject.musicstreamingservice.ui.util.AsyncConsumerRequest;
+import com.dsproject.musicstreamingservice.ui.util.RequestDetails;
 
 import java.net.Socket;
 import java.util.ArrayList;
@@ -89,23 +90,27 @@ public class SongsOfArtistFragment extends GenericFragment implements SongsAdapt
     public void onItemClick(View view, int position, TextView songName, ImageView download)
     {
         String songSelected = songName.getText().toString();
+        List<Byte> dataBuffer = null;
+        Consumer.RequestType request_type = Consumer.RequestType.DOWNLOAD_FULL_SONG;
 
-        if(songName.isPressed()) {
-            List<Byte> dataBuffer = new ArrayList<>(3000000);
-            PetrosPlayerFragment playerFragment = PetrosPlayerFragment.getInstance(dataBuffer);
-
-            Bundle data = new Bundle();
-
-            ArrayList<String> titleOfPlayer = new ArrayList<>();
-            titleOfPlayer.add(artistSelected);
-            titleOfPlayer.add(songSelected);
-
-            data.putStringArrayList("songInfo", titleOfPlayer);
-            goToFragmentWithData(data, playerFragment);
+        if(songName.isPressed()){
+            dataBuffer = new ArrayList<>(3000000);
+            request_type = Consumer.RequestType.PLAY_CHUNKS;
         }
+        PetrosPlayerFragment playerFragment = PetrosPlayerFragment.getInstance(dataBuffer);
 
-        else if (download.isPressed()) {
-            new AsyncTaskRunner2().execute(artistSelected, songSelected, DOWNLOAD_REQUEST);
+        RequestDetails details = new RequestDetails(artistSelected, songSelected, request_type,
+                dataBuffer, playerFragment);
+
+        new AsyncConsumerRequest(getActivity()).execute(details);
+
+        if(songName.isPressed()){
+            Bundle data = new Bundle();
+            ArrayList<String> title = new ArrayList<>();
+            title.add(artistSelected);
+            title.add(songSelected);
+            data.putStringArrayList("songInfo",title);
+            goToFragmentWithData(data, playerFragment);
         }
     }
 
@@ -132,28 +137,4 @@ public class SongsOfArtistFragment extends GenericFragment implements SongsAdapt
         }
     }
 
-
-    //!!!!!!!!!!!!!!!!Identical code to CustomRequest.AsyncTaskRunner!!!!!!!!!!!!!!!!
-    @SuppressLint("StaticFieldLeak")
-    class AsyncTaskRunner2 extends AsyncTask<String, Void, Void>
-    {
-        @Override
-        protected Void doInBackground(final String... params) {
-            Socket brokerConnection = MyConnectionsManager.getConnectionWithABroker(context);
-            if(brokerConnection == null){
-                UtilitiesUI.showToast(Objects.requireNonNull(getActivity()), MyConnectionsManager.CANNOT_CONNECT_MSG);
-                MainActivity.getNotificationManager().makeNoConnectionNotification();
-                return null;
-            }
-
-            Consumer.RequestType type = Consumer.RequestType.DOWNLOAD_FULL_SONG;
-
-            Consumer c1 = new Consumer(brokerConnection, context);
-            c1.init();
-
-            c1.requestSongData(params[0], params[1], type);
-
-            return null;
-        }
-    }
 }

@@ -1,20 +1,16 @@
 package com.dsproject.musicstreamingservice.ui.fragments;
 
-import android.annotation.SuppressLint;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Switch;
 
 import com.dsproject.musicstreamingservice.R;
 import com.dsproject.musicstreamingservice.domain.Consumer;
-import com.dsproject.musicstreamingservice.ui.MainActivity;
-import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
 import com.dsproject.musicstreamingservice.ui.managers.fragments.MyFragmentManager;
-import com.dsproject.musicstreamingservice.ui.util.UtilitiesUI;
+import com.dsproject.musicstreamingservice.ui.util.AsyncConsumerRequest;
+import com.dsproject.musicstreamingservice.ui.util.RequestDetails;
 import com.google.android.material.textfield.TextInputLayout;
 
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -78,14 +74,17 @@ public class CustomRequestFragment extends GenericFragment
             String song = Objects.requireNonNull(song_input_field.getEditText()).getText().toString().trim();
 
             boolean playNow = !switch1.isChecked();
-            String request_type = (playNow) ? PLAY_REQUEST : DOWNLOAD_REQUEST;
+            Consumer.RequestType request_type = (playNow) ? Consumer.RequestType.PLAY_CHUNKS
+                                                          : Consumer.RequestType.DOWNLOAD_FULL_SONG;
 
             if(playNow){
                 dataBuffer = new ArrayList<>(3000000);
             }
             playerFragment = PetrosPlayerFragment.getInstance(dataBuffer);
 
-            new AsyncTaskRunner().execute(artist, song, request_type);
+            RequestDetails details = new RequestDetails(artist, song, request_type, dataBuffer, playerFragment);
+
+            new AsyncConsumerRequest(getActivity()).execute(details);
 
             if(playNow){
                 Bundle data = new Bundle();
@@ -104,32 +103,6 @@ public class CustomRequestFragment extends GenericFragment
         Bundle args = getArguments();
         if(args != null){
             song_input_field.getEditText().setText(args.getString("songName"));
-        }
-    }
-
-    @SuppressLint("StaticFieldLeak")
-    private class AsyncTaskRunner extends AsyncTask<String, Void, Boolean>
-    {
-        @Override
-        protected Boolean doInBackground(final String... params) {
-            Socket brokerConnection = MyConnectionsManager.getConnectionWithABroker(context);
-            if(brokerConnection == null){
-                UtilitiesUI.showToast(getActivity(), MyConnectionsManager.CANNOT_CONNECT_MSG);
-                MainActivity.getNotificationManager().makeNoConnectionNotification();
-                return false;
-            }
-
-            Consumer.RequestType type = (params[2].equals(PLAY_REQUEST)) ?
-                    Consumer.RequestType.DOWNLOAD_CHUNKS : Consumer.RequestType.DOWNLOAD_FULL_SONG;
-
-            Consumer c1 = new Consumer(brokerConnection, getActivity());
-            c1.init();
-
-            if(dataBuffer == null){
-                return c1.requestSongData(params[0], params[1], type);
-            }else{
-                return c1.requestAndAppendSongDataToBuffer(params[0], params[1], dataBuffer, playerFragment);
-            }
         }
     }
 }

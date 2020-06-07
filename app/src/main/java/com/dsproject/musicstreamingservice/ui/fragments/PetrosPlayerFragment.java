@@ -130,6 +130,9 @@ public class PetrosPlayerFragment extends GenericFragment
     {
         super.onDestroy();
         songIsOngoing = false;
+
+        MainActivity.getNotificationManager().dismissPersistentNotification(NOTIFICATION_ID);
+
         if (musicPlayer != null) {
             musicPlayer.release();
         }
