@@ -5,7 +5,7 @@ import android.os.AsyncTask;
 
 import com.dsproject.musicstreamingservice.domain.Consumer;
 import com.dsproject.musicstreamingservice.ui.MainActivity;
-import com.dsproject.musicstreamingservice.ui.fragments.PetrosPlayerFragment;
+import com.dsproject.musicstreamingservice.ui.fragments.PlayerFragment;
 import com.dsproject.musicstreamingservice.ui.managers.connections.MyConnectionsManager;
 
 import java.lang.ref.WeakReference;
@@ -35,7 +35,7 @@ public class AsyncConsumerRequest extends AsyncTask<RequestDetails, Void, Boolea
         String songName = details[0].getSongName();
         Consumer.RequestType type = details[0].getType();
         List<Byte> dataBuffer = details[0].getBuffer();
-        PetrosPlayerFragment playerFragment = details[0].getPlayerFragment();
+        PlayerFragment playerFragment = details[0].getPlayerFragment();
 
         Consumer c1 = new Consumer(brokerConnection, activity.get());
         c1.init();

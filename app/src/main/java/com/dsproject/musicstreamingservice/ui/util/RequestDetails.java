@@ -1,7 +1,7 @@
 package com.dsproject.musicstreamingservice.ui.util;
 
 import com.dsproject.musicstreamingservice.domain.Consumer;
-import com.dsproject.musicstreamingservice.ui.fragments.PetrosPlayerFragment;
+import com.dsproject.musicstreamingservice.ui.fragments.PlayerFragment;
 
 import java.util.List;
 
@@ -10,10 +10,10 @@ public class RequestDetails
     private final String artistName, songName;
     private final Consumer.RequestType type;
     private final List<Byte> buffer;
-    private final PetrosPlayerFragment playerFragment;
+    private final PlayerFragment playerFragment;
 
     public RequestDetails(final String artistName, final String songName, final Consumer.RequestType type,
-                          final List<Byte> buffer, final PetrosPlayerFragment playerFragment)
+                          final List<Byte> buffer, final PlayerFragment playerFragment)
     {
         this.artistName = artistName;
         this.songName = songName;
@@ -42,7 +42,7 @@ public class RequestDetails
         return buffer;
     }
 
-    public PetrosPlayerFragment getPlayerFragment()
+    public PlayerFragment getPlayerFragment()
     {
         return playerFragment;
     }

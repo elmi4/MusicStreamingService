@@ -25,7 +25,7 @@ public class CustomRequestFragment extends GenericFragment
     private Button Req;
     private Switch switch1;
 
-    private PetrosPlayerFragment playerFragment;
+    private PlayerFragment playerFragment;
     private List<Byte> dataBuffer;
 
 
@@ -80,7 +80,7 @@ public class CustomRequestFragment extends GenericFragment
             if(playNow){
                 dataBuffer = new ArrayList<>(3000000);
             }
-            playerFragment = PetrosPlayerFragment.getInstance(dataBuffer);
+            playerFragment = PlayerFragment.getInstance(dataBuffer);
 
             RequestDetails details = new RequestDetails(artist, song, request_type, dataBuffer, playerFragment);
 

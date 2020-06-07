@@ -40,21 +40,6 @@ public abstract class MyConnectionsManager
         readBrokerCredentials = connInfo;
     }
 
-                         //must be run in a background thread
-//    public static boolean canEstablishConnection(final String ip, final int port, final Activity activity)
-//    {
-//        Socket connection = new Socket();
-//        try {
-//            InetSocketAddress endPoint = new InetSocketAddress(ip, port);
-//            connection.connect(endPoint, CONNECTION_TIMEOUT_MS);
-//            return true;
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return false;
-//        }
-//    }
-
-
     private static Socket connectWithBroker()
     {
         Socket connection = new Socket();

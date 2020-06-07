@@ -97,7 +97,7 @@ public class SongsOfArtistFragment extends GenericFragment implements SongsAdapt
             dataBuffer = new ArrayList<>(3000000);
             request_type = Consumer.RequestType.PLAY_CHUNKS;
         }
-        PetrosPlayerFragment playerFragment = PetrosPlayerFragment.getInstance(dataBuffer);
+        PlayerFragment playerFragment = PlayerFragment.getInstance(dataBuffer);
 
         RequestDetails details = new RequestDetails(artistSelected, songSelected, request_type,
                 dataBuffer, playerFragment);

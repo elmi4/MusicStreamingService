@@ -6,7 +6,6 @@ import com.dsproject.musicstreamingservice.ui.fragments.CreditsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.CustomRequestFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.GenericFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.InstructionsFragment;
-import com.dsproject.musicstreamingservice.ui.fragments.PetrosPlayerFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.PlayerFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.SettingsFragment;
 import com.dsproject.musicstreamingservice.ui.fragments.SongsOfArtistFragment;
@@ -55,7 +54,6 @@ public abstract class MyFragmentManager
         return classToLayout;
     }
 
-    //TODO: More cases to be added for each fragment class implemented
     public static <T extends GenericFragment> Integer getLayoutOf(final Class<T> fragClass)
     {
         if(!classToLayout.containsKey(fragClass)){
@@ -71,7 +69,7 @@ public abstract class MyFragmentManager
             case ARTISTS_FRAG_NAME:
                 return new ArtistsFragment();
             case PLAYER_FRAG_NAME:
-                return PetrosPlayerFragment.getInstance(null);
+                return PlayerFragment.getInstance(null);
             case CUSTOM_REQ_FRAG_NAME:
                 return new CustomRequestFragment();
             case SETTINGS_FRAG_NAME:
