@@ -27,13 +27,12 @@ public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.ViewHold
         this.mData = data;
     }
 
-
     /**
      * Inflates (builds) the row layout from its corresponding xml file.
      */
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = mInflater.inflate(R.layout.row_of_artists_list, parent, false);
         return new ViewHolder(view);
     }
@@ -45,7 +44,7 @@ public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.ViewHold
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         String artist = mData.get(position);
-        holder.myTextView.setText(artist);
+        holder.artistName.setText(artist);
     }
 
 
@@ -60,17 +59,17 @@ public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.ViewHold
      */
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
     {
-        TextView myTextView;
+        TextView artistName;
 
         ViewHolder(View itemView) {
             super(itemView);
-            myTextView = itemView.findViewById(R.id.ArtistName);
+            artistName = itemView.findViewById(R.id.artistNameTV);
             itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View view) {
-           if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition(), myTextView);
+           if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition(), artistName);
         }
     }
 
@@ -81,6 +80,6 @@ public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.ViewHold
 
 
     public interface ItemClickListener {
-        void onItemClick(View view, int position, TextView nameTextView) ;
+        void onItemClick(View view, int position, TextView textView) ;
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -22,18 +23,18 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder>
     private ItemClickListener mClickListener;
     private LayoutInflater mInflater;
 
+
     public SongsAdapter(Context context, List<String> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
     }
-
 
     /**
      * Inflates (builds) the row layout from its corresponding xml file.
      */
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = mInflater.inflate(R.layout.row_of_songs_list, parent, false);
         return new ViewHolder(view);
     }
@@ -43,9 +44,10 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder>
      * Binds the string to its respective TextView in each row.
      */
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, int position)
+    {
         String song = mData.get(position);
-        holder.myTextView.setText(song);
+        holder.songName.setText(song);
     }
 
 
@@ -60,17 +62,22 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder>
      */
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
     {
-        TextView myTextView;
+        private TextView songName;
+        private ImageView download;
 
         ViewHolder(View itemView) {
             super(itemView);
-            myTextView = itemView.findViewById(R.id.SongName);
-            itemView.setOnClickListener(this);
+
+            songName = itemView.findViewById(R.id.songNameTV);
+            download = itemView.findViewById(R.id.downloadIcon);
+
+            songName.setOnClickListener(this);
+            download.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View view) {
-            if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition());
+            if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition(), songName, download);
         }
     }
 
@@ -81,6 +88,8 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder>
 
 
     public interface ItemClickListener {
-        void onItemClick(View view, int position);
+        void onItemClick(View view, int position, TextView textView, ImageView image);
     }
+
 }
+
